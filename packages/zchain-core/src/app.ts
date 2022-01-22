@@ -1,4 +1,3 @@
-
 import Libp2p from "libp2p";
 import KadDHT from 'libp2p-kad-dht';
 import TCP from 'libp2p-tcp'
@@ -11,52 +10,55 @@ import delay from 'delay'
 
 export class ZCHAIN {
 
-    constructor() { }
+  zchain: Libp2p | undefined;
 
-    async _initialize(): Promise<Libp2p> {
-        const node = await Libp2p.create({
-          addresses: {
-            listen: ['/ip4/0.0.0.0/tcp/0']
-          },
-          modules: {
-            transport: [ TCP ],
-            streamMuxer: [ Mplex ],
-            connEncryption: [ NOISE ],
-            dht: KadDHT
-          },
-          config: {
-            dht: {
-              enabled: true
-            }
+  constructor() { }
+
+  async initialize(): Promise<Libp2p> {
+      const node = await Libp2p.create({
+        addresses: {
+          listen: ['/ip4/0.0.0.0/tcp/0']
+        },
+        modules: {
+          transport: [ TCP ],
+          streamMuxer: [ Mplex ],
+          connEncryption: [ NOISE ],
+          dht: KadDHT
+        },
+        config: {
+          dht: {
+            enabled: true
           }
-        });
-      
-        console.log('New zChain node started...')
-        await node.start()
-        return node;
+        }
+      });
+    
+      console.log('zChain Node Activated: ' + node.peerId.toB58String())
+      await node.start()
+      this.zchain = node;
+      return node;
     }
 }
 
 ;(async () => {
-    const node = new ZCHAIN;
-    const node1 = await node._initialize();
-    console.log(node);
+    const node1 = new ZCHAIN();
+    await node1.initialize();
+    console.log(node1.zchain.keychain);
 
-    const wode = new ZCHAIN;
-    const node2 = await wode._initialize();
+    const node2 = new ZCHAIN();
+    await node2.initialize();
+
+    const node3 = new ZCHAIN();
+    await node3.initialize();
+
+    // await Promise.all([
+    //     node1.dial(node2.zchain.peerId),
+    //     node2.dial(node3.zchain.peerId)
+    // ]);
+
+    // await delay(1000);
+
+    // const peer = await node2.peerRouting.findPeer(node3.peerId);
   
-    const mode = new ZCHAIN;
-    const node3 = await mode._initialize();
-
-    await Promise.all([
-        node1.dial(node2.peerId),
-        node2.dial(node3.peerId)
-    ]);
-
-    await delay(1000);
-
-    const peer = await node2.peerRouting.findPeer(node3.peerId);
-  
-    console.log('Found it, multiaddrs are:');
-    peer.multiaddrs.forEach((ma) => console.log(`${ma.toString()}/p2p/${peer.id.toB58String()}`));
+    // console.log('Found it, multiaddrs are:');
+    // peer.multiaddrs.forEach((ma) => console.log(`${ma.toString()}/p2p/${peer.id.toB58String()}`));
 })();
