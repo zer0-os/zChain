@@ -16,6 +16,7 @@
     "@types/express": "^4.17.13",
     "@types/node": "^17.0.10",
     "express": "^4.17.2",
+    "libp2p-websockets": "^0.16.2",
     "nodemon": "^2.0.15",
     "ts-node": "^10.4.0",
     "typescript": "^4.5.5"
@@ -25,6 +26,7 @@
     "libp2p": "^0.35.8",
     "libp2p-kad-dht": "^0.28.6",
     "libp2p-mplex": "^0.10.7",
-    "libp2p-tcp": "^0.17.2"
+    "libp2p-tcp": "^0.17.2",
+    "peer-id": "^0.16.0"
   }
 }
