@@ -1,5 +1,4 @@
 
-import express from 'express';
 import Libp2p from "libp2p";
 import KadDHT from 'libp2p-kad-dht';
 import TCP from 'libp2p-tcp'
@@ -35,8 +34,7 @@ export class ZCHAIN {
         console.log('New zChain node started...')
         await node.start()
         return node;
-      }
-
+    }
 }
 
 ;(async () => {
@@ -62,13 +60,3 @@ export class ZCHAIN {
     console.log('Found it, multiaddrs are:');
     peer.multiaddrs.forEach((ma) => console.log(`${ma.toString()}/p2p/${peer.id.toB58String()}`));
 })();
-
-// Express
-
-const app = express();
-
-app.get('/', (req, res) => {
-    res.send('Hello');
-});
-
-app.listen(5100, () => console.log('Server running'));
