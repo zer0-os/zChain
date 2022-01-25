@@ -1,8 +1,8 @@
 'use strict'
 /* eslint-disable no-console */
 
-import { pipe } from 'it-pipe';
-import lp from 'it-length-prefixed';
+import { pipe } from 'it-pipe'
+import lp from 'it-length-prefixed'
 
 export function stdinToStream(stream) {
   // Read utf-8 from stdin

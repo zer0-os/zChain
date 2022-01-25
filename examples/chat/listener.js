@@ -1,15 +1,17 @@
 'use strict'
 /* eslint-disable no-console */
 
-import PeerId from 'peer-id';
-import createLibp2p from './libp2p.cjs';
-import { stdinToStream, streamToConsole } from './stream.js';
+import PeerId from 'peer-id'
+// import { json } from 'stream/consumers'
+import createLibp2p from './libp2p.js'
+import { stdinToStream, streamToConsole } from './stream.js'
 
-import * as listener_json from '../peer-id-listener.json' assert {type: "json"};
+import * as listener_json from './peer-id-listener.json' assert { type: 'json' };
 
 async function run () {
   // Create a new libp2p node with the given multi-address
-  const idListener = await PeerId.createFromJSON(listener_json.default)
+  const idListener = await PeerId.createFromJSON(listener_json.default);
+  console.log(idListener);
   const nodeListener = await createLibp2p({
     peerId: idListener,
     addresses: {

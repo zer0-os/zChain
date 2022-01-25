@@ -1,49 +1,86 @@
 import Libp2p from "libp2p";
-import KadDHT from 'libp2p-kad-dht';
 import TCP from 'libp2p-tcp'
 import { NOISE } from '@chainsafe/libp2p-noise';
+import KadDHT from 'libp2p-kad-dht';
+const Gossipsub = require('libp2p-gossipsub');
 const Mplex = require('libp2p-mplex');
+import PeerId from "peer-id";
+
+import { stdinToStream, streamToConsole } from './stream';
+const { fromString } = require('uint8arrays/from-string');
 
 export class ZCHAIN {
 
-  node: Libp2p | undefined;
-  peerId: object = {};
+    node: Libp2p | undefined;
+    peerId: PeerId | undefined;
 
-  constructor() { }
+    constructor() { }
 
-  async initialize(): Promise<Libp2p> {
-    const node = await Libp2p.create({
-      addresses: {
-        listen: ['/ip4/0.0.0.0/tcp/0']
-      },
-      modules: {
-        transport: [ TCP ],
-        streamMuxer: [ Mplex ],
-        connEncryption: [ NOISE ],
-        dht: KadDHT
-      },
-      config: {
-        dht: {
-          enabled: true
+    async initialize(): Promise<Libp2p> {
+        const options = {
+            addresses: {
+                listen: ['/ip4/0.0.0.0/tcp/0']
+            },
+            modules: {
+                transport: [ TCP ],
+                streamMuxer: [ Mplex ],
+                connEncryption: [ NOISE ],
+                dht: KadDHT,
+                pubsub: Gossipsub
+            },
+            config: {
+                dht: {
+                    enabled: true
+                }
+            }
         }
-      }
-    });
-    
-    await node.start();
-    console.log('zChain Node Activated: ' + node.peerId.toB58String())
 
-    this.node = node;
-    this.peerId = node.peerId;
+        const node = await Libp2p.create(options);
     
-    return node;
-  }
+        await node.start();
 
-  async addProtocol() {
-    await this.node!.handle('/chat/1.0.0', async ({ stream }) => {
-      //To Do: Manage IO via stream
-      console.log('Connected to protocol: /chat/1.0.0');
-      console.log(this.node!.connectionManager.size);
-    })
-  }
+        console.log('zChain Node Activated: ' + node.peerId.toB58String())
+
+        this.node = node;
+        this.peerId = node.peerId;
+        
+        return node;
+    }
+
+    async listen() {
+
+        this.node!.pubsub.on("meow", (msg) => {
+            console.log("xxxxx");
+            console.log(msg);
+        });
+
+        // await this.node!.handle('/chat/1.0.0', async ({ stream }) => {
+            
+            // console.log('Dialer dialed to listener on protocol: /chat/1.0.0');
+            // console.log('Type a message:');
+            // console.log('Connection manager before: ' + this.node!.connectionManager.size);
+
+            // const peer = await this.node!.peerRouting.findPeer(zchain2.node!.peerId);
+            // peer.multiaddrs.forEach((ma) => console.log(`${ma.toString()}/p2p/${peer.id.toB58String()}`));
+            
+            // stdinToStream(stream);
+            // streamToConsole(stream);
+
+            // console.log('Connection manager after: ' + this.node!.connectionManager.size);
+
+        // });
+    }
+
+    async subscribe(topic: string) {
+        if (!this.node!.pubsub) {
+            throw new Error('pubsub has not been configured')
+        }
+        await this.node!.pubsub.subscribe(topic);
+        console.log(this.peerId + " has subscribed to: " + topic);
+    }
+
+    async publish(topic: string, msg: string) {
+        await this.node!.pubsub.publish(topic, fromString(msg));        
+    }
 
 }

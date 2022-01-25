@@ -3,7 +3,7 @@
 
 import PeerId from 'peer-id';
 import { Multiaddr } from 'multiaddr';
-import createLibp2p from './libp2p.cjs';
+import createLibp2p from './libp2p.js';
 import { stdinToStream, streamToConsole } from './stream.js';
 
 import * as dialer_json from './peer-id-dialer.json' assert {type: "json"};
@@ -14,8 +14,6 @@ async function run () {
     PeerId.createFromJSON(dialer_json.default),
     PeerId.createFromJSON(listener_json.default)
   ])
-
-  console.log(" ");
 
   // Create a new libp2p node on localhost with a randomly chosen port
   const nodeDialer = await createLibp2p({

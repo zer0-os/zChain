@@ -23,7 +23,7 @@ async function run() {
   });
 
   // Add peer to Dial (the listener) into the PeerStore
-  const listenerMultiaddr = '/ip4/127.0.0.1/tcp/53800/p2p/QmTLQdZzM99MsEsxJPmPvawjKEa28STCc63eC4xsuaB9gy';
+  const listenerMultiaddr = '/ip4/10.0.0.108/tcp/56537/p2p/QmeuJY5SzxdeuWep5y5NRaw7YMAgNKBzZYGZi3Z3WQypA1';
 
   // Start the dialer libp2p node
   await dialerNode.start();
