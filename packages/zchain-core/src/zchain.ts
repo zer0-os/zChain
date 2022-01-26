@@ -48,11 +48,10 @@ export class ZCHAIN {
     }
 
     async listen() {
-
         this.node!.pubsub.on("meow", (msg) => {
             console.log("xxxxx");
             console.log(msg);
-        });
+    });
 
         // await this.node!.handle('/chat/1.0.0', async ({ stream }) => {
             
