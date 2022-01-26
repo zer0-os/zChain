@@ -36,7 +36,6 @@ export class ZCHAIN {
         }
 
         const node = await Libp2p.create(options);
-    
         await node.start();
 
         console.log('zChain Node Activated: ' + node.peerId.toB58String())
@@ -48,7 +47,7 @@ export class ZCHAIN {
     }
 
     async listen(topic: string) {
-        this.node!.pubsub.on(topic, (msg) => {
+        await this.node!.pubsub.on(topic, (msg) => {
             console.log(msg);
         });
     }
@@ -64,5 +63,4 @@ export class ZCHAIN {
     async publish(topic: string, msg: string) {
         await this.node!.pubsub.publish(topic, fromString(msg));        
     }
-
 }
