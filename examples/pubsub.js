@@ -39,8 +39,18 @@ const createNode = async () => {
   // Add node's 2 data to the PeerStore
   console.log('Connection Before: ' + node1.connectionManager.size);
   await node1.peerStore.addressBook.set(node2.peerId, node2.multiaddrs)
+
+  console.log('Dialer ready, listening on:')
+  node1.multiaddrs.forEach((ma) => console.log(ma.toString() + '/p2p/' + node1.peerId.toB58String()));
+
+
+  node1.connectionManager.on('peer:connect', (connection) => {
+    console.log('Connected to %s', connection.remotePeer.toB58String()) // Log connected peer
+  });
+
   await node1.dial(node2.peerId)
   console.log('Connection After: ' + node1.connectionManager.size);
+  
 
   await node1.pubsub.on(topic, (msg) => {
     console.log(`node1 received: ${fromString(msg.data)}`)
@@ -50,6 +60,15 @@ const createNode = async () => {
   const handler = (msg) => {
     console.log('hi');
   }
+
+  const listenAddrs = node1.transportManager.getAddrs()
+  console.log('libp2p is listening on the following addresses: ', listenAddrs)
+
+  const listenAddrs2 = node2.transportManager.getAddrs()
+  console.log('libp2p is listening on the following addresses: ', listenAddrs2)
+
+  const advertiseAddrs = node1.multiaddrs
+  console.log('libp2p is advertising the following addresses: ', advertiseAddrs)
 
   node1.pubsub.on(topic, handler)
   node1.pubsub.subscribe(topic)
