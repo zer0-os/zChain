@@ -47,27 +47,10 @@ export class ZCHAIN {
         return node;
     }
 
-    async listen() {
-        this.node!.pubsub.on("meow", (msg) => {
-            console.log("xxxxx");
+    async listen(topic: string) {
+        this.node!.pubsub.on(topic, (msg) => {
             console.log(msg);
-    });
-
-        // await this.node!.handle('/chat/1.0.0', async ({ stream }) => {
-            
-            // console.log('Dialer dialed to listener on protocol: /chat/1.0.0');
-            // console.log('Type a message:');
-            // console.log('Connection manager before: ' + this.node!.connectionManager.size);
-
-            // const peer = await this.node!.peerRouting.findPeer(zchain2.node!.peerId);
-            // peer.multiaddrs.forEach((ma) => console.log(`${ma.toString()}/p2p/${peer.id.toB58String()}`));
-            
-            // stdinToStream(stream);
-            // streamToConsole(stream);
-
-            // console.log('Connection manager after: ' + this.node!.connectionManager.size);
-
-        // });
+        });
     }
 
     async subscribe(topic: string) {

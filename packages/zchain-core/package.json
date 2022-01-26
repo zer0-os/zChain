@@ -24,6 +24,7 @@
   },
   "dependencies": {
     "@chainsafe/libp2p-noise": "^5.0.2",
+    "delay": "^5.0.0",
     "it-length-prefixed": "^6.0.1",
     "libp2p": "^0.35.8",
     "libp2p-gossipsub": "^0.13.0",
