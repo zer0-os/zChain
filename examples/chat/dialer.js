@@ -6,8 +6,8 @@ import { Multiaddr } from 'multiaddr';
 import createLibp2p from './libp2p.js';
 import { stdinToStream, streamToConsole } from './stream.js';
 
-import * as dialer_json from './peer-id-dialer.json' assert {type: "json"};
-import * as listener_json from './peer-id-listener.json' assert {type: "json"};
+import * as dialer_json from './peer-id-dialer.json';
+import * as listener_json from './peer-id-listener.json';
 
 async function run () {
   const [idDialer, idListener] = await Promise.all([
