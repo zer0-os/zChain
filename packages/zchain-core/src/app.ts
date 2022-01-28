@@ -3,7 +3,7 @@ import { Multiaddr } from 'multiaddr';
 import delay from 'delay';
 const { fromString } = require('uint8arrays/from-string');
 
-let topic: string = "meow";
+const topic: string = "meow";
 
 ;(async () => {
     let node_a = new ZCHAIN();
@@ -24,6 +24,6 @@ let topic: string = "meow";
 
     setInterval(() => {
       console.log('Connection: ' + node_a.node!.connectionManager.size);
-      node_a.node!.pubsub.publish(topic, fromString('Bird bird bird, bird is the word!'))
+      node_a.publish(topic, 'Bird bird bird, bird is the word!');
     }, 3000)
 })();

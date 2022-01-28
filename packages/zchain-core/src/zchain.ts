@@ -7,7 +7,9 @@ const Mplex = require('libp2p-mplex');
 import PeerId from "peer-id";
 
 import { stdinToStream, streamToConsole } from './stream';
+import { PubSubMessage } from "./types";
 const { fromString } = require('uint8arrays/from-string');
+const { toString: uint8ArrayToString } = require('uint8arrays/to-string');
 
 export class ZCHAIN {
 
@@ -31,6 +33,11 @@ export class ZCHAIN {
             config: {
                 dht: {
                     enabled: true
+                },
+                pubsub: {
+                    enabled: true,
+                    // uncomment to enable publishing node to listen to it's "own" message
+                    //emitSelf: true
                 }
             }
         }
@@ -42,25 +49,25 @@ export class ZCHAIN {
 
         this.node = node;
         this.peerId = node.peerId;
-        
+
         return node;
     }
 
-    async listen(topic: string) {
-        await this.node!.pubsub.on(topic, (msg) => {
-            console.log(msg);
+    listen(topic: string) {
+        this.node!.pubsub.on(topic, (msg: PubSubMessage) => {
+            console.log(`Received from ${msg.from}: ${uint8ArrayToString(msg.data)}`);
         });
     }
 
-    async subscribe(topic: string) {
+    subscribe(topic: string) {
         if (!this.node!.pubsub) {
             throw new Error('pubsub has not been configured')
         }
-        await this.node!.pubsub.subscribe(topic);
+        this.node!.pubsub.subscribe(topic);
         console.log(this.peerId + " has subscribed to: " + topic);
     }
 
-    async publish(topic: string, msg: string) {
-        await this.node!.pubsub.publish(topic, fromString(msg));        
+    publish(topic: string, msg: string) {
+        this.node!.pubsub.publish(topic, fromString(msg));
     }
 }
