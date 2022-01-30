@@ -6,9 +6,8 @@ const Gossipsub = require('libp2p-gossipsub');
 const Mplex = require('libp2p-mplex');
 import PeerId from "peer-id";
 
-import Bootstrap = require('libp2p-bootstrap')
-import { stdinToStream, streamToConsole } from './stream';
 import { PubSubMessage } from "../types";
+import { PeerDiscovery } from "./peer-discovery";
 const { fromString } = require('uint8arrays/from-string');
 const { toString: uint8ArrayToString } = require('uint8arrays/to-string');
 
@@ -72,13 +71,5 @@ export class ZCHAIN {
 
     publish(topic: string, msg: string) {
         this.node!.pubsub.publish(topic, fromString(msg));
-    }
-}
-
-export class PeerDiscovery {
-    private node: Libp2p | undefined;
-
-    constructor(node?: Libp2p) {
-        this.node = node;
     }
 }
