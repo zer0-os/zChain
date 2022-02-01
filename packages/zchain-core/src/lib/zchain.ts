@@ -4,23 +4,32 @@ import { NOISE } from '@chainsafe/libp2p-noise';
 import KadDHT from 'libp2p-kad-dht';
 const Gossipsub = require('libp2p-gossipsub');
 const Mplex = require('libp2p-mplex');
-import PeerId from "peer-id";
 
 import { PubSubMessage } from "../types";
 import { PeerDiscovery } from "./peer-discovery";
+import { ZID } from "./zid";
 const { fromString } = require('uint8arrays/from-string');
 const { toString: uint8ArrayToString } = require('uint8arrays/to-string');
 
 export class ZCHAIN {
-
     node: Libp2p | undefined;
-    peerId: PeerId | undefined;
+    zId: ZID | undefined;
     peerDiscovery: PeerDiscovery | undefined;
 
     constructor() { }
 
-    async initialize(): Promise<Libp2p> {
+    /**
+     * Initializes a new Zchain node
+     * @param fileName json present in /ids. Contains peer metadata
+     * @returns libp2p node instance
+     */
+    async initialize(fileName: string): Promise<Libp2p> {
+        this.zId = new ZID();
+        await this.zId.create(fileName); // get existing/create new peer id
+        const peerId = this.zId.peerId;
+
         const options = {
+            peerId,
             addresses: {
                 listen: ['/ip4/0.0.0.0/tcp/0']
             },
@@ -49,7 +58,6 @@ export class ZCHAIN {
         console.log('zChain Node Activated: ' + node.peerId.toB58String())
 
         this.node = node;
-        this.peerId = node.peerId;
         this.peerDiscovery = new PeerDiscovery(this.node);
 
         return node;
@@ -66,7 +74,7 @@ export class ZCHAIN {
             throw new Error('pubsub has not been configured')
         }
         this.node!.pubsub.subscribe(topic);
-        console.log(this.peerId + " has subscribed to: " + topic);
+        console.log(this.zId!.peerId + " has subscribed to: " + topic);
     }
 
     publish(topic: string, msg: string) {
