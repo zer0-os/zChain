@@ -1,5 +1,5 @@
 import Libp2p from "libp2p";
-import Bootstrap = require('libp2p-bootstrap')
+import Bootstrap from 'libp2p-bootstrap';
 
 /**
  * Class to handle Peer Discovery by libp2p node
