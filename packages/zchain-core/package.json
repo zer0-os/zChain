@@ -1,11 +1,10 @@
 {
-  "name": "src",
+  "name": "zchain",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "build/index.js",
+  "types": "build/index.d.ts",
   "scripts": {
-    "scripts": "node dist/app.js",
-    "dev": "nodemon src/app.ts",
     "build": "tsc -p .",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -24,6 +23,7 @@
   },
   "dependencies": {
     "@chainsafe/libp2p-noise": "^5.0.2",
+    "@nodelib/fs.walk": "^1.2.8",
     "delay": "^5.0.0",
     "it-length-prefixed": "^6.0.1",
     "libp2p": "^0.36.2",
