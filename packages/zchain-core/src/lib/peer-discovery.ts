@@ -1,5 +1,6 @@
 import Libp2p from "libp2p";
 import Bootstrap from 'libp2p-bootstrap';
+import { streamToConsole } from "./stream";
 
 /**
  * Class to handle Peer Discovery by libp2p node
@@ -44,23 +45,20 @@ export class PeerDiscovery {
   }
 
   /**
-   * On Connect handler. Logs newly established connection's peerID
+   * On Connect handler.
+   * @param handler callback after connection is established
    */
-  onConnect() {
+  onConnect(handler: () => void): void {
     this.node = this._assertNodeInitialized();
-    this.node.connectionManager.on('peer:connect', (connection) => {
-      console.log('Connection established to:', connection.remotePeer.toB58String())	// Emitted when a peer has been found
-    })
+    this.node.connectionManager.on('peer:connect', handler);
   }
 
   /**
-   * On Discover handler. Logs newly discovered connection's peerID
+   * On Discover handler.
+   * @param handler callback after new peer is discovered
    */
-  onDiscover() {
+  onDiscover(handler: () => void) {
     this.node = this._assertNodeInitialized();
-    this.node.on('peer:discovery', (peerId) => {
-      // No need to dial, autoDial is on
-      console.log('Discovered:', peerId.toB58String())
-    })
+    this.node.on('peer:discovery', handler);
   }
 }
