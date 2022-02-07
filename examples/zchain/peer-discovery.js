@@ -25,8 +25,14 @@ const bootstrappers = [
 
     // configure bootstrap nodes for A, enable connect, discover handlers.
     node_a.peerDiscovery.addBootstrapNodes(bootstrappers);
-    node_a.peerDiscovery.onConnect();
-    node_a.peerDiscovery.onDiscover();
+    node_a.peerDiscovery.onConnect((connection) => {
+      // Emitted when a peer has been found
+      console.log('Connection established to:', connection.remotePeer.toB58String())
+    });
+
+    node_a.peerDiscovery.onDiscover((peerId) => {
+      console.log('Discovered:', peerId.toB58String())
+    });
 
     await node_a.node.start();
     await node_b.node.start();
