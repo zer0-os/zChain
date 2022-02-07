@@ -4,9 +4,11 @@ import { NOISE } from '@chainsafe/libp2p-noise';
 import KadDHT from 'libp2p-kad-dht';
 const Gossipsub = require('libp2p-gossipsub');
 const Mplex = require('libp2p-mplex');
+const Mdns = require('libp2p-mdns');
 
 import { PubSubMessage } from "../types";
 import { PeerDiscovery } from "./peer-discovery";
+import { addWebRTCStarAddrs } from "./transport";
 import { ZID } from "./zid";
 const { fromString } = require('uint8arrays/from-string');
 const { toString: uint8ArrayToString } = require('uint8arrays/to-string');
@@ -23,22 +25,28 @@ export class ZCHAIN {
      * @param fileName json present in /ids. Contains peer metadata
      * @returns libp2p node instance
      */
-    async initialize(fileName: string): Promise<Libp2p> {
+    async initialize(fileName: string, listenAddrs?: string[]): Promise<Libp2p> {
         this.zId = new ZID();
         await this.zId.create(fileName); // get existing/create new peer id
         const peerId = this.zId.peerId;
 
+        listenAddrs = listenAddrs ?? [];
         const options = {
             peerId,
             addresses: {
-                listen: ['/ip4/0.0.0.0/tcp/0']
+                listen: [
+                    '/ip4/0.0.0.0/tcp/0',
+                    '/ip4/0.0.0.0/tcp/0/ws',
+                    ...listenAddrs
+                ]
             },
             modules: {
                 transport: [ TCP ],
                 streamMuxer: [ Mplex ],
                 connEncryption: [ NOISE ],
                 dht: KadDHT,
-                pubsub: Gossipsub
+                pubsub: Gossipsub,
+                peerDiscovery: [ Mdns ]
             },
             config: {
                 dht: {
@@ -52,6 +60,10 @@ export class ZCHAIN {
             }
         }
 
+        // add webrtc-transport if listen addresses has "p2p-webrtc-star"
+        const starAddresses = listenAddrs.filter(a => a.includes('p2p-webrtc-star'));
+        if (starAddresses.length) { addWebRTCStarAddrs(options); }
+
         const node = await Libp2p.create(options);
         await node.start();
 
@@ -59,7 +71,6 @@ export class ZCHAIN {
 
         this.node = node;
         this.peerDiscovery = new PeerDiscovery(this.node);
-
         return node;
     }
 
