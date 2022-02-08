@@ -12,7 +12,7 @@ const bootstrappers = [
 ];
 
 /**
- * Peer Discovery example
+ * Peer Discovery example using bootstrapped nodes & DHT
  * + Initially connection is made to few bootstrappped nodes
  * + After bootstrap connections, DHT kicks in and we start discovering more peers
  */
