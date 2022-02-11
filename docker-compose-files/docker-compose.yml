@@ -1,0 +1,22 @@
+# sets up an SSL reverse proxy. NOTE: certs are present in /etc/nginx/certs
+# use mkcert to generate certs for the domain first
+version: '3'
+services:
+  nginx-proxy:
+    image: jwilder/nginx-proxy
+    container_name: nginx-proxy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+      - ./nginx/certs:/etc/nginx/certs
+    depends_on:
+      - web
+
+  web:
+    image: libp2p/js-libp2p-webrtc-star
+    environment:
+      - VIRTUAL_HOST=geprw.ml
+      - VIRTUAL_PORT=9090
+
