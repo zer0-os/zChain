@@ -82,10 +82,10 @@ cd /etc/apt
 sudo nano sources.list
 ```
 At the bottom of that file, append it with:
-#
+```
 deb http://nginx.org/packages/ubuntu xenial nginx
 deb-src http://nginx.org/packages/ubuntu xenial nginx
-#
+```
 
 Save the file then:
 ```bash
@@ -142,7 +142,7 @@ sudo nano server.conf
 ```
 
 Now put this in your new config file and replace `meowtest142.ml` with your own domain:
-#
+```
 server {
     listen 80;
     listen [::]:80;
@@ -165,7 +165,7 @@ ssl_session_cache shared:SSL:5m;
 ssl_session_timeout 1h;
 add_header Strict-Transport-Security “max-age=15768000” always;
 }
-#
+```
 
 All we’re doing here is essentially redirecting all traffic from port 80 (HTTP) to port 443 (HTTPS). Now reload the new config file: `sudo nginx -s reload`.
 
