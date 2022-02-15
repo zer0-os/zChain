@@ -38,8 +38,7 @@ export class ZCHAIN {
                     '/ip4/0.0.0.0/tcp/0',
                     '/ip4/0.0.0.0/tcp/0/ws',
                     // custom deployed webrtc-star signalling server
-                    //'/dns4/vast-escarpment-62759.herokuapp.com/tcp/443/wss/p2p-webrtc-star/',
-                    '/dns4/wrtc-star2.sjc.dwebops.pub/tcp/443/wss/p2p-webrtc-star',
+                    '/dns4/vast-escarpment-62759.herokuapp.com/tcp/443/wss/p2p-webrtc-star/',
                     ...listenAddrs
                 ]
             },
@@ -64,7 +63,7 @@ export class ZCHAIN {
         }
 
         // add webrtc-transport if listen addresses has "p2p-webrtc-star"
-        const starAddresses = listenAddrs.filter(a => a.includes('p2p-webrtc-star'));
+        const starAddresses = options.addresses.listen.filter(a => a.includes('p2p-webrtc-star'));
         if (starAddresses.length) { addWebRTCStarAddrs(options); }
 
         const node = await Libp2p.create(options);
