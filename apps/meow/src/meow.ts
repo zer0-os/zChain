@@ -26,15 +26,11 @@ export class MEOW {
     await this.zchain.initialize(fileName, listenAddrs);
 
     this.zchain.peerDiscovery!.onConnect((connection) => {
-      if (connection.remotePeer.toB58String() === 'QmTsUsXsRsUpvHxRNXWJKmw3RvSPN3c8Noa95Kpduu5Wcv') {
-        console.log('Connection established to:', connection.remotePeer.toB58String());
-      }
+      console.log('Connection established to:', connection.remotePeer.toB58String())
     });
 
-    this.zchain.peerDiscovery!.onDiscover((peerId) => {
-      if (peerId.toB58String() === 'QmTsUsXsRsUpvHxRNXWJKmw3RvSPN3c8Noa95Kpduu5Wcv') {
-        console.log('Discovered:', peerId.toB58String());
-      }
+    this.zchain.peerDiscovery!.onDiscover(async (peerId) => {
+      console.log('Discovered:', peerId.toB58String());
     });
 
     // listen and subscribe to the default topic: #meow
@@ -51,6 +47,8 @@ export class MEOW {
 
     // extract hashtags(topics) from the msg
     const hashtags = msg.match(/#[a-z0-9_]+/g) ?? [];
+
+    console.log('sentttttttttttt');
 
     // publish message
     this.zchain.publish(DEFAULT_TOPIC, msg);
