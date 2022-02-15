@@ -1,5 +1,6 @@
 import Libp2p from "libp2p";
 import Bootstrap from 'libp2p-bootstrap';
+import PeerId from "peer-id";
 import { streamToConsole } from "./stream";
 
 /**
@@ -48,7 +49,7 @@ export class PeerDiscovery {
    * On Connect handler.
    * @param handler callback after connection is established
    */
-  onConnect(handler: () => void): void {
+  onConnect(handler: (connection: Libp2p.Connection) => void): void {
     this.node = this._assertNodeInitialized();
     this.node.connectionManager.on('peer:connect', handler);
   }
@@ -57,7 +58,7 @@ export class PeerDiscovery {
    * On Discover handler.
    * @param handler callback after new peer is discovered
    */
-  onDiscover(handler: () => void) {
+  onDiscover(handler: (peerId: PeerId) => void) {
     this.node = this._assertNodeInitialized();
     this.node.on('peer:discovery', handler);
   }
