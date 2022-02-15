@@ -26,11 +26,15 @@ export class MEOW {
     await this.zchain.initialize(fileName, listenAddrs);
 
     this.zchain.peerDiscovery!.onConnect((connection) => {
-      console.log('Connection established to:', connection.remotePeer.toB58String())
+      if (connection.remotePeer.toB58String() === 'QmTsUsXsRsUpvHxRNXWJKmw3RvSPN3c8Noa95Kpduu5Wcv') {
+        console.log('Connection established to:', connection.remotePeer.toB58String());
+      }
     });
 
     this.zchain.peerDiscovery!.onDiscover((peerId) => {
-      console.log('Discovered:', peerId.toB58String())
+      if (peerId.toB58String() === 'QmTsUsXsRsUpvHxRNXWJKmw3RvSPN3c8Noa95Kpduu5Wcv') {
+        console.log('Discovered:', peerId.toB58String());
+      }
     });
 
     // listen and subscribe to the default topic: #meow
