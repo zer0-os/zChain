@@ -3,7 +3,7 @@ import { MEOW } from "./meow";
 
 ;(async () => {
   const meow = new MEOW();
-  await meow.init('matt.json'); // initializes local zchain
+  await meow.init('n30.json'); // initializes local zchain
 
 //   // tweet by meow
 //   meow.tweet(`Thrilled to join the football gaming revolution
