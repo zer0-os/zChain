@@ -1,7 +1,6 @@
 import Libp2p from "libp2p";
 import Bootstrap from 'libp2p-bootstrap';
 import PeerId from "peer-id";
-import { streamToConsole } from "./stream";
 
 /**
  * Class to handle Peer Discovery by libp2p node
