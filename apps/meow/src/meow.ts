@@ -1,11 +1,11 @@
 import { ZCHAIN } from "zchain";
-import { DEFAULT_TOPIC, MAX_MESSAGE_LEN } from "./constants";
+import { EVERYTHING_TOPIC, MAX_MESSAGE_LEN } from "./constants";
 
 export class MEOW {
   private zchain: ZCHAIN | undefined;
   private topics: string[];
 
-  constructor() { this.topics = [ DEFAULT_TOPIC ]; }
+  constructor() { this.topics = [ EVERYTHING_TOPIC ]; }
 
   assertZChainInitialized(): ZCHAIN {
     if (this.zchain === undefined) {
@@ -33,12 +33,12 @@ export class MEOW {
       console.log('Discovered:', peerId.toB58String());
     });
 
-    // listen and subscribe to the default topic: #meow
-    this.zchain.listen(DEFAULT_TOPIC);
-    this.zchain.subscribe(DEFAULT_TOPIC);
+    // listen and subscribe to the everything topic (aka "super" node)
+    this.zchain.listen(EVERYTHING_TOPIC);
+    this.zchain.subscribe(EVERYTHING_TOPIC);
   }
 
-  tweet(msg: string) {
+  sendMeow(msg: string) {
     this.zchain = this.assertZChainInitialized();
 
     if (msg.length > MAX_MESSAGE_LEN) {
@@ -48,10 +48,8 @@ export class MEOW {
     // extract hashtags(topics) from the msg
     const hashtags = msg.match(/#[a-z0-9_]+/g) ?? [];
 
-    console.log('sentttttttttttt');
-
     // publish message
-    this.zchain.publish(DEFAULT_TOPIC, msg);
+    this.zchain.publish(EVERYTHING_TOPIC, msg); // this will be "listened by only super node"
     for (const hashtag of hashtags) {
       this.zchain.publish(hashtag, msg);
     }
