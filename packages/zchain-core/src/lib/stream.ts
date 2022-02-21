@@ -1,12 +1,12 @@
-'use strict'
+'use strict';
 /* eslint-disable no-console */
 
-import {pipe} from 'it-pipe';
 import * as lp from 'it-length-prefixed';
+import { pipe } from 'it-pipe';
 
-export function stdinToStream(stream: any) {
+export function stdinToStream (stream: any): void {
   // Read utf-8 from stdin
-  process.stdin.setEncoding('utf8')
+  process.stdin.setEncoding('utf8');
   pipe(
     // Read from stdin (the source)
     process.stdin,
@@ -15,9 +15,10 @@ export function stdinToStream(stream: any) {
     // Write to the stream (the sink)
     stream.sink
   )
+    .catch(err => { throw new Error(err); });
 }
 
-export function streamToConsole(stream: any) {
+export function streamToConsole (stream: any): void {
   pipe(
     // Read from the stream (the source)
     stream.source,
@@ -28,8 +29,9 @@ export function streamToConsole(stream: any) {
       // For each chunk of data
       for await (const msg of source) {
         // Output the data as a utf8 string
-        console.log('> ' + msg.toString().replace('\n', ''))
+        console.log('> ' + String(msg).toString().replace('\n', ''));
       }
     }
   )
+    .catch(err => { throw new Error(err); });
 }

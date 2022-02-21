@@ -1,6 +1,7 @@
-import PeerId from "peer-id";
 import fs from "fs";
 import path from "path";
+import PeerId from "peer-id";
+
 import { getPathFromDirRecursive } from "./files";
 
 const PEER_ID_DIR = "ids";
@@ -13,14 +14,12 @@ export class ZID {
   public name: string | undefined; // maybe we can use a name associated with peer id?
   public peerId: PeerId | undefined;
 
-  constructor() { }
-
   /**
    * Creates a new peerid. Loads existing peerID from ids/*.json.
    * If file does not exist, creates a new peerid and save it to the json.
    * @param fileName name of .json file containing peer id
    */
-  async create(fileName: string): Promise<void> {
+  async create (fileName: string): Promise<void> {
     if (!fileName.endsWith(jsonExt)) {
       throw new Error(`File ${fileName} is not a json`);
     }

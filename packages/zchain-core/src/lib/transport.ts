@@ -1,11 +1,11 @@
 import { Libp2pOptions } from "libp2p";
-const WebRTCStar = require('libp2p-webrtc-star')
-const wrtc = require('wrtc');
+import WebRTCStar from "libp2p-webrtc-star";
+import wrtc from "wrtc";
 
 /**
  * handle webrtc-star transport in libp2p options obj
  */
-export function addWebRTCStarAddrs(options: Libp2pOptions): Libp2pOptions | void {
+export function addWebRTCStarAddrs (options: Libp2pOptions): void {
   if (options === undefined) { return; }
 
   // enable webrtc-star in node.transport
@@ -25,6 +25,4 @@ export function addWebRTCStarAddrs(options: Libp2pOptions): Libp2pOptions | void
       [transportKey]: { wrtc } // You can use `wrtc` when running in Node.js
     }
   };
-
-  return options;
 }
