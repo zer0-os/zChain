@@ -1,32 +1,27 @@
 {
-  "name": "zchain",
+  "name": "zchain-core",
   "version": "1.0.0",
   "description": "",
+  "license": "Apache-2.0",
+  "repository": "https://github.com/zer0-os/zChain",
+  "keywords": [
+    "tooling"
+  ],
   "main": "build/index.js",
   "types": "build/index.d.ts",
-  "scripts": {
-    "build": "tsc -p .",
-    "build:watch": "tsc -w -p .",
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "engines": {
+    "node": ">=14.11.0"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "devDependencies": {
-    "@types/express": "^4.17.13",
-    "@types/node": "^17.0.14",
-    "express": "^4.17.2",
-    "libp2p-websockets": "^0.16.2",
-    "nodemon": "^2.0.15",
-    "ts-node": "^10.4.0",
-    "typescript": "^4.5.5"
+  "scripts": {
+    "lint": "eslint --ext .js,.ts src",
+    "lint:fix": "eslint --fix --ext .js,.ts src",
+    "build": "tsc --build .",
+    "build:watch": "tsc -w -p ."
   },
   "dependencies": {
     "@chainsafe/libp2p-noise": "^5.0.2",
     "@nodelib/fs.walk": "^1.2.8",
     "delay": "^5.0.0",
-    "it-length-prefixed": "^7.0.0",
-    "it-pipe": "^1.1.0",
     "libp2p": "^0.36.2",
     "libp2p-bootstrap": "^0.14.0",
     "libp2p-gossipsub": "^0.13.0",
@@ -36,9 +31,38 @@
     "libp2p-tcp": "^0.17.2",
     "libp2p-webrtc-star": "^0.25.0",
     "multiaddr": "^10.0.1",
-    "node-pre-gyp": "^0.17.0",
     "peer-id": "^0.16.0",
     "stream": "^0.0.2",
     "wrtc": "^0.4.7"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.13",
+    "@types/node": "^17.0.14",
+    "eslint": "^8.9.0",
+    "express": "^4.17.2",
+    "libp2p-websockets": "^0.16.2",
+    "nyc": "^15.1.0",
+    "typedoc": "^0.22.11"
+  },
+  "files": [
+    "build/",
+    "LICENSE",
+    "README.md"
+  ],
+  "nyc": {
+    "extension": [
+      ".ts"
+    ],
+    "exclude": [
+      "build",
+      "test",
+      "coverage",
+      ".nyc_output"
+    ],
+    "reporter": [
+      "text",
+      "lcovonly"
+    ],
+    "all": true
   }
 }
