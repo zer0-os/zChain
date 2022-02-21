@@ -1,4 +1,4 @@
-import { ZCHAIN } from "zchain";
+import { ZCHAIN } from "zchain-core";
 import { EVERYTHING_TOPIC, MAX_MESSAGE_LEN } from "./constants";
 
 export class MEOW {
