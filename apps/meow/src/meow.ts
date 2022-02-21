@@ -1,13 +1,14 @@
 import { ZCHAIN } from "zchain-core";
+
 import { EVERYTHING_TOPIC, MAX_MESSAGE_LEN } from "./constants";
 
 export class MEOW {
   private zchain: ZCHAIN | undefined;
-  private topics: string[];
+  private readonly topics: string[];
 
-  constructor() { this.topics = [ EVERYTHING_TOPIC ]; }
+  constructor () { this.topics = [EVERYTHING_TOPIC]; }
 
-  assertZChainInitialized(): ZCHAIN {
+  assertZChainInitialized (): ZCHAIN {
     if (this.zchain === undefined) {
       throw new Error("zchain not initialized");
     }
@@ -19,17 +20,17 @@ export class MEOW {
    * @param fileName json present in /ids. Contains peer metadata
    * @returns libp2p node instance
    */
-  async init(fileName: string, listenAddrs?: string[]): Promise<void> {
+  async init (fileName: string, listenAddrs?: string[]): Promise<void> {
     if (this.zchain !== undefined) { throw new Error('zchain already associated'); }
 
     this.zchain = new ZCHAIN();
     await this.zchain.initialize(fileName, listenAddrs);
 
-    this.zchain.peerDiscovery!.onConnect((connection) => {
-      console.log('Connection established to:', connection.remotePeer.toB58String())
+    this.zchain.peerDiscovery.onConnect((connection) => {
+      console.log('Connection established to:', connection.remotePeer.toB58String());
     });
 
-    this.zchain.peerDiscovery!.onDiscover(async (peerId) => {
+    this.zchain.peerDiscovery.onDiscover((peerId) => {
       console.log('Discovered:', peerId.toB58String());
     });
 
@@ -38,11 +39,11 @@ export class MEOW {
     this.zchain.subscribe(EVERYTHING_TOPIC);
   }
 
-  sendMeow(msg: string) {
+  sendMeow (msg: string): void {
     this.zchain = this.assertZChainInitialized();
 
     if (msg.length > MAX_MESSAGE_LEN) {
-      throw new Error(`Length of a message exceeds maximum length of ${MAX_MESSAGE_LEN}`)
+      throw new Error(`Length of a message exceeds maximum length of ${MAX_MESSAGE_LEN}`);
     }
 
     // extract hashtags(topics) from the msg

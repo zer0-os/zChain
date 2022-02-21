@@ -5,6 +5,8 @@
   "main": "index.js",
   "scripts": {
     "dev": "ts-node src/app.ts",
+    "lint": "eslint --ext .js,.ts src",
+    "lint:fix": "eslint --fix --ext .js,.ts src",
     "build": "tsc -p .",
     "build:watch": "tsc -w -p .",
     "test": "echo \"Error: no test specified\" && exit 1"
