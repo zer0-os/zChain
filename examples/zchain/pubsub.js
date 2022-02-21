@@ -1,5 +1,4 @@
-// TODO: try to convert to package import
-import { ZCHAIN } from "../../packages/zchain-core/build/index.js";
+import { ZCHAIN } from "zchain-core";
 
 const topic = "meow";
 

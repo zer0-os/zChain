@@ -1,5 +1,4 @@
-// TODO: try to convert to package import
-import { ZCHAIN } from "../../packages/zchain-core/build/index.js";
+import { ZCHAIN } from "zchain-core";
 
 // list of bootstrap nodes we're going to connect to
 const bootstrappers = [
