@@ -1,4 +1,5 @@
 import delay from "delay";
+
 import { MEOW } from "./meow";
 
 ;(async () => {
@@ -12,4 +13,5 @@ import { MEOW } from "./meow";
   meow.sendMeow(`Thrilled to join the football gaming revolution
  with @UFLgame bringing the new #fairtoplay experience to
  football gamers worldwide! See you in the Game soon! #ucl`);
-})();
+})()
+  .catch(err => { throw new Error(err); });

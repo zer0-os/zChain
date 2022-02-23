@@ -17,16 +17,16 @@ export function lsTreeWalk (directoryName: string): string[] {
  */
 export function getPathFromDirRecursive (
   dir: string,
-  fileName: string,
+  fileName: string
 ): string | undefined {
   const paths = lsTreeWalk(dir);
 
-  let filePath;
+  let filePath: string;
   for (const p of paths) {
     const fileNameFromPath = path.basename(p);
     if (fileNameFromPath === fileName) {
       if (filePath) { // if file already found previously, throw error
-        throw new Error(`Directory ${dir} has same file \"${fileName}\" in multiple paths: ${filePath}, ${p}`);
+        throw new Error(`Directory ${dir} has same file "${fileName}" in multiple paths: ${filePath}, ${p}`);
       } else {
         filePath = p;
       }
