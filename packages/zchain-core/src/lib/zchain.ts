@@ -10,6 +10,7 @@ import { toString as uint8ArrayToString } from "uint8arrays/to-string";
 
 import { PubSubMessage } from "../types";
 import { PeerDiscovery } from "./peer-discovery";
+import { ZStore } from './storage';
 import { addWebRTCStarAddrs } from "./transport";
 import { ZID } from "./zid";
 
@@ -17,6 +18,7 @@ export class ZCHAIN {
     node: Libp2p | undefined;
     zId: ZID | undefined;
     peerDiscovery: PeerDiscovery | undefined;
+    zStore: ZStore;
 
     /**
      * Initializes a new Zchain node
@@ -70,7 +72,8 @@ export class ZCHAIN {
       console.log('zChain Node Activated: ' + node.peerId.toB58String());
 
       this.node = node;
-      this.peerDiscovery = new PeerDiscovery(this.node);
+      this.zStore = new ZStore(this.node);
+      this.peerDiscovery = new PeerDiscovery(this.zStore, this.node);
       return node;
     }
 
