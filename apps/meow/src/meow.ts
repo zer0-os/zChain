@@ -1,6 +1,6 @@
 import { ZCHAIN } from "zchain-core";
 
-import { EVERYTHING_TOPIC, MAX_MESSAGE_LEN } from "./constants";
+import { EVERYTHING_TOPIC, MAX_MESSAGE_LEN, password } from "./constants";
 
 export class MEOW {
   private zchain: ZCHAIN | undefined;
@@ -24,7 +24,7 @@ export class MEOW {
     if (this.zchain !== undefined) { throw new Error('zchain already associated'); }
 
     this.zchain = new ZCHAIN();
-    await this.zchain.initialize(fileName, listenAddrs);
+    await this.zchain.initialize(fileName, password, listenAddrs);
 
     this.zchain.peerDiscovery.onConnect((connection) => {
       console.log('Connection established to:', connection.remotePeer.toB58String());
