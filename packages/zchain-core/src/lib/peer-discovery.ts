@@ -1,6 +1,7 @@
 import Libp2p from "libp2p";
 import Bootstrap from 'libp2p-bootstrap';
 import PeerId from "peer-id";
+import { ZStore } from "./storage";
 
 /**
  * Class to handle Peer Discovery by libp2p node
@@ -8,9 +9,11 @@ import PeerId from "peer-id";
  */
 export class PeerDiscovery {
   private node: Libp2p | undefined;
+  zStore: ZStore;
 
-  constructor (node?: Libp2p) {
+  constructor (zStore: ZStore, node?: Libp2p) {
     this.node = node;
+    this.zStore = zStore;
   }
 
   /**
@@ -59,6 +62,13 @@ export class PeerDiscovery {
    */
   onDiscover (handler: (peerId: PeerId) => void): void {
     this.node = this._assertNodeInitialized();
-    this.node.on('peer:discovery', handler);
+
+    this.node.on('peer:discovery', (peerId: PeerId) => {
+      // handler passed by user
+      handler(peerId);
+
+      // add newly discovered peerId to log
+      this.zStore.appendDiscoveryLog(peerId.toB58String());
+    });
   }
 }

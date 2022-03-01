@@ -115,3 +115,6 @@ dist
 # Built sources
 packages/**/build/
 packages/builder/project/
+
+examples/**/zchain-db
+apps/**/zchain-db
