@@ -63,12 +63,12 @@ export class PeerDiscovery {
   onDiscover (handler: (peerId: PeerId) => void): void {
     this.node = this._assertNodeInitialized();
 
-    this.node.on('peer:discovery', (peerId: PeerId) => {
+    this.node.on('peer:discovery', async (peerId: PeerId) => {
       // handler passed by user
       handler(peerId);
 
       // add newly discovered peerId to log
-      this.zStore.appendDiscoveryLog(peerId.toB58String());
+      await this.zStore.appendDiscoveryLog(peerId.toB58String());
     });
   }
 }

@@ -1589,6 +1589,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"call-me-maybe@npm:^1.0.1":
+  version: 1.0.1
+  resolution: "call-me-maybe@npm:1.0.1"
+  checksum: d19e9d6ac2c6a83fb1215718b64c5e233f688ebebb603bdfe4af59cde952df1f2b648530fab555bf290ea910d69d7d9665ebc916e871e0e194f47c2e48e4886b
+  languageName: node
+  linkType: hard
+
 "callsites@npm:^3.0.0":
   version: 3.1.0
   resolution: "callsites@npm:3.1.0"
@@ -1737,7 +1744,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"codecs@npm:^2.0.0":
+"codecs@npm:^2.0.0, codecs@npm:^2.1.0":
   version: 2.2.0
   resolution: "codecs@npm:2.2.0"
   checksum: 03f68748ee01473943e501f5f252ffdfbdac16562e04cabbd186ad2a5ec297ba7d13ec03e352f461ee28b698a0d2924aa85d989f7aacd44d9be61dd97a5af5dc
@@ -3368,6 +3375,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"hyperbee@npm:^1.7.0":
+  version: 1.7.0
+  resolution: "hyperbee@npm:1.7.0"
+  dependencies:
+    codecs: ^2.1.0
+    hypercore-promisifier: ^1.0.1
+    mutexify: ^1.3.1
+    protocol-buffers-encodings: ^1.1.0
+    streamx: ^2.6.6
+  checksum: 75c874bf819009edd0ee5c75010182dd10396b39c8cd172f70b4efba4d131337d8ed3804e5aa5b3af25fc3023be3bb0ced7f6f0dd23b8d6863aff7704b064265
+  languageName: node
+  linkType: hard
+
 "hypercore-cache@npm:^1.0.1":
   version: 1.0.2
   resolution: "hypercore-cache@npm:1.0.2"
@@ -3395,6 +3415,16 @@ __metadata:
     fsctl:
       optional: true
   checksum: 61552ce650c60c2d6c2eb04cf3c447e18272de1e0f8c2fdc6f9ec0eb33cf4b82d851b1da3e7eb4da9fe3d0f48a0d51039459de0c008bdb6472399391a8ad3595
+  languageName: node
+  linkType: hard
+
+"hypercore-promisifier@npm:^1.0.1":
+  version: 1.1.0
+  resolution: "hypercore-promisifier@npm:1.1.0"
+  dependencies:
+    call-me-maybe: ^1.0.1
+    inspect-custom-symbol: ^1.1.1
+  checksum: bc6e49d8d520f55140b4f68a8845e7fa35830640223b482d09ddd03decef84a491e8834a76c24e5aa2be4bef19bf8a917433aab5423468292f08c6e752ddbcbb
   languageName: node
   linkType: hard
 
@@ -3559,7 +3589,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"inspect-custom-symbol@npm:^1.1.0":
+"inspect-custom-symbol@npm:^1.1.0, inspect-custom-symbol@npm:^1.1.1":
   version: 1.1.1
   resolution: "inspect-custom-symbol@npm:1.1.1"
   checksum: ce004219ad8d03ca6a520ccea2ad2c5b4c764a8e73f43aa27074c5adf544df96cf7396d66ea2c430678cf3083b3e5c3f09efa8e381ee55b7e4fda93a5ab7680f
@@ -5144,6 +5174,15 @@ __metadata:
   version: 1.0.0
   resolution: "mutable-proxy@npm:1.0.0"
   checksum: 97fe15312585113e08860e856a97380c6b9244cc93a3b13e20d0c4a1695fa5fd2fc5b457dfb2078367ac45a2428b24bb2f8152838cbbce1087897ab437377a85
+  languageName: node
+  linkType: hard
+
+"mutexify@npm:^1.3.1":
+  version: 1.4.0
+  resolution: "mutexify@npm:1.4.0"
+  dependencies:
+    queue-tick: ^1.0.0
+  checksum: 2ad9712d4f2e75551a2dbfb1dc274dfa6c1dea7418ee48468a9bf252014d3480adc70c264bd93775b034d29b7dbfcfd26ecb2a4d83aa8d137456e617a01d3f76
   languageName: node
   linkType: hard
 
@@ -6839,7 +6878,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"streamx@npm:^2.1.0, streamx@npm:^2.6.0, streamx@npm:^2.7.1":
+"streamx@npm:^2.1.0, streamx@npm:^2.6.0, streamx@npm:^2.6.6, streamx@npm:^2.7.1":
   version: 2.12.2
   resolution: "streamx@npm:2.12.2"
   dependencies:
@@ -7776,6 +7815,7 @@ __metadata:
     delay: ^5.0.0
     eslint: ^8.9.0
     express: ^4.17.2
+    hyperbee: ^1.7.0
     hypercore: ^9.12.0
     libp2p: ^0.36.2
     libp2p-bootstrap: ^0.14.0

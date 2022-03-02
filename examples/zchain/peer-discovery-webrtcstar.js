@@ -5,6 +5,8 @@ const publicWebRTCStarSevers = [
   '/dns4/wrtc-star2.sjc.dwebops.pub/tcp/443/wss/p2p-webrtc-star'
 ];
 
+const password = 'jindalratik@1234';
+
 /**
  * Peer Discovery example using webrtc-star signalling server
  * + Initially connection is made to the signalling server
@@ -13,7 +15,7 @@ const publicWebRTCStarSevers = [
  */
 ;(async () => {
     let node_a = new ZCHAIN();
-    await node_a.initialize('node-1.json', publicWebRTCStarSevers); // present in /ids, so peer id will be loaded
+    await node_a.initialize('node-1.json', password, publicWebRTCStarSevers); // present in /ids, so peer id will be loaded
     node_a.peerDiscovery.onConnect((connection) => {
       // Emitted when a peer has been found
       console.log('Connection established to:', connection.remotePeer.toB58String())

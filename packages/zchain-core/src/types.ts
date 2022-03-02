@@ -1,4 +1,5 @@
 import hypercore from "hypercore";
+import Hyperbee from "hyperbee";
 
 export interface PubSubMessage {
   topicIDs: string[]
@@ -17,5 +18,9 @@ export interface LogPaths {
 
 export interface LogFeeds {
   default: hypercore | undefined // not sure if we need a "default" feed
-  discovery: hypercore | undefined
+}
+
+// for discovery we'll use a hyperbee (append only b-tree built on top of hypercore)
+export interface HyperBeeDBs {
+  discovery: Hyperbee
 }

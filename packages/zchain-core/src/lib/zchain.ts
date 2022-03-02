@@ -25,7 +25,7 @@ export class ZCHAIN {
      * @param fileName json present in /ids. Contains peer metadata
      * @returns libp2p node instance
      */
-    async initialize (fileName: string, listenAddrs?: string[]): Promise<Libp2p> {
+    async initialize (fileName: string, password: string, listenAddrs?: string[]): Promise<Libp2p> {
       this.zId = new ZID();
       await this.zId.create(fileName); // get existing/create new peer id
       const peerId = this.zId.peerId;
@@ -72,7 +72,12 @@ export class ZCHAIN {
       console.log('zChain Node Activated: ' + node.peerId.toB58String());
 
       this.node = node;
-      this.zStore = new ZStore(this.node);
+
+      // intialize zstore
+      this.zStore = new ZStore(this.node, password);
+      await this.zStore.init();
+
+      // initialize discovery class
       this.peerDiscovery = new PeerDiscovery(this.zStore, this.node);
       return node;
     }
