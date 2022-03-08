@@ -26,8 +26,8 @@ const password = 'jindalratik@1234';
     node_b.listen(topic);
     node_b.subscribe(topic);
 
-    setInterval(() => {
+    setInterval(async () => {
       console.log('Connection Size: ' + node_a.node.connectionManager.size);
-      node_a.publish(topic, 'Bird bird bird, bird is the word!');
-    }, 3000);
+      await node_a.publish(topic, 'Bird bird bird, bird is the word!');
+    }, 2000);
 })();
