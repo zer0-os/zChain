@@ -14,10 +14,18 @@ export interface PubSubMessage {
 export interface LogPaths {
   default: string
   discovery: string | undefined
+  feeds: string
+  topics: string
 }
 
-export interface LogFeeds {
+export interface CoreMap {
+  [key: string]: hypercore
+}
+
+export interface Cores {
   default: hypercore | undefined // not sure if we need a "default" feed
+  feeds: CoreMap
+  topics: CoreMap
 }
 
 // for discovery we'll use a hyperbee (append only b-tree built on top of hypercore)
