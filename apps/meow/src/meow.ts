@@ -39,7 +39,7 @@ export class MEOW {
     this.zchain.subscribe(EVERYTHING_TOPIC);
   }
 
-  sendMeow (msg: string): void {
+  async sendMeow (msg: string): Promise<void> {
     this.zchain = this.assertZChainInitialized();
 
     if (msg.length > MAX_MESSAGE_LEN) {
@@ -50,9 +50,9 @@ export class MEOW {
     const hashtags = msg.match(/#[a-z0-9_]+/g) ?? [];
 
     // publish message
-    this.zchain.publish(EVERYTHING_TOPIC, msg); // this will be "listened by only super node"
+    await this.zchain.publish(EVERYTHING_TOPIC, msg); // this will be "listened by only super node"
     for (const hashtag of hashtags) {
-      this.zchain.publish(hashtag, msg);
+      await this.zchain.publish(hashtag, msg);
     }
   }
 }

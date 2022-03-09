@@ -10,7 +10,7 @@ import { MEOW } from "./meow";
   await delay(5 * 1000);
 
   // tweet by meow
-  meow.sendMeow(`Thrilled to join the football gaming revolution
+  await meow.sendMeow(`Thrilled to join the football gaming revolution
  with @UFLgame bringing the new #fairtoplay experience to
  football gamers worldwide! See you in the Game soon! #ucl`);
 })()

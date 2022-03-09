@@ -55,7 +55,7 @@ export class ZCHAIN {
             enabled: true
           },
           pubsub: {
-            enabled: true
+            enabled: true,
             // uncomment to enable publishing node to listen to it's "own" message
             // emitSelf: true
           }
@@ -83,8 +83,11 @@ export class ZCHAIN {
     }
 
     listen (topic: string): void {
-      this.node.pubsub.on(topic, (msg: PubSubMessage) => {
+      this.node.pubsub.on(topic, async (msg: PubSubMessage) => {
         console.log(`Received from ${msg.from}: ${uint8ArrayToString(msg.data)}`);
+
+        // append message to feeds, topics hypercore logs
+        await this.zStore.handleListen(topic, msg);
       });
     }
 
@@ -96,9 +99,11 @@ export class ZCHAIN {
       console.log(this.zId.peerId.toB58String() + " has subscribed to: " + topic);
     }
 
-    publish (topic: string, msg: string): void {
-      this.node.pubsub
+    async publish (topic: string, msg: string): Promise<void> {
+      await this.node.pubsub
         .publish(topic, fromString(msg))
         .catch(err => { throw new Error(err); });
+
+      await this.zStore.handlePublish(topic, msg);
     }
 }
