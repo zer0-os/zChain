@@ -1,12 +1,14 @@
 import Libp2p from "libp2p";
-import Hypercore from "hypercore";
-import Hyperbee from "hyperbee";
 import fs from "fs";
 import path from "path";
-import { HyperBeeDBs, Cores, LogPaths, PubSubMessage } from "../types";
+import { DBs, LogPaths, PubSubMessage, ZChainMessage } from "../types";
 import { decode, encode } from "./encryption";
 import { toString as uint8ArrayToString } from "uint8arrays/to-string";
 import { fromString } from "uint8arrays/from-string";
+
+import { IPFS as IIPFS } from 'ipfs-core';
+import OrbitDB from "orbit-db";
+import FeedStore from "orbit-db-feedstore";
 
 // maybe we should change this to ~/.zchain-db ?
 const ZCHAIN_DEFAULT_STORAGE_DIR = "./zchain-db";
@@ -15,30 +17,31 @@ const ZCHAIN_DEFAULT_STORAGE_DIR = "./zchain-db";
 const SYSPATH = 'sys';
 
 /**
- * Class to handle data of libp2p node (persisting data through hypercore append only logs)
+ * Class to handle data of libp2p libp2p (persisting data through hypercore append only logs)
  * + Store(append) newly discovered peers to logs
  */
 export class ZStore {
-  private node: Libp2p;
+  private libp2p: Libp2p;
+  private ipfs: IIPFS;
+  private orbitdb: OrbitDB;
   private password: string;
   private paths: LogPaths;
-  private cores: Cores;
-  private dbs: HyperBeeDBs;
+  private dbs: DBs;
   private feedMap: Map<string, number>
 
   /**
    * Initializes zchain-db (hypercore append only log)
-   * @param node libp2p node
+   * @param libp2p libp2p node
    */
-  constructor (node: Libp2p, password: string) {
-    this.node = node;
+  constructor (ipfs: IIPFS, libp2p: Libp2p, password: string) {
+    this.ipfs = ipfs;
+    this.libp2p = libp2p;
 
     // going through "type hacks" (as they'll be initialized later)
     this.paths = {} as any;
-    this.cores = {} as any;
-    this.cores.feeds = {};
-    this.cores.topics = {};
     this.dbs = {} as any;
+    this.dbs.feeds = {};
+    this.dbs.topics = {};
     this.feedMap = new Map<string, number>();
 
     // save password
@@ -50,44 +53,37 @@ export class ZStore {
   }
 
   async init(): Promise<void> {
+    this.orbitdb = await OrbitDB.createInstance(this.ipfs as any, { directory: "./zchain-db" });
+
     // eg. ./zchain-db/{peerId}/sys/<log>
-    this.paths.default = path.join(ZCHAIN_DEFAULT_STORAGE_DIR, this.node.peerId.toB58String(), SYSPATH);
-    this.paths.discovery = path.join(this.paths.default, 'discovery');
-    this.paths.feeds = path.join(this.paths.default, 'feeds');
-    this.paths.topics = path.join(this.paths.default, 'topics');
+    this.paths.default = this.libp2p.peerId.toB58String() + "." + SYSPATH;
+    this.paths.discovery = this.paths.default + '.discovery';
+    this.paths.feeds = this.paths.default + '.feeds';
+    //this.paths.topics = path.join(this.paths.default, 'topics');
 
-    const discoveryHypercoreFeed = await this.getHypercore(this.paths.discovery);
-    this.cores.feeds[this.node.peerId.toB58String()] = await this.getHypercore(
-      path.join(this.paths.feeds, this.node.peerId.toB58String(), 'feed')
+    this.dbs.feeds[this.libp2p.peerId.toB58String()] = await this.getFeedsOrbitDB(
+      this.paths.feeds + '.' + this.libp2p.peerId.toB58String() + 'feed'
     );
-    this.dbs.discovery = await this.initializeHyperbee(discoveryHypercoreFeed);
+    this.dbs.discovery = await this.getKeyValueOrbitDB(this.paths.discovery);
   }
 
   /**
-   * Initialzes a hypercore feed, at a given path. If there is already a log
-   * present at the path, it will intialize the feed present there using it's
-   * "public key"
-   * @param logPath path at which the log resides
+   * Initialzes an orbitdb of type "keyValue"
+   * @param dbName name of the database
    */
-  async getHypercore(logPath: string) {
-    const core = new Hypercore(
-      logPath, { valueEncoding: 'utf-8' }
-    );
-    await core.ready();
-    return core;
+  async getKeyValueOrbitDB(dbName: string) {
+    const db = this.orbitdb.keyvalue(dbName);
+    await (await db).load();
+    return db;
   }
 
   /**
-   * Initialzes new hyperbee (an append only B-Tree) using a hypercore feed.
-   * @param feed hypercore feed
+   * Initialzes an orbitdb of type "feed" (mutable log with traversible history)
+   * @param dbName name of the database
    */
-  async initializeHyperbee(feed: Hypercore) {
-    const db = new Hyperbee(feed, {
-      keyEncoding: 'utf-8',
-      valueEncoding: 'utf-8'
-    })
-
-    await db.ready();
+  async getFeedsOrbitDB(dbName: string) {
+    const db = this.orbitdb.feed(dbName);
+    await (await db).load();
     return db;
   }
 
@@ -99,16 +95,18 @@ export class ZStore {
     const encodedData = await encode(peerId, this.password);
 
     const data = await this.dbs.discovery.get(encodedData);
-    if (data === null) {
+
+    if (data === undefined) {
       await this.dbs.discovery.put(encodedData, 1);
     }
   }
 
-  async _append(core: Hypercore, topic: string, message: PubSubMessage) {
+  async _append(feedStore: FeedStore<unknown>, topic: string, message: PubSubMessage) {
     let prev = null;
-    if (core.length !== 0) {
-      const lastBlock = await core.get(core.length - 1);
-      const parsed = JSON.parse(lastBlock);
+    const lastBlock = feedStore.iterator({ limit: 1, reverse: true }).collect()
+      .map((e) => e.payload.value);
+    if (lastBlock.length !== 0) {
+      const parsed = lastBlock[0] as ZChainMessage;
       //console.log('P ', parsed);
 
       prev = parsed.message; // hash of prev message
@@ -126,7 +124,7 @@ export class ZStore {
       // key: message.key
     }
 
-    await core.append([JSON.stringify(data)]);
+    await feedStore.add(data);
   }
 
   /**
@@ -134,13 +132,13 @@ export class ZStore {
    * @param message libp2p pubsub message
    */
   async appendMessageToTopicsFeed(topic: string, message: PubSubMessage): Promise<void> {
-    if (this.cores.topics[topic] === undefined) {
-      this.cores.topics[topic] = await this.getHypercore(
-        path.join(this.paths.topics, topic)
-      );
-    }
+    // if (this.dbs.topics[topic] === undefined) {
+    //   this.dbs.topics[topic] = await this.getHypercore(
+    //     path.join(this.paths.topics, topic)
+    //   );
+    // }
 
-    await this._append(this.cores.topics[topic], topic, message);
+    // await this._append(this.dbs.topics[topic], topic, message);
   }
 
   /**
@@ -151,14 +149,14 @@ export class ZStore {
   async handleListen(topic: string, message: PubSubMessage): Promise<void> {
     // only append to "topics" cores if we received the message from someone else
     // self messaging feeds are handled in "publish"
-    if (message.from === this.node.peerId.toB58String()) { return; }
+    if (message.from === this.libp2p.peerId.toB58String()) { return; }
 
-    const feedCore = this.cores.feeds[this.node.peerId.toB58String()];
-    await this._append(feedCore, topic, message);
+    // const feed = this.dbs.feeds[this.libp2p.peerId.toB58String()];
+    // await this._append(feed, topic, message);
 
-    for (const topic of message.topicIDs) {
-      this.appendMessageToTopicsFeed(topic, message);
-    }
+    // for (const topic of message.topicIDs) {
+    //   this.appendMessageToTopicsFeed(topic, message);
+    // }
   }
 
   /**
@@ -169,33 +167,52 @@ export class ZStore {
   async handlePublish(topic: string, message: string): Promise<void> {
     const pubsubMsg = {
       topicIDs: [topic],
-      from: this.node.peerId.toB58String(),
+      from: this.libp2p.peerId.toB58String(),
       data: fromString(message),
       seqno: new Uint8Array([0]),
       signature: new Uint8Array([0]),
       key: new Uint8Array([0]),
-      receivedFrom: this.node.peerId.toB58String()
+      receivedFrom: this.libp2p.peerId.toB58String()
     };
 
     // only append to my feed a single time (eg. if we're publishing same
     // message accross multiple topics, we only want to append it to feed single time)
     const currTs = Math.round(+new Date() / 10000);
     if (this.feedMap.get(message + currTs.toString()) === undefined) {
-      const feedCore = this.cores.feeds[this.node.peerId.toB58String()];
+      const feedCore = this.dbs.feeds[this.libp2p.peerId.toB58String()];
       await this._append(feedCore, topic, pubsubMsg);
       this.feedMap.set(message + currTs.toString(), 1);
     }
 
-    this.appendMessageToTopicsFeed(topic, pubsubMsg);
+    //this.appendMessageToTopicsFeed(topic, pubsubMsg);
   }
 
   /**
-   * Lists discovered peers from the hyperbee db
+   * Lists discovered peers from the orbitdb keyvalue store
    */
-  async list(): Promise<void> {
-    for await (const { key, value } of this.dbs.discovery.createReadStream()) {
+  async listDiscoveredPeers(): Promise<void> {
+    const all = this.dbs.discovery.all;
+    for (const key in all) {
       const decodedData = await decode(key, this.password);
       console.log(`Discovered: ${decodedData}`)
+    }
+  }
+
+  /**
+   * Lists messages published by a node
+   */
+  async listMessagesOnFeed(peerIdStr: string): Promise<void> {
+    const feedStore = this.dbs.feeds[peerIdStr];
+    if (feedStore === undefined) {
+      console.error("feed store not found for peer ", peerIdStr);
+    }
+
+    const messages = feedStore.iterator({
+      limit: -1
+    }).collect().map((e) => e.payload.value);
+
+    for (const message of messages) {
+      console.log(`Message: ${JSON.stringify(message, null, 2)}`);
     }
   }
 }
