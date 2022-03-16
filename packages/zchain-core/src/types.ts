@@ -1,5 +1,5 @@
-import hypercore from "hypercore";
-import Hyperbee from "hyperbee";
+import FeedStore from "orbit-db-feedstore";
+import KeyValueStore from "orbit-db-kvstore";
 
 export interface PubSubMessage {
   topicIDs: string[]
@@ -11,6 +11,17 @@ export interface PubSubMessage {
   receivedFrom: string
 }
 
+export interface ZChainMessage {
+  prev: string,
+  from: string,
+  topic: string,
+  message: string,
+  timestamp: number,
+  seqno?: Buffer | Uint8Array
+  signature?: Buffer | Uint8Array
+  key?: Buffer | Uint8Array
+}
+
 export interface LogPaths {
   default: string
   discovery: string | undefined
@@ -18,17 +29,13 @@ export interface LogPaths {
   topics: string
 }
 
-export interface CoreMap {
-  [key: string]: hypercore
+export interface FeedMap {
+  [key: string]: FeedStore<unknown>
 }
 
-export interface Cores {
-  default: hypercore | undefined // not sure if we need a "default" feed
-  feeds: CoreMap
-  topics: CoreMap
-}
-
-// for discovery we'll use a hyperbee (append only b-tree built on top of hypercore)
-export interface HyperBeeDBs {
-  discovery: Hyperbee
+export interface DBs {
+  // default: hypercore | undefined // not sure if we need a "default" feed
+  feeds: FeedMap
+  topics: FeedMap
+  discovery: KeyValueStore<unknown>
 }

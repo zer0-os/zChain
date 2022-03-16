@@ -1,5 +1,8 @@
 import { NOISE } from '@chainsafe/libp2p-noise';
 import Libp2p from "libp2p";
+import { IPFS as IIPFS } from 'ipfs-core';
+import * as IPFS from 'ipfs-core';
+
 import Gossipsub from "libp2p-gossipsub";
 import KadDHT from 'libp2p-kad-dht';
 import Mdns from "libp2p-mdns";
@@ -15,6 +18,7 @@ import { addWebRTCStarAddrs } from "./transport";
 import { ZID } from "./zid";
 
 export class ZCHAIN {
+    ipfs: IIPFS | undefined;
     node: Libp2p | undefined;
     zId: ZID | undefined;
     peerDiscovery: PeerDiscovery | undefined;
@@ -52,7 +56,7 @@ export class ZCHAIN {
         },
         config: {
           dht: {
-            enabled: true
+            enabled: false
           },
           pubsub: {
             enabled: true,
@@ -66,15 +70,29 @@ export class ZCHAIN {
       const starAddresses = options.addresses.listen.filter(a => a.includes('p2p-webrtc-star'));
       if (starAddresses.length) { addWebRTCStarAddrs(options); }
 
-      const node = await Libp2p.create(options);
-      await node.start();
+      this.ipfs = await IPFS.create({
+        libp2p: options,
+        repo: `.jsipfs/${peerId.toB58String()}`,
+        init: {
+          privateKey: peerId
+        },
+        relay: { enabled: false },
+        config: {
+          Addresses: {
+            Swarm: [],
+          },
+          Bootstrap: []
+        }
+      });
+      // need to go through type hacks here..
+      const node = (this.ipfs as any).libp2p as Libp2p;
 
       console.log('zChain Node Activated: ' + node.peerId.toB58String());
 
       this.node = node;
 
       // intialize zstore
-      this.zStore = new ZStore(this.node, password);
+      this.zStore = new ZStore(this.ipfs, this.node, password);
       await this.zStore.init();
 
       // initialize discovery class

@@ -118,3 +118,6 @@ packages/builder/project/
 
 examples/**/zchain-db
 apps/**/zchain-db
+
+examples/**/.jsipfs
+apps/**/.jsipfs

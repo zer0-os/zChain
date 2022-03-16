@@ -21,6 +21,7 @@
     "sourceMap": true,
     "declaration": true,
     "outDir": "./build",
+    "skipLibCheck": true
   },
   "include": ["src"],
   "exclude": [
