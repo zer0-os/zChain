@@ -71,4 +71,13 @@ export class PeerDiscovery {
       await this.zStore.appendDiscoveryLog(peerId.toB58String());
     });
   }
+
+  /**
+   * Handle listen protocol for libp2p node
+   * @param protocol protocol string (eg. /chat/1.0)
+   * @param handler handler function
+   */
+  handleProtocol(protocol: string, handler: (props: Libp2p.HandlerProps) => void) {
+    this.node.handle(protocol, handler);
+  }
 }
