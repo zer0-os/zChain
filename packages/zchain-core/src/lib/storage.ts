@@ -9,6 +9,8 @@ import { fromString } from "uint8arrays/from-string";
 import { IPFS as IIPFS } from 'ipfs-core';
 import OrbitDB from "orbit-db";
 import FeedStore from "orbit-db-feedstore";
+import KeyValueStore from "orbit-db-kvstore";
+import chalk from "chalk";
 
 // maybe we should change this to ~/.zchain-db ?
 const ZCHAIN_DEFAULT_STORAGE_DIR = "./zchain-db";
@@ -21,12 +23,12 @@ const SYSPATH = 'sys';
  * + Store(append) newly discovered peers to logs
  */
 export class ZStore {
-  private libp2p: Libp2p;
-  private ipfs: IIPFS;
-  private orbitdb: OrbitDB;
+  protected libp2p: Libp2p;
+  protected ipfs: IIPFS;
+  orbitdb: OrbitDB;
   private password: string;
   private paths: LogPaths;
-  private dbs: DBs;
+  protected dbs: DBs;
   private feedMap: Map<string, number>
 
   /**
@@ -62,16 +64,23 @@ export class ZStore {
     //this.paths.topics = path.join(this.paths.default, 'topics');
 
     this.dbs.feeds[this.libp2p.peerId.toB58String()] = await this.getFeedsOrbitDB(
-      this.paths.feeds + '.' + this.libp2p.peerId.toB58String() + 'feed'
+      this.paths.feeds + '.' + this.libp2p.peerId.toB58String() + '.feed'
     );
     this.dbs.discovery = await this.getKeyValueOrbitDB(this.paths.discovery);
   }
 
   /**
-   * Initialzes an orbitdb of type "keyValue"
+   * @returns orbitdb database of the node's feed (list of messages posted by node)
+   */
+  getFeedDB(): FeedStore<unknown> {
+    return this.dbs.feeds[this.libp2p.peerId.toB58String()];
+  }
+
+  /**
+   * Initializes an orbitdb of type "keyValue"
    * @param dbName name of the database
    */
-  async getKeyValueOrbitDB(dbName: string) {
+  async getKeyValueOrbitDB(dbName: string): Promise<KeyValueStore<unknown>> {
     const db = this.orbitdb.keyvalue(dbName);
     await (await db).load();
     return db;
@@ -199,20 +208,27 @@ export class ZStore {
   }
 
   /**
-   * Lists messages published by a node
+   * Lists last "n" messages published by a node
    */
-  async listMessagesOnFeed(peerIdStr: string): Promise<void> {
+  async listMessagesOnFeed(peerIdStr: string, n: number): Promise<void> {
     const feedStore = this.dbs.feeds[peerIdStr];
     if (feedStore === undefined) {
       console.error("feed store not found for peer ", peerIdStr);
+      return;
     }
 
+    await feedStore.load(n);
     const messages = feedStore.iterator({
-      limit: -1
-    }).collect().map((e) => e.payload.value);
+      limit: n, reverse: true
+    }).collect();
 
-    for (const message of messages) {
-      console.log(`Message: ${JSON.stringify(message, null, 2)}`);
+    console.log(chalk.green(`Last ${n} messages by ${peerIdStr}`));
+    for (const m of messages) {
+      const msg = m.payload.value as ZChainMessage;
+      console.log(`${chalk.green('>')} `, {
+        ...msg,
+        message: await decode(msg.message, this.password)
+      });
     }
   }
 }
