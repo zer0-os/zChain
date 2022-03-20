@@ -16,6 +16,7 @@ import { PeerDiscovery } from "./peer-discovery";
 import { ZStore } from './storage';
 import { addWebRTCStarAddrs } from "./transport";
 import { ZID } from "./zid";
+import chalk from 'chalk';
 
 export class ZCHAIN {
     ipfs: IIPFS | undefined;
@@ -52,7 +53,7 @@ export class ZCHAIN {
           connEncryption: [NOISE],
           dht: KadDHT,
           pubsub: Gossipsub,
-          peerDiscovery: [Mdns]
+          peerDiscovery: [] // TODO: add Mdns, removed as tested on remote systems
         },
         config: {
           dht: {
@@ -87,7 +88,7 @@ export class ZCHAIN {
       // need to go through type hacks here..
       const node = (this.ipfs as any).libp2p as Libp2p;
 
-      console.log('zChain Node Activated: ' + node.peerId.toB58String());
+      console.log("\n★", chalk.cyan('zChain Node Activated: ' + node.peerId.toB58String() + " ★\n"));
 
       this.node = node;
 

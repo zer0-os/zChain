@@ -1,10 +1,14 @@
 import { ZCHAIN } from "zchain-core";
 
-import { EVERYTHING_TOPIC, MAX_MESSAGE_LEN, password } from "./constants";
+import { DB_ADDRESS_PROTOCOL, EVERYTHING_TOPIC, MAX_MESSAGE_LEN, password } from "./constants";
+import { pipe } from 'it-pipe';
+import { Multiaddr } from 'multiaddr';
+import { MStore } from "./storage";
 
 export class MEOW {
   private zchain: ZCHAIN | undefined;
   private readonly topics: string[];
+  private store: MStore | undefined;
 
   constructor () { this.topics = [EVERYTHING_TOPIC]; }
 
@@ -25,14 +29,31 @@ export class MEOW {
 
     this.zchain = new ZCHAIN();
     await this.zchain.initialize(fileName, password, listenAddrs);
+    this.store = new MStore(this.zchain);
+    await this.store.init();
 
-    this.zchain.peerDiscovery.onConnect((connection) => {
+    this.zchain.peerDiscovery.onConnect(async (connection) => {
       console.log('Connection established to:', connection.remotePeer.toB58String());
+      const listenerMa = new Multiaddr(`/dns4/vast-escarpment-62759.herokuapp.com/tcp/443/wss/p2p-webrtc-star/p2p/${connection.remotePeer.toB58String()}`)
+      try {
+        const { stream } = await this.zchain.node.dialProtocol(listenerMa, DB_ADDRESS_PROTOCOL);
+
+        // share db address on new connection
+        const db = this.zchain.zStore.getFeedDB();
+        pipe(
+          [ db.address.toString() ],
+          stream
+        );
+      } catch (error) {
+        // could fail intially because of Mdns <-> webrtc-star
+      }
     });
 
     this.zchain.peerDiscovery.onDiscover((peerId) => {
       console.log('Discovered:', peerId.toB58String());
     });
+
+    await this.store.handleIncomingOrbitDbAddress(this.zchain);
 
     // listen and subscribe to the everything topic (aka "super" node)
     this.zchain.listen(EVERYTHING_TOPIC);
@@ -54,5 +75,21 @@ export class MEOW {
     for (const hashtag of hashtags) {
       await this.zchain.publish(hashtag, msg);
     }
+  }
+
+  async follow(peerId: string) {
+    await this.store.follow(peerId);
+  }
+
+  async unFollow(peerId: string) {
+    await this.store.unFollow(peerId);
+  }
+
+  listFollowers() {
+    this.store.listFollowers();
+  }
+
+  async displayFeed(peerId: string, n: number) {
+    await this.store.displayFeed(peerId, n);
   }
 }
