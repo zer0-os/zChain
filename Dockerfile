@@ -1,4 +1,7 @@
 FROM node:current
+RUN ["apt-get", "update"]
+RUN ["apt-get", "install", "-y", "vim"]
+
 WORKDIR /src/zchain
 
 RUN npm cache clean -f; \
@@ -8,7 +11,7 @@ RUN npm cache clean -f; \
     npm install npm@latest -g;
 
 COPY package.json ./
-RUN npm install
+#RUN yarn install
 COPY . .
-RUN cd packages/zchain-core && npm install
-RUN cd packages/zchain-core && npm run build
+RUN yarn install
+RUN yarn build

@@ -3,3 +3,6 @@ npm-debug.log
 packages/zchain-core/node_modules
 packages/zchain-core/build
 packages/zchain-core/package-lock.json
+**/bin
+**/obj
+.git
