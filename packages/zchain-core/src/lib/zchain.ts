@@ -88,7 +88,7 @@ export class ZCHAIN {
       // need to go through type hacks here..
       const node = (this.ipfs as any).libp2p as Libp2p;
 
-      console.log("\n★", chalk.cyan('zChain Node Activated: ' + node.peerId.toB58String() + " ★\n"));
+      console.log("\n★", chalk.cyan('zChain Node Activated: ' + node.peerId.toB58String()) + " ★\n");
 
       this.node = node;
 

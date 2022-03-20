@@ -60,11 +60,11 @@ export class ZStore {
     // eg. ./zchain-db/{peerId}/sys/<log>
     this.paths.default = this.libp2p.peerId.toB58String() + "." + SYSPATH;
     this.paths.discovery = this.paths.default + '.discovery';
-    this.paths.feeds = this.paths.default + '.feeds';
+    this.paths.feeds = this.paths.default + '.feed';
     //this.paths.topics = path.join(this.paths.default, 'topics');
 
     this.dbs.feeds[this.libp2p.peerId.toB58String()] = await this.getFeedsOrbitDB(
-      this.paths.feeds + '.' + this.libp2p.peerId.toB58String() + '.feed'
+      this.paths.feeds
     );
     this.dbs.discovery = await this.getKeyValueOrbitDB(this.paths.discovery);
   }
