@@ -1,5 +1,4 @@
 import delay from "delay";
-
 import { MEOW } from "./meow";
 
 ;(async () => {
@@ -10,8 +9,7 @@ import { MEOW } from "./meow";
   await delay(5 * 1000);
 
   // tweet by meow
-  await meow.sendMeow(`Thrilled to join the football gaming revolution
- with @UFLgame bringing the new #fairtoplay experience to
- football gamers worldwide! See you in the Game soon! #ucl`);
+  await meow.sendMeow(`This is second message #ucl`);
+  await meow.sendMeow(`This is third message #ucl`);
 })()
   .catch(err => { throw new Error(err); });
