@@ -39,16 +39,16 @@ export class MStore extends ZStore {
       const remoteAddress = this.followers.get(key);
       if (!feed && typeof remoteAddress === "string") {
         this.dbs.feeds[key] = await this.orbitdb.open(remoteAddress) as FeedStore<unknown>;
-        this.listenForReplicationEvent(this.dbs.feeds[key]);
+        this.listenForReplicatedEvent(this.dbs.feeds[key]);
       }
     }
   }
 
   // log replication ("sync" events accross all dbs)
-  listenForReplicationEvent(feed: FeedStore<unknown>): void {
+  listenForReplicatedEvent(feed: FeedStore<unknown>): void {
     if (feed) {
-      feed.events.on('replicate.progress', (address, hash, entry, progress, have) => {
-        console.log(chalk.green(`Syncing: ${address}`));
+      feed.events.on('replicated', (address) => {
+        console.log(chalk.green(`\n* Successfully synced db: ${address} *\n`));
       })
     }
   }
@@ -77,7 +77,7 @@ export class MStore extends ZStore {
               if (feed === undefined) {
                 feed = await self.orbitdb.open(address) as FeedStore<unknown>;
                 self.dbs.feeds[connection.remotePeer.toB58String()] = feed;
-                self.listenForReplicationEvent(feed);
+                self.listenForReplicatedEvent(feed);
               }
             }
           }
@@ -110,9 +110,18 @@ export class MStore extends ZStore {
   }
 
   async displayFeed(peerId: string, n: number): Promise<void> {
+    if (this.followers.get(peerId) === undefined) {
+      console.error(
+        chalk.red(`Cannot fetch feed (Invalid request): You're not following ${peerId}`)
+      );
+      return;
+    }
+
     const feed = this.dbs.feeds[peerId];
     if (feed === undefined) {
-      console.warn(chalk.yellow(`Feed for peer with zId ${peerId} not found`));
+      console.error(
+        chalk.red(`Error while loading feed for zId ${peerId}: not found. The node is possibly offline and feeds are not synced yet.`)
+      );
       return;
     }
 

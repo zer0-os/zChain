@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "ts-node src/app.ts",
+    "dev:n3o": "ts-node src/n3o.ts",
+    "dev:ratik": "ts-node src/ratik.ts",
     "lint": "eslint --ext .js,.ts src",
     "lint:fix": "eslint --fix --ext .js,.ts src",
     "build": "tsc -p .",
