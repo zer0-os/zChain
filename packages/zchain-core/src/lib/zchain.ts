@@ -11,7 +11,7 @@ import TCP from 'libp2p-tcp';
 import { fromString } from "uint8arrays/from-string";
 import { toString as uint8ArrayToString } from "uint8arrays/to-string";
 
-import { PubSubMessage } from "../types";
+import { PubSubMessage, ZChainMessage } from "../types";
 import { PeerDiscovery } from "./peer-discovery";
 import { ZStore } from './storage';
 import { addWebRTCStarAddrs } from "./transport";
