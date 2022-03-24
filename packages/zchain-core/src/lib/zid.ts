@@ -1,3 +1,4 @@
+import chalk from "chalk";
 import fs from "fs";
 import path from "path";
 import PeerId from "peer-id";
@@ -6,6 +7,14 @@ import { getPathFromDirRecursive } from "./files";
 
 const PEER_ID_DIR = "ids";
 const jsonExt = ".json";
+
+export function assertValidzId(peerId: string) {
+  try {
+    PeerId.createFromB58String(peerId);
+  } catch (error) {
+    console.error(chalk.red(`Invalid zId: ${peerId}`));
+  }
+}
 
 /**
  * Class representing zchain id (a persistent peer id accross zchain nodes)
