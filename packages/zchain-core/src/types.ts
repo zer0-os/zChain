@@ -36,6 +36,6 @@ export interface FeedMap {
 export interface DBs {
   // default: hypercore | undefined // not sure if we need a "default" feed
   feeds: FeedMap
-  topics: FeedMap
+  //topics: FeedMap
   discovery: KeyValueStore<unknown>
 }

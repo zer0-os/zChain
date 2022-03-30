@@ -43,7 +43,6 @@ export class ZStore {
     this.paths = {} as any;
     this.dbs = {} as any;
     this.dbs.feeds = {};
-    this.dbs.topics = {};
     this.feedMap = new Map<string, number>();
 
     // save password
@@ -110,30 +109,30 @@ export class ZStore {
     }
   }
 
-  async _append(feedStore: FeedStore<unknown>, topic: string, message: PubSubMessage) {
+  async appendZChainMessageToFeed(feedStore: FeedStore<unknown>, topic: string, message: string): Promise<void> {
+    await feedStore.load(1); // load last block to memory
+
     let prev = null;
     const lastBlock = feedStore.iterator({ limit: 1, reverse: true }).collect()
       .map((e) => e.payload.value);
     if (lastBlock.length !== 0) {
       const parsed = lastBlock[0] as ZChainMessage;
-      //console.log('P ', parsed);
-
       prev = parsed.message; // hash of prev message
     }
 
-    const strMsg = uint8ArrayToString(message.data);
-    const data = {
+    const zChainMessage = {
       prev: prev,
-      from: message.from,
+      from: this.libp2p.peerId.toB58String(),
       topic: topic,
-      message: await encode(strMsg, this.password),
+      message: await encode(message, this.password),
       timestamp: Math.round(+new Date() / 1000),
+      // these keys are in the pubsub message, but maybe we could create our own?
       // signature: message.signature,
       // seqno: message.seqno,
       // key: message.key
     }
 
-    await feedStore.add(data);
+    await feedStore.add(zChainMessage);
   }
 
   /**
@@ -147,7 +146,7 @@ export class ZStore {
     //   );
     // }
 
-    // await this._append(this.dbs.topics[topic], topic, message);
+    // await this.appendZChainMessageToFeed(this.dbs.topics[topic], topic, message);
   }
 
   /**
@@ -161,7 +160,7 @@ export class ZStore {
     if (message.from === this.libp2p.peerId.toB58String()) { return; }
 
     // const feed = this.dbs.feeds[this.libp2p.peerId.toB58String()];
-    // await this._append(feed, topic, message);
+    // await this.appendZChainMessageToFeed(feed, topic, message);
 
     // for (const topic of message.topicIDs) {
     //   this.appendMessageToTopicsFeed(topic, message);
@@ -174,26 +173,24 @@ export class ZStore {
    * @param message libp2p pubsub message
    */
   async handlePublish(topic: string, message: string): Promise<void> {
-    const pubsubMsg = {
-      topicIDs: [topic],
-      from: this.libp2p.peerId.toB58String(),
-      data: fromString(message),
-      seqno: new Uint8Array([0]),
-      signature: new Uint8Array([0]),
-      key: new Uint8Array([0]),
-      receivedFrom: this.libp2p.peerId.toB58String()
-    };
+    // const pubsubMsg = {
+    //   topicIDs: [topic],
+    //   from: this.libp2p.peerId.toB58String(),
+    //   data: fromString(message),
+    //   seqno: new Uint8Array([0]),
+    //   signature: new Uint8Array([0]),
+    //   key: new Uint8Array([0]),
+    //   receivedFrom: this.libp2p.peerId.toB58String()
+    // };
 
     // only append to my feed a single time (eg. if we're publishing same
     // message accross multiple topics, we only want to append it to feed single time)
     const currTs = Math.round(+new Date() / 10000);
     if (this.feedMap.get(message + currTs.toString()) === undefined) {
       const feedCore = this.dbs.feeds[this.libp2p.peerId.toB58String()];
-      await this._append(feedCore, topic, pubsubMsg);
+      await this.appendZChainMessageToFeed(feedCore, topic, message);
       this.feedMap.set(message + currTs.toString(), 1);
     }
-
-    //this.appendMessageToTopicsFeed(topic, pubsubMsg);
   }
 
   /**
@@ -217,12 +214,12 @@ export class ZStore {
       return;
     }
 
-    await feedStore.load(n);
+    await feedStore.load(n); // load last "n" messages to memory
     const messages = feedStore.iterator({
       limit: n, reverse: true
     }).collect();
 
-    console.log(chalk.green(`Last ${n} messages by ${peerIdStr}`));
+    console.log(chalk.cyanBright(`Last ${n} messages published by ${peerIdStr}`));
     for (const m of messages) {
       const msg = m.payload.value as ZChainMessage;
       console.log(`${chalk.green('>')} `, {

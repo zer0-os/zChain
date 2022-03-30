@@ -70,26 +70,43 @@ export class MEOW {
     // extract hashtags(topics) from the msg
     const hashtags = msg.match(/#[a-z0-9_]+/g) ?? [];
 
-    // publish message
-    await this.zchain.publish(EVERYTHING_TOPIC, msg); // this will be "listened by only super node"
-    for (const hashtag of hashtags) {
+    // publish message on each topic
+    // messages published to "#everything" will be listened by only "super node"
+    for (const hashtag of [ EVERYTHING_TOPIC, ...hashtags]) {
       await this.zchain.publish(hashtag, msg);
+      await this.store.publishMessageOnTopic(hashtag, msg);
     }
   }
 
-  async follow(peerId: string) {
-    await this.store.follow(peerId);
+  async followZId(peerId: string) {
+    await this.store.followZId(peerId);
   }
 
-  async unFollow(peerId: string) {
-    await this.store.unFollow(peerId);
+  async unFollowZId(peerId: string) {
+    await this.store.unFollowZId(peerId);
   }
 
-  listFollowers() {
-    this.store.listFollowers();
+  async followTopic(topic: string) {
+    await this.store.followTopic(topic);
+  }
+
+  async unFollowTopic(topic: string) {
+    await this.store.unFollowTopic(topic);
+  }
+
+  listFollowedPeers() {
+    this.store.listFollowedPeers();
+  }
+
+  listFollowedTopics() {
+    this.store.listFollowedTopics();
   }
 
   async displayFeed(peerId: string, n: number) {
     await this.store.displayFeed(peerId, n);
+  }
+
+  async displayTopicFeed(topic: string, n: number) {
+    await this.store.displayTopicFeed(topic, n);
   }
 }

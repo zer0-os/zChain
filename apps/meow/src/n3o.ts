@@ -13,14 +13,23 @@ import { MEOW } from "./meow";
   with @UFLgame bringing the new #fairtoplay experience to
   football gamers worldwide! See you in the Game soon! #ucl`);
 
+  /********    Following a peer    *********/
   const ratikId = 'QmTsUsXsRsUpvHxRNXWJKmw3RvSPN3c8Noa95Kpduu5Wcv';
 
   // follow ratik
-  await meow.follow(ratikId);
-  meow.listFollowers();
+  await meow.followZId(ratikId);
+  meow.listFollowedPeers();
 
   // display last 5 messages posted by ratik
   await delay(6 * 1000);
   await meow.displayFeed(ratikId, 5);
+
+  /********    Following a topic    *********/
+
+  await meow.followTopic('#ucl');
+  meow.listFollowedTopics();
+
+  await delay(6 * 1000);
+  await meow.displayTopicFeed('#ucl', 3); // display last 3 messages on topic #ucl
 })()
   .catch(err => { throw new Error(err); });
