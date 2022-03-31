@@ -2,11 +2,8 @@ import fs from 'fs'
 import os from 'os'
 import path from 'path'
 import debug from 'debug'
-import Progress from 'progress'
 // @ts-expect-error no types
-import byteman from 'byteman'
 import { create } from 'ipfs-core'
-import { CID } from 'multiformats/cid'
 import { Multiaddr } from 'multiaddr'
 import { fromString as uint8ArrayFromString } from 'uint8arrays/from-string'
 import { create as httpClient } from 'ipfs-http-client'
@@ -83,22 +80,7 @@ print.error = (msg, newline = true) => {
 print.isTTY = process.stdout.isTTY
 print.columns = process.stdout.columns
 
-/**
- * @param {number} totalBytes
- * @param {*} [output]
- */
-export const createProgressBar = (totalBytes, output) => {
-  const total = byteman(totalBytes, 2, 'MB')
-  const barFormat = `:progress / ${total} [:bar] :percent :etas`
 
-  // 16 MB / 34 MB [===========             ] 48% 5.8s //
-  return new Progress(barFormat, {
-    incomplete: ' ',
-    clear: true,
-    stream: output,
-    total: totalBytes
-  })
-}
 
 /**
  * @param {*} val
@@ -199,76 +181,6 @@ export const asOctal = (value) => {
   return parseInt(value, 8)
 }
 
-/**
- * @param {number} [secs]
- * @param {number} [nsecs]
- */
-export const asMtimeFromSeconds = (secs, nsecs) => {
-  if (secs == null) {
-    return undefined
-  }
-
-  return {
-    secs,
-    nsecs
-  }
-}
-
-/**
- * @param {*} value
- */
-export const coerceMtime = (value) => {
-  value = parseInt(value)
-
-  if (isNaN(value)) {
-    throw new Error('mtime must be a number')
-  }
-
-  return value
-}
-
-/**
- * @param {*} value
- */
-export const coerceMtimeNsecs = (value) => {
-  value = parseInt(value)
-
-  if (isNaN(value)) {
-    throw new Error('mtime-nsecs must be a number')
-  }
-
-  if (value < 0 || value > 999999999) {
-    throw new Error('mtime-nsecs must be in the range [0,999999999]')
-  }
-
-  return value
-}
-
-/**
- * @param {*} value
- */
-export const coerceCID = (value) => {
-  if (!value) {
-    return undefined
-  }
-
-  if (value.startsWith('/ipfs/')) {
-    return CID.parse(value.split('/')[2])
-  }
-
-  return CID.parse(value)
-}
-
-/**
- * @param {string[]} values
- */
-export const coerceCIDs = (values) => {
-  if (values == null) {
-    return []
-  }
-
-  return values.map(coerceCID).filter(Boolean)
-}
 
 /**
  * @param {string} value
@@ -354,48 +266,4 @@ export const escapeControlCharacters = (str) => {
     .join('')
 }
 
-/**
- * Removes control characters from all key/values and stringifies
- * CID properties
- *
- * @param {any} obj - all keys/values in this object will be have control characters stripped
- * @param {import('multiformats/bases/interface').MultibaseCodec<any>} cidBase - any encountered CIDs will be stringified using this base
- * @returns {any}
- */
-export const makeEntriesPrintable = (obj, cidBase) => {
-  const cid = CID.asCID(obj)
 
-  if (cid) {
-    return { '/': cid.toString(cidBase.encoder) }
-  }
-
-  if (typeof obj === 'string') {
-    return stripControlCharacters(obj)
-  }
-
-  if (typeof obj === 'number' || obj == null || obj === true || obj === false) {
-    return obj
-  }
-
-  if (Array.isArray(obj)) {
-    const output = []
-
-    for (const key of obj) {
-      output.push(makeEntriesPrintable(key, cidBase))
-    }
-
-    return output
-  }
-
-  /** @type {Record<string, any>} */
-  const output = {}
-
-  Object.entries(obj)
-    .forEach(([key, value]) => {
-      const outputKey = stripControlCharacters(key)
-
-      output[outputKey] = makeEntriesPrintable(value, cidBase)
-    })
-
-  return output
-}
