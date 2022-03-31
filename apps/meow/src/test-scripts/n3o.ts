@@ -1,9 +1,9 @@
 import delay from "delay";
-import { MEOW } from "./meow";
+import { MEOW } from "../meow";
 
 ;(async () => {
   const meow = new MEOW();
-  await meow.init('n3o.json'); // initializes local zchain
+  await meow.init('n3o.json');// initializes local zchain
 
   // 3s delay for discovery and connection of other peers
   await delay(3 * 1000);
@@ -32,4 +32,6 @@ import { MEOW } from "./meow";
   await delay(6 * 1000);
   await meow.displayTopicFeed('#ucl', 3); // display last 3 messages on topic #ucl
 })()
-  .catch(err => { throw new Error(err); });
+  .catch(err => {
+    console.log('E ', err)
+    throw new Error(err); });

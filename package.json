@@ -16,7 +16,7 @@
   },
   "scripts": {
     "build": "yarn workspaces foreach -t run build",
-    "watch": "tsc --build --watch packages/zchain-core",
+    "watch": "tsc --build --watch packages/zchain-core apps/meow",
     "lint": "yarn workspaces foreach -p run lint",
     "lint:fix": "yarn workspaces foreach -p run lint:fix"
   },

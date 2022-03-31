@@ -11,6 +11,7 @@ import OrbitDB from "orbit-db";
 import FeedStore from "orbit-db-feedstore";
 import KeyValueStore from "orbit-db-kvstore";
 import chalk from "chalk";
+import os from 'os'
 
 // maybe we should change this to ~/.zchain-db ?
 const ZCHAIN_DEFAULT_STORAGE_DIR = "./zchain-db";
@@ -54,7 +55,18 @@ export class ZStore {
   }
 
   async init(): Promise<void> {
-    this.orbitdb = await OrbitDB.createInstance(this.ipfs as any, { directory: "./zchain-db" });
+    //const ipfs = httpClient({ url: '/ip4/127.0.0.1/tcp/5002/http' });
+    //const orbitdb1 = await OrbitDB.createInstance(ipfs as any);
+    //console.log("orbitdb1 ", orbitdb1);
+
+    const peerId = await this.ipfs.config.get('Identity.PeerID')
+    this.orbitdb = await OrbitDB.createInstance(
+      this.ipfs as any,
+      {
+        directory: path.join(os.homedir(), '/.zchain-db'),
+        peerId: peerId as string
+      }
+    );
 
     // eg. ./zchain-db/{peerId}/sys/<log>
     this.paths.default = this.libp2p.peerId.toB58String() + "." + SYSPATH;
@@ -66,6 +78,7 @@ export class ZStore {
       this.paths.feeds
     );
     this.dbs.discovery = await this.getKeyValueOrbitDB(this.paths.discovery);
+
   }
 
   /**
@@ -80,8 +93,8 @@ export class ZStore {
    * @param dbName name of the database
    */
   async getKeyValueOrbitDB(dbName: string): Promise<KeyValueStore<unknown>> {
-    const db = this.orbitdb.keyvalue(dbName);
-    await (await db).load();
+    const db = await this.orbitdb.keyvalue(dbName);
+    await db.load();
     return db;
   }
 
@@ -90,8 +103,8 @@ export class ZStore {
    * @param dbName name of the database
    */
   async getFeedsOrbitDB(dbName: string) {
-    const db = this.orbitdb.feed(dbName);
-    await (await db).load();
+    const db = await this.orbitdb.feed(dbName);
+    await db.load();
     return db;
   }
 

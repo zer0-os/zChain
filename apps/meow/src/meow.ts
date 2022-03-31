@@ -1,9 +1,11 @@
-import { ZCHAIN } from "zchain-core";
+import { isDaemonOn, ZCHAIN } from "zchain-core";
 
-import { DB_ADDRESS_PROTOCOL, EVERYTHING_TOPIC, MAX_MESSAGE_LEN, password } from "./constants";
+import { DB_ADDRESS_PROTOCOL, EVERYTHING_TOPIC, MAX_MESSAGE_LEN, password } from "./lib/constants";
 import { pipe } from 'it-pipe';
 import { Multiaddr } from 'multiaddr';
-import { MStore } from "./storage";
+import { MStore } from "./lib/storage";
+import { Daemon } from 'ipfs-daemon'
+import chalk from "chalk";
 
 export class MEOW {
   private zchain: ZCHAIN | undefined;
@@ -19,19 +21,7 @@ export class MEOW {
     return this.zchain;
   }
 
-  /**
-   * Initializes a new Zchain node
-   * @param fileName json present in /ids. Contains peer metadata
-   * @returns libp2p node instance
-   */
-  async init (fileName: string, listenAddrs?: string[]): Promise<void> {
-    if (this.zchain !== undefined) { throw new Error('zchain already associated'); }
-
-    this.zchain = new ZCHAIN();
-    await this.zchain.initialize(fileName, password, listenAddrs);
-    this.store = new MStore(this.zchain);
-    await this.store.init();
-
+  private async _initModules() {
     this.zchain.peerDiscovery.onConnect(async (connection) => {
       console.log('Connection established to:', connection.remotePeer.toB58String());
       const listenerMa = new Multiaddr(`/dns4/vast-escarpment-62759.herokuapp.com/tcp/443/wss/p2p-webrtc-star/p2p/${connection.remotePeer.toB58String()}`)
@@ -39,6 +29,7 @@ export class MEOW {
         const { stream } = await this.zchain.node.dialProtocol(listenerMa, DB_ADDRESS_PROTOCOL);
 
         // share db address on new connection
+        // TODO: use orbitdb.determineAddress(), not need to "load" db here
         const db = this.zchain.zStore.getFeedDB();
         pipe(
           [ db.address.toString() ],
@@ -54,10 +45,98 @@ export class MEOW {
     });
 
     await this.store.handleIncomingOrbitDbAddress(this.zchain);
+  }
+
+  /**
+   * Initializes a new Zchain node
+   * @param fileName json present in /ids. Contains peer metadata
+   * @returns libp2p node instance
+   */
+  async init (fileNameOrPath: string, listenAddrs?: string[]): Promise<void> {
+    if (this.zchain !== undefined) { throw new Error('zchain already associated'); }
+
+    this.zchain = new ZCHAIN();
+    await this.zchain.initialize(fileNameOrPath, password, listenAddrs);
+
+    this.store = new MStore(this.zchain);
+    await this.store.init();
+    await this._initModules();
 
     // listen and subscribe to the everything topic (aka "super" node)
-    this.zchain.listen(EVERYTHING_TOPIC);
     this.zchain.subscribe(EVERYTHING_TOPIC);
+  }
+
+  // meow CLI functions (for testing)
+  async initCLI (fileNameOrPath: string, listenAddrs?: string[]): Promise<void> {
+    if (this.zchain !== undefined) { throw new Error('zchain already associated'); }
+
+    this.zchain = new ZCHAIN();
+    await this.zchain.initCLI(fileNameOrPath, listenAddrs);
+  }
+
+  // meow CLI functions (for testing)
+  async loadCLI (path: string, listenAddrs?: string[]): Promise<void> {
+    if (this.zchain !== undefined) { throw new Error('zchain already associated'); }
+
+    this.zchain = new ZCHAIN();
+    await this.zchain.loadCLI(path, password, listenAddrs);
+
+    this.store = new MStore(this.zchain);
+    await this.store.init();
+    await this._initModules();
+
+    // // listen and subscribe to the everything topic (aka "super" node)
+    // this.zchain.subscribe(EVERYTHING_TOPIC);
+  }
+
+  /**
+   * Initializes a new Zchain Daemon (or load an already running one)
+   * @param fileName json present in /ids. Contains peer metadata
+   * @returns daemon instance
+   * // i think we should have initialized zStore here (to log replication/syncing)
+   */
+  async startDaemon (fileNameOrPath?: string, listenAddrs?: string[]): Promise<Daemon> {
+    this.zchain = new ZCHAIN();
+    const daemon = await this.zchain.startDaemon(fileNameOrPath, listenAddrs);
+
+    // listen and subscribe to the everything topic (aka "super" node)
+    //this.zchain.subscribe(EVERYTHING_TOPIC);
+
+    this.store = new MStore(this.zchain);
+    //await this.store.init();
+    await this._initModules();
+
+    // this.zchain.node.connectionManager.on('peer:connect', async (connection) => {
+    //   console.log('Connection established to:', connection.remotePeer.toB58String());
+    // });
+
+    // this.zchain.node.on('peer:discovery', (peerId) => {
+    //   console.log('Discovered:', peerId.toB58String());
+    // });
+
+    return daemon;
+  }
+
+  async load (): Promise<void> {
+    this.zchain = new ZCHAIN();
+    await this.zchain.load();
+
+    await this.zchain.node.start();
+
+    this.store = new MStore(this.zchain);
+    await this.store.init();
+    await this._initModules();
+
+
+    // this.zchain.node.connectionManager.on('peer:connect', async (connection) => {
+    //   console.log('Connection established to:', connection.remotePeer.toB58String());
+    // });
+
+    // this.zchain.node.on('peer:discovery', (peerId) => {
+    //   console.log('Discovered:', peerId.toB58String());
+    // });
+
+
   }
 
   async sendMeow (msg: string): Promise<void> {
@@ -76,6 +155,8 @@ export class MEOW {
       await this.zchain.publish(hashtag, msg);
       await this.store.publishMessageOnTopic(hashtag, msg);
     }
+
+    console.log(chalk.green('Sent!'));
   }
 
   async followZId(peerId: string) {
@@ -87,10 +168,12 @@ export class MEOW {
   }
 
   async followTopic(topic: string) {
+    this.zchain.subscribe(topic);
     await this.store.followTopic(topic);
   }
 
   async unFollowTopic(topic: string) {
+    this.zchain.unsubscribe(topic);
     await this.store.unFollowTopic(topic);
   }
 

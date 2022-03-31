@@ -18,6 +18,14 @@ import { addWebRTCStarAddrs } from "./transport";
 import { ZID } from "./zid";
 import chalk from 'chalk';
 
+import { Daemon } from 'ipfs-daemon'
+import os from 'os'
+import path from 'path'
+import fs from "fs";
+import { getIpfs, isDaemonOn } from './utils';
+
+export const password = "ratikjindal@3445"
+
 export class ZCHAIN {
     ipfs: IIPFS | undefined;
     node: Libp2p | undefined;
@@ -25,14 +33,7 @@ export class ZCHAIN {
     peerDiscovery: PeerDiscovery | undefined;
     zStore: ZStore;
 
-    /**
-     * Initializes a new Zchain node
-     * @param fileName json present in /ids. Contains peer metadata
-     * @returns libp2p node instance
-     */
-    async initialize (fileName: string, password: string, listenAddrs?: string[]): Promise<Libp2p> {
-      this.zId = new ZID();
-      await this.zId.create(fileName); // get existing/create new peer id
+    async _getIPFSOptions(listenAddrs?: string[]) {
       const peerId = this.zId.peerId;
 
       listenAddrs = listenAddrs ?? [];
@@ -71,25 +72,43 @@ export class ZCHAIN {
       const starAddresses = options.addresses.listen.filter(a => a.includes('p2p-webrtc-star'));
       if (starAddresses.length) { addWebRTCStarAddrs(options); }
 
-      this.ipfs = await IPFS.create({
+      const ipfsOptions = {
         libp2p: options,
-        repo: `.jsipfs/${peerId.toB58String()}`,
+        //repo: path.join(os.homedir(), '/.jsipfs', peerId.toB58String()),
         init: {
           privateKey: peerId
         },
         relay: { enabled: false },
         config: {
           Addresses: {
-            Swarm: [],
+            Swarm: [ ...options.addresses.listen ],
           },
           Bootstrap: []
         }
+      };
+
+      return ipfsOptions;
+    }
+
+    /**
+     * Initializes a new (local) Zchain node
+     * @param fileName json present in /ids. Contains peer metadata
+     * @returns libp2p node instance
+     */
+    async initialize (fileNameOrPath: string, password: string, listenAddrs?: string[]): Promise<Libp2p> {
+      this.zId = new ZID();
+      await this.zId.create(fileNameOrPath); // get existing/create new peer id
+      const ipfsOptions = await this._getIPFSOptions(listenAddrs);
+
+      this.ipfs = await IPFS.create({
+        ...ipfsOptions,
+        repo: `.jsipfs/${this.zId.peerId.toB58String()}`,
       });
+
       // need to go through type hacks here..
       const node = (this.ipfs as any).libp2p as Libp2p;
 
       console.log("\n★", chalk.cyan('zChain Node Activated: ' + node.peerId.toB58String()) + " ★\n");
-
       this.node = node;
 
       // intialize zstore
@@ -101,25 +120,149 @@ export class ZCHAIN {
       return node;
     }
 
-    listen (topic: string): void {
-      this.node.pubsub.on(topic, async (msg: PubSubMessage) => {
-        console.log(`Received from ${msg.from}: ${uint8ArrayToString(msg.data)}`);
+    // just an above copied function, for testing (CLI)
+    async initCLI (fileNameOrPath: string, listenAddrs?: string[]): Promise<void> {
+      this.zId = new ZID();
+      await this.zId.create(fileNameOrPath); // get existing/create new peer id
+      const ipfsOptions = await this._getIPFSOptions(listenAddrs);
 
-        // append message to feeds, topics hypercore logs
-        await this.zStore.handleListen(topic, msg);
+      this.ipfs = await IPFS.create({
+        ...ipfsOptions,
+        repo: path.join(os.homedir(), '/.jsipfs'),
+        start: false
       });
+
+      console.log("\n★", chalk.cyan('zChain Node Activated: ' + await (await this.ipfs.id()).id) + " ★\n");
+    }
+
+    // just an above copied function, for testing (CLI)
+    async loadCLI (zIdPath: string, password: string, listenAddrs?: string[]): Promise<Libp2p> {
+      this.zId = new ZID();
+      await this.zId.create(zIdPath); // get existing/create new peer id
+      const ipfsOptions = await this._getIPFSOptions(listenAddrs);
+
+      this.ipfs = await IPFS.create({
+        ...ipfsOptions,
+        repo: path.join(os.homedir(), '/.jsipfs'),
+      });
+
+      // need to go through type hacks here..
+      const node = (this.ipfs as any).libp2p as Libp2p;
+
+      console.log("\n★", chalk.cyan('Loading zChain Node: ' + node.peerId.toB58String()) + " ★\n");
+      this.node = node;
+
+      // intialize zstore
+      this.zStore = new ZStore(this.ipfs, this.node, password);
+      await this.zStore.init();
+
+      // initialize discovery class
+      this.peerDiscovery = new PeerDiscovery(this.zStore, this.node);
+      return node;
+    }
+
+    /**
+     * Initializes an IPFS zChain (online) Daemon (or load an existing one)
+     * @param fileName json present in /ids. Contains peer metadata
+     * @returns ipfs daemon instance
+     * TODO: think about how to handle "password" (message encryption/decryption)
+     */
+    async startDaemon (fileNameOrPath?: string, listenAddrs?: string[]): Promise<Daemon> {
+      // load zId
+      this.zId = new ZID();
+      await this.zId.create(fileNameOrPath); // get existing/create new peer id
+
+      // handle case when trying to start daemon with another zId
+      if (fs.existsSync(path.join(os.homedir(), '/.jsipfs'))) {
+        const config = fs.readFileSync(path.join(os.homedir(), '/.jsipfs', 'config'), "utf-8");
+        const parsedConfig = JSON.parse(config);
+        const peerIdStr = parsedConfig['Identity']['PeerID'];
+        if (this.zId.peerId.toB58String() !== peerIdStr) {
+          throw new Error(chalk.red(`Config mismatch :: Trying to start a new daemon, but a config is already present at ~/.jsipfs for a different zId(${peerIdStr}). Pease use --force to override`));
+        }
+      }
+
+      // start daemon, initialize ipfs + libp2p
+      const ipfsOptions = await this._getIPFSOptions(listenAddrs);
+      const daemon = new Daemon({
+        ...ipfsOptions,
+        repo: path.join(os.homedir(), '/.jsipfs')
+      });
+      await daemon.start();
+      this.ipfs = daemon._ipfs;
+
+      // need to go through type hacks here :(
+      const node = (this.ipfs as any).libp2p as Libp2p;
+
+      console.log("\n★", chalk.cyan('zChain Daemon Activated: ' + node.peerId.toB58String()) + " ★\n");
+      this.node = node;
+
+      // intialize zstore
+      this.zStore = new ZStore(this.ipfs, this.node, password);
+      await this.zStore.init();
+
+      // initialize discovery class
+      this.peerDiscovery = new PeerDiscovery(this.zStore, this.node);
+      return daemon;
+    }
+
+    /**
+     * Initializes from an existing daemon http endpoint (located at ~/.jsipfs/api)
+     */
+    async load(): Promise<void> {
+      if (!isDaemonOn()) {
+        throw new Error(`Daemon not initialized at ~/.jsipfs. Please run "meow daemon .."`);
+      }
+      this.ipfs = await getIpfs();
+
+      // [hack] issue with ipfs: while loading ipfs node from httpClient, we cannot access
+      // ipfs.libp2p, so we have to load peerId from config, and explicitely create node
+      const peerIdStr = await this.ipfs.config.get('Identity.PeerID');
+      this.zId = new ZID();
+      this.zId.createFromB58String(peerIdStr as string);
+
+
+      const ipfsOptions = await this._getIPFSOptions();
+      const libp2p = new Libp2p(ipfsOptions.libp2p);
+      (this.ipfs as any).libp2p = libp2p;
+
+      const node = (this.ipfs as any).libp2p as Libp2p;
+      this.node = node;
+
+      // intialize zstore
+      this.zStore = new ZStore(this.ipfs, this.node, password);
+      await this.zStore.init();
+
+      // initialize discovery class
+      this.peerDiscovery = new PeerDiscovery(this.zStore, this.node);
     }
 
     subscribe (topic: string): void {
-      if (!this.node.pubsub) {
+      if (!this.ipfs.pubsub) {
         throw new Error('pubsub has not been configured');
       }
-      this.node.pubsub.subscribe(topic);
+
+      this.ipfs.pubsub.subscribe(topic, async (msg: PubSubMessage) => {
+        console.log(`Received from ${msg.from}: ${uint8ArrayToString(msg.data)}`);
+
+        // append message to feeds, topics hypercore logs
+        //await this.zStore.handleListen(topic, msg);
+      });
+
       console.log(this.zId.peerId.toB58String() + " has subscribed to: " + topic);
     }
 
+    unsubscribe (topic: string): void {
+      if (!this.ipfs.pubsub) {
+        throw new Error('pubsub has not been configured');
+      }
+
+      this.ipfs.pubsub.unsubscribe(topic);
+      console.log(this.zId.peerId.toB58String() + " has unsubscribed from: " + topic);
+    }
+
     async publish (topic: string, msg: string): Promise<void> {
-      await this.node.pubsub
+      await this.ipfs.pubsub
         .publish(topic, fromString(msg))
         .catch(err => { throw new Error(err); });
 

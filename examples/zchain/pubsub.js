@@ -20,10 +20,7 @@ const password = 'jindalratik@1234';
     await node_a.node.peerStore.addressBook.set(node_b.node.peerId, node_b.node.multiaddrs);
     await node_a.node.dial(node_b.node.peerId);
 
-    node_a.listen(topic);
     node_a.subscribe(topic);
-
-    node_b.listen(topic);
     node_b.subscribe(topic);
 
     setInterval(async () => {

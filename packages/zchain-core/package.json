@@ -22,7 +22,6 @@
     "@chainsafe/libp2p-noise": "^5.0.2",
     "@nodelib/fs.walk": "^1.2.8",
     "delay": "^5.0.0",
-    "ipfs-core": "^0.14.1",
     "libp2p": "^0.36.2",
     "libp2p-bootstrap": "^0.14.0",
     "libp2p-gossipsub": "^0.13.0",

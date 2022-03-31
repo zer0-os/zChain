@@ -3,7 +3,7 @@ import { ZCHAIN, ZStore, assertValidzId, types, decode } from "zchain-core";
 import { DB_ADDRESS_PROTOCOL, password } from "./constants";
 import { pipe } from 'it-pipe';
 import chalk from "chalk";
-import { MeowDBs } from "./types";
+import { MeowDBs } from "../types";
 
 // meow operations are at the "application" level
 const APP_PATH = 'apps';
@@ -28,8 +28,10 @@ export class MStore extends ZStore {
     this.meowDbs.topics = {} as any;
   }
 
+  peerID() { return this.libp2p.peerId.toB58String(); }
+
   async init(): Promise<void> {
-    const basePath = this.libp2p.peerId.toB58String() + "." + APP_PATH;
+    const basePath = this.peerID() + "." + APP_PATH;
     this.meowDbs.followingZIds = await this.getKeyValueOrbitDB(
       basePath + '.followers'
     );
@@ -81,21 +83,29 @@ export class MStore extends ZStore {
           for await (const msg of source) {
             // if i follow this connection, and feed is not defined yet, load(replicate) it's db
             const address = String(msg).toString().replace('\n', '');
+
+            // i don't think this is a good approach
+            self.meowDbs.followingZIds = await self.getKeyValueOrbitDB(
+              self.peerID() + "." + APP_PATH + '.followers'
+            );
+
             if (
               address.includes(`/orbitdb/`)
               && self.meowDbs.followingZIds.get(connection.remotePeer.toB58String()) !== undefined
             ) {
-              let feed = self.dbs.feeds[connection.remotePeer.toB58String()];
+              //let feed = self.dbs.feeds[connection.remotePeer.toB58String()];
 
               // save db address of the node we're follwing, in our "followers" keyValue store
               self.meowDbs.followingZIds.put(connection.remotePeer.toB58String(), address);
 
               // load the db if not loaded yet
-              if (feed === undefined) {
-                feed = await self.orbitdb.open(address) as FeedStore<unknown>;
-                self.dbs.feeds[connection.remotePeer.toB58String()] = feed;
-                self.listenForReplicatedEvent(feed);
-              }
+              // NOTE: commenting because we don't need to open a db during daemon run.
+              // we'll open it during load()
+              // if (feed === undefined) {
+              //   feed = await self.orbitdb.open(address) as FeedStore<unknown>;
+              //   self.dbs.feeds[connection.remotePeer.toB58String()] = feed;
+              //   self.listenForReplicatedEvent(feed);
+              // }
             }
           }
         }
@@ -157,7 +167,7 @@ export class MStore extends ZStore {
   // list peers followed by "this" node
   listFollowedPeers() {
     const all = this.meowDbs.followingZIds.all;
-    console.log(`\n${this.libp2p.peerId.toB58String()} is following peers:`);
+    console.log(`\n${this.peerID()} is following peers:`);
     for (const key in all) {
       console.log(`${chalk.green('>')} ${key}`);
     }
@@ -165,7 +175,7 @@ export class MStore extends ZStore {
 
   listFollowedTopics() {
     const all = this.meowDbs.followingTopics.all;
-    console.log(`\n${this.libp2p.peerId.toB58String()} is following topics:`);
+    console.log(`\n${this.peerID()} is following topics:`);
     for (const key in all) {
       console.log(`${chalk.green('>')} ${key}`);
     }
