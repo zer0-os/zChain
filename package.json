@@ -2,7 +2,7 @@
   "name": "zchain",
   "version": "1.0.0",
   "description": "",
-  "packageManager": "yarn@3.1.1",
+  "packageManager": "yarn@3.2.0",
   "license": "Apache-2.0",
   "private": true,
   "type": "module",
@@ -11,14 +11,13 @@
     "apps/*"
   ],
   "engines": {
-    "node": ">=14.11.0",
-    "yarn": ">=3.1.0"
+    "node": ">=14.11.0"
   },
   "scripts": {
-    "build": "yarn workspaces foreach -t run build",
+    "build": "yarn workspaces run build",
     "watch": "tsc --build --watch packages/zchain-core apps/meow",
-    "lint": "yarn workspaces foreach -p run lint",
-    "lint:fix": "yarn workspaces foreach -p run lint:fix"
+    "lint": "yarn workspaces run lint",
+    "lint:fix": "yarn workspaces run lint:fix"
   },
   "peerDependencies": {
     "lodash": "^4.17.19"

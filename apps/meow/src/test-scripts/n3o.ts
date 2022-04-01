@@ -31,6 +31,11 @@ import { MEOW } from "../meow";
 
   await delay(6 * 1000);
   await meow.displayTopicFeed('#ucl', 3); // display last 3 messages on topic #ucl
+
+  setInterval(async () => {
+    console.log("P: ", await meow.zchain.ipfs.swarm.peers());
+  }, 4000);
+
 })()
   .catch(err => {
     console.log('E ', err)

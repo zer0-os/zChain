@@ -58,6 +58,7 @@ export class PeerDiscovery {
 
   /**
    * On Discover handler.
+   * using vmware, arch/linux
    * @param handler callback after new peer is discovered
    */
   onDiscover (handler: (peerId: PeerId) => void): void {

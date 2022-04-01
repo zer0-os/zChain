@@ -83,6 +83,14 @@ export class ZCHAIN {
           Addresses: {
             Swarm: [ ...options.addresses.listen ],
           },
+          Discovery: {
+            MDNS: {
+              Enabled: true
+            },
+            webRTCStar: {
+              Enabled: true
+            }
+          },
           Bootstrap: []
         }
       };
@@ -111,10 +119,12 @@ export class ZCHAIN {
       console.log("\n★", chalk.cyan('zChain Node Activated: ' + node.peerId.toB58String()) + " ★\n");
       this.node = node;
 
+      console.log('! ', 1);
       // intialize zstore
       this.zStore = new ZStore(this.ipfs, this.node, password);
       await this.zStore.init();
 
+      console.log('! ', 2);
       // initialize discovery class
       this.peerDiscovery = new PeerDiscovery(this.zStore, this.node);
       return node;

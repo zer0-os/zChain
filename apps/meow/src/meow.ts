@@ -8,7 +8,7 @@ import { Daemon } from 'ipfs-daemon'
 import chalk from "chalk";
 
 export class MEOW {
-  private zchain: ZCHAIN | undefined;
+  zchain: ZCHAIN | undefined;
   private readonly topics: string[];
   private store: MStore | undefined;
 
@@ -36,6 +36,7 @@ export class MEOW {
           stream
         );
       } catch (error) {
+        console.log("E ", error);
         // could fail intially because of Mdns <-> webrtc-star
       }
     });
@@ -103,16 +104,19 @@ export class MEOW {
     //this.zchain.subscribe(EVERYTHING_TOPIC);
 
     this.store = new MStore(this.zchain);
-    //await this.store.init();
-    await this._initModules();
+    await this.store.init();
+    //await this._initModules();
 
-    // this.zchain.node.connectionManager.on('peer:connect', async (connection) => {
-    //   console.log('Connection established to:', connection.remotePeer.toB58String());
-    // });
+    console.log('enabled hooks');
 
-    // this.zchain.node.on('peer:discovery', (peerId) => {
-    //   console.log('Discovered:', peerId.toB58String());
-    // });
+    this.zchain.node.on('peer:discovery', (peerId) => {
+      console.log('Discovered????:', peerId.toB58String());
+    });
+
+    this.zchain.node.connectionManager.on('peer:connect', async (connection) => {
+      console.log('Connection established to:', connection.remotePeer.toB58String());
+    });
+
 
     return daemon;
   }
