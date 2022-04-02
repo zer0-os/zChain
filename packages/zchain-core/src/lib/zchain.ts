@@ -1,5 +1,5 @@
 import { NOISE } from '@chainsafe/libp2p-noise';
-import Libp2p from "libp2p";
+import Libp2p, { Libp2pOptions } from "libp2p";
 import { IPFS as IIPFS } from 'ipfs-core';
 import * as IPFS from 'ipfs-core';
 
@@ -45,6 +45,8 @@ export class ZCHAIN {
             '/ip4/0.0.0.0/tcp/0/ws',
             // custom deployed webrtc-star signalling server
             '/dns4/vast-escarpment-62759.herokuapp.com/tcp/443/wss/p2p-webrtc-star/',
+            "/dns4/wrtc-star1.par.dwebops.pub/tcp/443/wss/p2p-webrtc-star",
+            "/dns4/wrtc-star2.sjc.dwebops.pub/tcp/443/wss/p2p-webrtc-star",
             ...listenAddrs
           ]
         },
@@ -64,7 +66,7 @@ export class ZCHAIN {
             enabled: true,
             // uncomment to enable publishing node to listen to it's "own" message
             // emitSelf: true
-          }
+          },
         }
       };
 
@@ -78,10 +80,11 @@ export class ZCHAIN {
         init: {
           privateKey: peerId
         },
-        relay: { enabled: false },
         config: {
           Addresses: {
             Swarm: [ ...options.addresses.listen ],
+            // API: '',
+            // Gateway: '',
           },
           Discovery: {
             MDNS: {
@@ -89,7 +92,7 @@ export class ZCHAIN {
             },
             webRTCStar: {
               Enabled: true
-            }
+            },
           },
           Bootstrap: []
         }
@@ -114,6 +117,7 @@ export class ZCHAIN {
       });
 
       // need to go through type hacks here..
+      //const node = await Libp2p.create(ipfsOptions.libp2p);
       const node = (this.ipfs as any).libp2p as Libp2p;
 
       console.log("\n★", chalk.cyan('zChain Node Activated: ' + node.peerId.toB58String()) + " ★\n");
@@ -196,7 +200,13 @@ export class ZCHAIN {
       const ipfsOptions = await this._getIPFSOptions(listenAddrs);
       const daemon = new Daemon({
         ...ipfsOptions,
-        repo: path.join(os.homedir(), '/.jsipfs')
+        repo: path.join(os.homedir(), '/.jsipfs'),
+        "relay": {
+          "enabled": true, // enable relay dialer/listener (STOP)
+          "hop": {
+            "enabled": true // make this node a relay (HOP)
+          }
+        },
       });
       await daemon.start();
       this.ipfs = daemon._ipfs;
@@ -206,6 +216,8 @@ export class ZCHAIN {
 
       console.log("\n★", chalk.cyan('zChain Daemon Activated: ' + node.peerId.toB58String()) + " ★\n");
       this.node = node;
+
+      console.log('Op:: ', await daemon._ipfs.config.getAll())
 
       // intialize zstore
       this.zStore = new ZStore(this.ipfs, this.node, password);

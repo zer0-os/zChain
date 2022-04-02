@@ -8,12 +8,12 @@ RUN npm cache clean -f; \
     npm install n -g; \
     n stable; \
     npm update -g; \
-    npm install npm@latest -g; \
-    yarn set version 1.22.18;
+    npm install npm@latest -g;
 
 COPY package.json ./
 #RUN yarn install
 COPY . .
+RUN yarn set version 1.22.18
 RUN yarn install
 RUN yarn build
 RUN cd packages/zchain-core && yarn link && cd ../../
