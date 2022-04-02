@@ -59,20 +59,29 @@ export class MEOW {
     this.zchain = new ZCHAIN();
     await this.zchain.initialize(fileNameOrPath, password, listenAddrs);
 
-    this.store = new MStore(this.zchain);
-    await this.store.init();
-    await this._initModules();
+    // this.store = new MStore(this.zchain);
+    // await this.store.init();
+    // await this._initModules();
 
-    this.zchain.node.on('peer:discovery', (peerId) => {
-      console.log('Discovered????:', peerId.toB58String());
+    this.zchain.node.on('peer:discovery', async (peerId) => {
+      console.log('D ');
+      //console.log('Discovered????:', peerId.toB58String());
     });
 
     this.zchain.node.connectionManager.on('peer:connect', async (connection) => {
-      console.log('Connection established to:', connection.remotePeer.toB58String());
+      if (connection.remotePeer.toB58String() === 'QmQs78HfLpKDKBDL3fLMcCjQTBSXnxuvEYs9V6naVwpRa3') {
+        console.log('\n\nFOUND n3o  n3o  n3o  n3o  n3o  n3o  n3o  n3o  n3o  n3o  n3o  n3o \n\n');
+      }
+
+      if (connection.remotePeer.toB58String() === 'QmTsUsXsRsUpvHxRNXWJKmw3RvSPN3c8Noa95Kpduu5Wcv') {
+        console.log('\n\nFOUND ratik  ratik  ratik  ratik  ratik  ratik  ratik  ratik  ratik  \n\n');
+      }
+
+      console.log('C');
     });
 
     // listen and subscribe to the everything topic (aka "super" node)
-    this.zchain.subscribe(EVERYTHING_TOPIC);
+    //this.zchain.subscribe(EVERYTHING_TOPIC);
   }
 
   // meow CLI functions (for testing)
