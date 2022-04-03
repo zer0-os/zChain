@@ -16,5 +16,11 @@ import { MEOW } from "../meow";
 
   // await delay(2 * 1000);
   // await meow.sendMeow(`This is third message #programming`);
+
+  // setInterval(async () => {
+  //   console.log("P: ", await meow.zchain.ipfs.swarm.peers());
+  // }, 4000);
 })()
-  .catch(err => { throw new Error(err); });
+  .catch(err => {
+    console.log('E ', err);
+    throw new Error(err); });

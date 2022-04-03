@@ -59,9 +59,9 @@ export class MEOW {
     this.zchain = new ZCHAIN();
     await this.zchain.initialize(fileNameOrPath, password, listenAddrs);
 
-    // this.store = new MStore(this.zchain);
-    // await this.store.init();
-    // await this._initModules();
+    this.store = new MStore(this.zchain);
+    await this.store.init();
+    //await this._initModules();
 
     this.zchain.node.on('peer:discovery', async (peerId) => {
       //console.log('D ');

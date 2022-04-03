@@ -1,7 +1,7 @@
 import { NOISE } from '@chainsafe/libp2p-noise';
 import Libp2p, { Libp2pOptions } from "libp2p";
-import { IPFS as IIPFS } from 'ipfs-core';
-import * as IPFS from 'ipfs-core';
+import { IPFS as IIPFS } from 'ipfs';
+import * as IPFS from 'ipfs';
 
 import Gossipsub from "libp2p-gossipsub";
 import KadDHT from 'libp2p-kad-dht';
@@ -48,8 +48,8 @@ export class ZCHAIN {
             '/ip4/0.0.0.0/tcp/0/ws',
             // custom deployed webrtc-star signalling server
             '/dns4/vast-escarpment-62759.herokuapp.com/tcp/443/wss/p2p-webrtc-star/',
-            "/dns4/wrtc-star1.par.dwebops.pub/tcp/443/wss/p2p-webrtc-star",
-            "/dns4/wrtc-star2.sjc.dwebops.pub/tcp/443/wss/p2p-webrtc-star",
+            //"/dns4/wrtc-star1.par.dwebops.pub/tcp/443/wss/p2p-webrtc-star",
+            //"/dns4/wrtc-star2.sjc.dwebops.pub/tcp/443/wss/p2p-webrtc-star",
             ...listenAddrs
           ]
         },
@@ -59,7 +59,7 @@ export class ZCHAIN {
           connEncryption: [NOISE],
           dht: KadDHT,
           pubsub: Gossipsub,
-          peerDiscovery: [] // TODO: add Mdns, removed as tested on remote systems
+          peerDiscovery: [ Mdns ] // TODO: add Mdns, removed as tested on remote systems
         },
         config: {
           peerDiscovery: {
@@ -98,39 +98,7 @@ export class ZCHAIN {
             ]
           }
         },
-        libp2p: {
-          peerId,
-          addresses: {
-            listen: [
-              '/ip4/0.0.0.0/tcp/0',
-              '/ip4/0.0.0.0/tcp/0/ws',
-              // custom deployed webrtc-star signalling server
-              '/dns4/vast-escarpment-62759.herokuapp.com/tcp/443/wss/p2p-webrtc-star/',
-              //"/dns4/wrtc-star1.par.dwebops.pub/tcp/443/wss/p2p-webrtc-star",
-              //"/dns4/wrtc-star2.sjc.dwebops.pub/tcp/443/wss/p2p-webrtc-star",
-              ...listenAddrs
-            ]
-          },
-          modules: {
-            transport: [WebRTCStar],
-            streamMuxer: [Mplex],
-            connEncryption: [NOISE],
-            //dht: KadDHT,
-            pubsub: Gossipsub,
-          },
-          config: {
-            peerDiscovery: {
-              webRTCStar: { // <- note the lower-case w - see https://github.com/libp2p/js-libp2p/issues/576
-                enabled: true
-              }
-            },
-            transport: {
-              WebRTCStar: { // <- note the upper-case w- see https://github.com/libp2p/js-libp2p/issues/576
-                wrtc
-              }
-            }
-          }
-        },
+        libp2p: options,
         //repo: path.join(os.homedir(), '/.jsipfs', peerId.toB58String()),
         init: {
           privateKey: peerId
@@ -152,16 +120,49 @@ export class ZCHAIN {
 
       //console.log('OP ', ipfsOptions);
 
+      // this.ipfs = await IPFS.create({
+      //   ...ipfsOptions,
+      //   repo: path.join(os.homedir(), '/.jsipfs'),
+      // });
+
       this.ipfs = await IPFS.create({
-        ...ipfsOptions,
-        repo: `.jsipfs/${this.zId.peerId.toB58String()}`,
-        start: false
+        repo: path.join(os.homedir(), '/.jsipfs'),
+        config: {
+          Addresses: {
+            Swarm: [
+              // '/dns4/wrtc-star1.par.dwebops.pub/tcp/443/wss/p2p-webrtc-star',
+              // '/dns4/wrtc-star2.sjc.dwebops.pub/tcp/443/wss/p2p-webrtc-star',
+              '/ip4/0.0.0.0/tcp/0',
+              '/ip4/0.0.0.0/tcp/0/ws',
+              '/dns4/vast-escarpment-62759.herokuapp.com/tcp/443/wss/p2p-webrtc-star/',
+            ]
+          }
+        },
+        libp2p: {
+          modules: {
+            transport: [WebRTCStar]
+          },
+          config: {
+            peerDiscovery: {
+              webRTCStar: { // <- note the lower-case w - see https://github.com/libp2p/js-libp2p/issues/576
+                enabled: true
+              }
+            },
+            transport: {
+              WebRTCStar: { // <- note the upper-case w- see https://github.com/libp2p/js-libp2p/issues/576
+                wrtc
+              }
+            }
+          }
+        }
       });
 
+      console.log('this ', await this.ipfs.config.getAll());
+
       // need to go through type hacks here..
-      const node = await Libp2p.create(ipfsOptions.libp2p);
-      //const node = (this.ipfs as any).libp2p as Libp2p;
-      await node.start();
+      //const node = await Libp2p.create(ipfsOptions.libp2p);
+      const node = (this.ipfs as any).libp2p as Libp2p;
+      //await node.start();
 
       console.log("\n★", chalk.cyan('zChain Node Activated: ' + node.peerId.toB58String()) + " ★\n");
       this.node = node;
@@ -169,7 +170,7 @@ export class ZCHAIN {
       console.log('! ', 1);
       // intialize zstore
       this.zStore = new ZStore(this.ipfs, this.node, password);
-      //await this.zStore.init();
+        await this.zStore.init();
 
       console.log('! ', 2);
       // initialize discovery class

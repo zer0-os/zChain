@@ -6,7 +6,7 @@ import { decode, encode } from "./encryption";
 import { toString as uint8ArrayToString } from "uint8arrays/to-string";
 import { fromString } from "uint8arrays/from-string";
 
-import { IPFS as IIPFS } from 'ipfs-core';
+import { IPFS as IIPFS } from 'ipfs';
 import OrbitDB from "orbit-db";
 import FeedStore from "orbit-db-feedstore";
 import KeyValueStore from "orbit-db-kvstore";

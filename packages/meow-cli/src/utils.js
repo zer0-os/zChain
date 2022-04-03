@@ -3,7 +3,7 @@ import os from 'os'
 import path from 'path'
 import debug from 'debug'
 // @ts-expect-error no types
-import { create } from 'ipfs-core'
+import { create } from 'ipfs'
 import { Multiaddr } from 'multiaddr'
 import { fromString as uint8ArrayFromString } from 'uint8arrays/from-string'
 import { create as httpClient } from 'ipfs-http-client'
