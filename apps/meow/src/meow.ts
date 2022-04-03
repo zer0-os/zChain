@@ -64,8 +64,8 @@ export class MEOW {
     // await this._initModules();
 
     this.zchain.node.on('peer:discovery', async (peerId) => {
-      console.log('D ');
-      //console.log('Discovered????:', peerId.toB58String());
+      //console.log('D ');
+      console.log('Discovered????:', peerId.toB58String());
     });
 
     this.zchain.node.connectionManager.on('peer:connect', async (connection) => {
@@ -77,7 +77,7 @@ export class MEOW {
         console.log('\n\nFOUND ratik  ratik  ratik  ratik  ratik  ratik  ratik  ratik  ratik  \n\n');
       }
 
-      console.log('C');
+      console.log('C ', connection.remotePeer.toB58String());
     });
 
     // listen and subscribe to the everything topic (aka "super" node)

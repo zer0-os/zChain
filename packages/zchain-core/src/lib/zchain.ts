@@ -24,6 +24,9 @@ import path from 'path'
 import fs from "fs";
 import { getIpfs, isDaemonOn } from './utils';
 
+import wrtc from 'wrtc' // or 'electron-webrtc'
+import WebRTCStar from 'libp2p-webrtc-star'
+
 export const password = "ratikjindal@3445"
 
 export class ZCHAIN {
@@ -51,7 +54,7 @@ export class ZCHAIN {
           ]
         },
         modules: {
-          transport: [TCP],
+          transport: [ TCP ],
           streamMuxer: [Mplex],
           connEncryption: [NOISE],
           dht: KadDHT,
@@ -59,6 +62,11 @@ export class ZCHAIN {
           peerDiscovery: [] // TODO: add Mdns, removed as tested on remote systems
         },
         config: {
+          peerDiscovery: {
+            webRTCStar: { // <- note the lower-case w - see https://github.com/libp2p/js-libp2p/issues/576
+              enabled: true
+            }
+          },
           dht: {
             enabled: false
           },
@@ -75,26 +83,45 @@ export class ZCHAIN {
       if (starAddresses.length) { addWebRTCStarAddrs(options); }
 
       const ipfsOptions = {
-        libp2p: options,
+        config: {
+          Addresses: {
+            Swarm: [
+              "/ip4/0.0.0.0/tcp/4002",
+              "/ip4/127.0.0.1/tcp/4003/ws",
+              "/dns4/wrtc-star1.par.dwebops.pub/tcp/443/wss/p2p-webrtc-star",
+              "/dns4/wrtc-star2.sjc.dwebops.pub/tcp/443/wss/p2p-webrtc-star",
+
+              '/ip4/0.0.0.0/tcp/0',
+              '/ip4/0.0.0.0/tcp/0/ws',
+              // custom deployed webrtc-star signalling server
+              '/dns4/vast-escarpment-62759.herokuapp.com/tcp/443/wss/p2p-webrtc-star/',
+            ]
+          }
+        },
+        libp2p: {
+          modules: {
+            transport: [WebRTCStar],
+            streamMuxer: [Mplex],
+            connEncryption: [NOISE],
+            //dht: KadDHT,
+            pubsub: Gossipsub,
+          },
+          config: {
+            peerDiscovery: {
+              webRTCStar: { // <- note the lower-case w - see https://github.com/libp2p/js-libp2p/issues/576
+                enabled: true
+              }
+            },
+            transport: {
+              WebRTCStar: { // <- note the upper-case w- see https://github.com/libp2p/js-libp2p/issues/576
+                wrtc
+              }
+            }
+          }
+        },
         //repo: path.join(os.homedir(), '/.jsipfs', peerId.toB58String()),
         init: {
           privateKey: peerId
-        },
-        config: {
-          Addresses: {
-            Swarm: [ ...options.addresses.listen ],
-            // API: '',
-            // Gateway: '',
-          },
-          Discovery: {
-            MDNS: {
-              Enabled: true
-            },
-            webRTCStar: {
-              Enabled: true
-            },
-          },
-          Bootstrap: []
         }
       };
 
@@ -110,6 +137,8 @@ export class ZCHAIN {
       this.zId = new ZID();
       await this.zId.create(fileNameOrPath); // get existing/create new peer id
       const ipfsOptions = await this._getIPFSOptions(listenAddrs);
+
+      console.log('OP ', ipfsOptions);
 
       this.ipfs = await IPFS.create({
         ...ipfsOptions,
@@ -232,31 +261,31 @@ export class ZCHAIN {
      * Initializes from an existing daemon http endpoint (located at ~/.jsipfs/api)
      */
     async load(): Promise<void> {
-      if (!isDaemonOn()) {
-        throw new Error(`Daemon not initialized at ~/.jsipfs. Please run "meow daemon .."`);
-      }
-      this.ipfs = await getIpfs();
+    //   if (!isDaemonOn()) {
+    //     throw new Error(`Daemon not initialized at ~/.jsipfs. Please run "meow daemon .."`);
+    //   }
+    //   this.ipfs = await getIpfs();
 
-      // [hack] issue with ipfs: while loading ipfs node from httpClient, we cannot access
-      // ipfs.libp2p, so we have to load peerId from config, and explicitely create node
-      const peerIdStr = await this.ipfs.config.get('Identity.PeerID');
-      this.zId = new ZID();
-      this.zId.createFromB58String(peerIdStr as string);
+    //   // [hack] issue with ipfs: while loading ipfs node from httpClient, we cannot access
+    //   // ipfs.libp2p, so we have to load peerId from config, and explicitely create node
+    //   const peerIdStr = await this.ipfs.config.get('Identity.PeerID');
+    //   this.zId = new ZID();
+    //   this.zId.createFromB58String(peerIdStr as string);
 
 
-      const ipfsOptions = await this._getIPFSOptions();
-      const libp2p = new Libp2p(ipfsOptions.libp2p);
-      (this.ipfs as any).libp2p = libp2p;
+    //   const ipfsOptions = await this._getIPFSOptions();
+    //   const libp2p = new Libp2p(ipfsOptions.libp2p);
+    //   (this.ipfs as any).libp2p = libp2p;
 
-      const node = (this.ipfs as any).libp2p as Libp2p;
-      this.node = node;
+    //   const node = (this.ipfs as any).libp2p as Libp2p;
+    //   this.node = node;
 
-      // intialize zstore
-      this.zStore = new ZStore(this.ipfs, this.node, password);
-      await this.zStore.init();
+    //   // intialize zstore
+    //   this.zStore = new ZStore(this.ipfs, this.node, password);
+    //   await this.zStore.init();
 
-      // initialize discovery class
-      this.peerDiscovery = new PeerDiscovery(this.zStore, this.node);
+    //   // initialize discovery class
+    //   this.peerDiscovery = new PeerDiscovery(this.zStore, this.node);
     }
 
     subscribe (topic: string): void {
