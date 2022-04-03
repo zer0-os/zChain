@@ -99,6 +99,18 @@ export class ZCHAIN {
           }
         },
         libp2p: {
+          peerId,
+          addresses: {
+            listen: [
+              '/ip4/0.0.0.0/tcp/0',
+              '/ip4/0.0.0.0/tcp/0/ws',
+              // custom deployed webrtc-star signalling server
+              '/dns4/vast-escarpment-62759.herokuapp.com/tcp/443/wss/p2p-webrtc-star/',
+              //"/dns4/wrtc-star1.par.dwebops.pub/tcp/443/wss/p2p-webrtc-star",
+              //"/dns4/wrtc-star2.sjc.dwebops.pub/tcp/443/wss/p2p-webrtc-star",
+              ...listenAddrs
+            ]
+          },
           modules: {
             transport: [WebRTCStar],
             streamMuxer: [Mplex],
@@ -138,16 +150,18 @@ export class ZCHAIN {
       await this.zId.create(fileNameOrPath); // get existing/create new peer id
       const ipfsOptions = await this._getIPFSOptions(listenAddrs);
 
-      console.log('OP ', ipfsOptions);
+      //console.log('OP ', ipfsOptions);
 
       this.ipfs = await IPFS.create({
         ...ipfsOptions,
         repo: `.jsipfs/${this.zId.peerId.toB58String()}`,
+        start: false
       });
 
       // need to go through type hacks here..
-      //const node = await Libp2p.create(ipfsOptions.libp2p);
-      const node = (this.ipfs as any).libp2p as Libp2p;
+      const node = await Libp2p.create(ipfsOptions.libp2p);
+      //const node = (this.ipfs as any).libp2p as Libp2p;
+      await node.start();
 
       console.log("\n★", chalk.cyan('zChain Node Activated: ' + node.peerId.toB58String()) + " ★\n");
       this.node = node;
@@ -155,7 +169,7 @@ export class ZCHAIN {
       console.log('! ', 1);
       // intialize zstore
       this.zStore = new ZStore(this.ipfs, this.node, password);
-      await this.zStore.init();
+      //await this.zStore.init();
 
       console.log('! ', 2);
       // initialize discovery class
