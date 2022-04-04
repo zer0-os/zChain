@@ -26,6 +26,7 @@ import { getIpfs, isDaemonOn } from './utils';
 
 import wrtc from 'wrtc' // or 'electron-webrtc'
 import WebRTCStar from 'libp2p-webrtc-star'
+import WebSocket from 'libp2p-websockets'
 
 export const password = "ratikjindal@3445"
 
@@ -54,7 +55,7 @@ export class ZCHAIN {
           ]
         },
         modules: {
-          transport: [ TCP ],
+          transport: [ TCP, WebSocket ],
           streamMuxer: [Mplex],
           connEncryption: [NOISE],
           dht: KadDHT,
@@ -127,20 +128,31 @@ export class ZCHAIN {
 
       this.ipfs = await IPFS.create({
         repo: path.join(os.homedir(), '/.jsipfs'),
+        relay:{ enabled:true, hop: { enabled:true, active: true }},
         config: {
+          Bootstrap: [],
           Addresses: {
             Swarm: [
               // '/dns4/wrtc-star1.par.dwebops.pub/tcp/443/wss/p2p-webrtc-star',
               // '/dns4/wrtc-star2.sjc.dwebops.pub/tcp/443/wss/p2p-webrtc-star',
-              '/ip4/0.0.0.0/tcp/0',
-              '/ip4/0.0.0.0/tcp/0/ws',
-              '/dns4/vast-escarpment-62759.herokuapp.com/tcp/443/wss/p2p-webrtc-star/',
+              // '/ip4/0.0.0.0/tcp/0',
+              // '/ip4/0.0.0.0/tcp/0/ws',
+              // '/dns4/vast-escarpment-62759.herokuapp.com/tcp/443/wss/p2p-webrtc-star/',
             ]
           }
         },
         libp2p: {
+          addresses: {
+            listen: [
+              '/ip4/0.0.0.0/tcp/0',
+              '/ip4/0.0.0.0/tcp/0/ws',
+              // custom deployed webrtc-star signalling server
+              '/dns4/vast-escarpment-62759.herokuapp.com/tcp/443/wss/p2p-webrtc-star/',
+              '/dns4/vast-escarpment-62759.herokuapp.com/tcp/443/ws/p2p-webrtc-star/',
+            ]
+          },
           modules: {
-            transport: [WebRTCStar]
+            transport: [TCP, WebRTCStar, WebSocket]
           },
           config: {
             peerDiscovery: {
