@@ -10,6 +10,8 @@ import Mplex from "libp2p-mplex";
 import TCP from 'libp2p-tcp';
 import { fromString } from "uint8arrays/from-string";
 import { toString as uint8ArrayToString } from "uint8arrays/to-string";
+import WebSocket from 'libp2p-websockets';
+import Bootstrap from 'libp2p-bootstrap';
 
 import { PubSubMessage, ZChainMessage } from "../types";
 import { PeerDiscovery } from "./peer-discovery";
@@ -17,6 +19,7 @@ import { ZStore } from './storage';
 import { addWebRTCStarAddrs } from "./transport";
 import { ZID } from "./zid";
 import chalk from 'chalk';
+import { RELAY_ADDRS } from './constants';
 
 import { Daemon } from 'ipfs-daemon'
 import os from 'os'

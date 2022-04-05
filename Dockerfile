@@ -11,7 +11,6 @@ RUN npm cache clean -f; \
     npm install npm@latest -g;
 
 COPY package.json ./
-#RUN yarn install
 COPY . .
 RUN yarn set version 1.22.18
 RUN yarn install
