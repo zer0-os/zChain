@@ -10,6 +10,8 @@ import Mplex from "libp2p-mplex";
 import TCP from 'libp2p-tcp';
 import { fromString } from "uint8arrays/from-string";
 import { toString as uint8ArrayToString } from "uint8arrays/to-string";
+import WebSocket from 'libp2p-websockets';
+import Bootstrap from 'libp2p-bootstrap';
 
 import { PubSubMessage, ZChainMessage } from "../types";
 import { PeerDiscovery } from "./peer-discovery";
@@ -17,6 +19,7 @@ import { ZStore } from './storage';
 import { addWebRTCStarAddrs } from "./transport";
 import { ZID } from "./zid";
 import chalk from 'chalk';
+import { RELAY_ADDRS } from './constants';
 
 export class ZCHAIN {
     ipfs: IIPFS | undefined;
@@ -48,7 +51,7 @@ export class ZCHAIN {
           ]
         },
         modules: {
-          transport: [TCP],
+          transport: [TCP, WebSocket],
           streamMuxer: [Mplex],
           connEncryption: [NOISE],
           dht: KadDHT,
@@ -77,19 +80,21 @@ export class ZCHAIN {
         init: {
           privateKey: peerId
         },
-        relay: { enabled: false },
+        relay:{ enabled: true, hop: { enabled: true, active: true } },
         config: {
           Addresses: {
             Swarm: [],
           },
-          Bootstrap: []
+          Bootstrap: [
+            ...RELAY_ADDRS
+          ]
         }
       });
+
       // need to go through type hacks here..
       const node = (this.ipfs as any).libp2p as Libp2p;
 
       console.log("\n★", chalk.cyan('zChain Node Activated: ' + node.peerId.toB58String()) + " ★\n");
-
       this.node = node;
 
       // intialize zstore

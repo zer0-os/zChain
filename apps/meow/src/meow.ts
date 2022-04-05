@@ -6,7 +6,7 @@ import { Multiaddr } from 'multiaddr';
 import { MStore } from "./storage";
 
 export class MEOW {
-  private zchain: ZCHAIN | undefined;
+  zchain: ZCHAIN | undefined;
   private readonly topics: string[];
   private store: MStore | undefined;
 
