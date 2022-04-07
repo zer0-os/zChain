@@ -24,7 +24,6 @@ export default {
         desc: 'If true, removes any previos config present at ~/.jsipfs & ~/.zchain-db',
         default: false
       })
-      .demandOption('zid')
       // .option('offline', {
       //   type: 'boolean',
       //   desc: 'Run offline. Do not connect to the rest of the network but provide local API.',
@@ -53,7 +52,7 @@ export default {
 
     try {
       const meow = new MEOW();
-      const daemon = await meow.startDaemon(argv.zid);
+      const daemon = await meow.startDaemon(argv.zid ?? path.join(os.homedir(), '/.jsipfs', 'peer.json'));
 
       const version = await daemon._ipfs.version()
       print(`meow-cli ipfs node version: ${version.version}`)
@@ -91,7 +90,7 @@ export default {
 
     const cleanup = async () => {
       print('Received interrupt signal, shutting down...')
-      await daemon.stop()
+      //await daemon.stop()
       process.exit(0)
     }
 

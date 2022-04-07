@@ -100,12 +100,11 @@ export const ipfsPathHelp = 'meow-cli uses a repository in the local file system
 
 export async function loadMeow () {
   if (!fs.existsSync(path.join(os.homedir(), '/.jsipfs'))) {
-    throw new Error(`No config found at ~/.jsipfs. Please run meow init --zid <..> first.`)
+    throw new Error(`No config found at ~/.jsipfs. Please run meow daemon <opts> first.`)
   }
 
-  const zIdPath = fs.readFileSync(path.join(os.homedir(), '/.jsipfs', 'zId'), "utf-8");
   const meow = new MEOW();
-  await meow.loadCLI(zIdPath);
+  await meow.load();
 
   // 2s delay
   await delay(2 * 1000);

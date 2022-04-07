@@ -1,8 +1,8 @@
-// helper functions
 import { stdinToStream, streamToConsole } from "./lib/stream";
 import { ZCHAIN } from "./lib/zchain";
 import { ZStore } from "./lib/storage";
 import { decode, encode } from "./lib/encryption";
+import { RELAY_ADDRS } from "./lib/constants";
 import { assertValidzId, ZID } from "./lib/zid";
 import { isDaemonOn, getIpfs } from "./lib/utils";
 import * as types from "./types";
@@ -18,5 +18,6 @@ export {
   decode,
   encode,
   isDaemonOn,
-  getIpfs
+  getIpfs,
+  RELAY_ADDRS
 };

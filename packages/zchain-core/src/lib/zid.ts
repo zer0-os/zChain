@@ -44,6 +44,15 @@ export class ZID {
     }
 
     if (filePath !== undefined) {
+      if (!fs.existsSync(filePath)) {
+        console.info(`Generating new peer id at ${filePath}`);
+
+        this.peerId = await PeerId.create();
+        this.writeFile(
+          filePath,
+          JSON.stringify(this.peerId.toJSON(), null, 2)
+        );
+      }
       const content = this.readFile(filePath);
       this.peerId = await PeerId.createFromJSON(JSON.parse(content));
     } else {

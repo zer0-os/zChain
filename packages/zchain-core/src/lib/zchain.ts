@@ -10,7 +10,6 @@ import Mplex from "libp2p-mplex";
 import TCP from 'libp2p-tcp';
 import { fromString } from "uint8arrays/from-string";
 import { toString as uint8ArrayToString } from "uint8arrays/to-string";
-import WebSocket from 'libp2p-websockets';
 import Bootstrap from 'libp2p-bootstrap';
 
 import { PubSubMessage, ZChainMessage } from "../types";
@@ -52,25 +51,18 @@ export class ZCHAIN {
             '/ip4/0.0.0.0/tcp/0/ws',
             // custom deployed webrtc-star signalling server
             '/dns4/vast-escarpment-62759.herokuapp.com/tcp/443/wss/p2p-webrtc-star/',
-            //"/dns4/wrtc-star1.par.dwebops.pub/tcp/443/wss/p2p-webrtc-star",
-            //"/dns4/wrtc-star2.sjc.dwebops.pub/tcp/443/wss/p2p-webrtc-star",
             ...listenAddrs
           ]
         },
         modules: {
-          transport: [ TCP, WebSocket ],
+          transport: [TCP, WebSocket],
           streamMuxer: [Mplex],
           connEncryption: [NOISE],
           dht: KadDHT,
           pubsub: Gossipsub,
-          peerDiscovery: [ Mdns ] // TODO: add Mdns, removed as tested on remote systems
+          peerDiscovery: [] // TODO: add Mdns, removed as tested on remote systems
         },
         config: {
-          peerDiscovery: {
-            webRTCStar: { // <- note the lower-case w - see https://github.com/libp2p/js-libp2p/issues/576
-              enabled: true
-            }
-          },
           dht: {
             enabled: false
           },
@@ -78,7 +70,7 @@ export class ZCHAIN {
             enabled: true,
             // uncomment to enable publishing node to listen to it's "own" message
             // emitSelf: true
-          },
+          }
         }
       };
 
@@ -87,25 +79,19 @@ export class ZCHAIN {
       if (starAddresses.length) { addWebRTCStarAddrs(options); }
 
       const ipfsOptions = {
-        config: {
-          Addresses: {
-            Swarm: [
-              "/ip4/0.0.0.0/tcp/4002",
-              "/ip4/127.0.0.1/tcp/4003/ws",
-              "/dns4/wrtc-star1.par.dwebops.pub/tcp/443/wss/p2p-webrtc-star",
-              "/dns4/wrtc-star2.sjc.dwebops.pub/tcp/443/wss/p2p-webrtc-star",
-
-              '/ip4/0.0.0.0/tcp/0',
-              '/ip4/0.0.0.0/tcp/0/ws',
-              // custom deployed webrtc-star signalling server
-              '/dns4/vast-escarpment-62759.herokuapp.com/tcp/443/wss/p2p-webrtc-star/',
-            ]
-          }
-        },
         libp2p: options,
-        //repo: path.join(os.homedir(), '/.jsipfs', peerId.toB58String()),
+        repo: `.jsipfs/${peerId.toB58String()}`,
         init: {
           privateKey: peerId
+        },
+        relay:{ enabled: true, hop: { enabled: true, active: true } },
+        config: {
+          Addresses: {
+            Swarm: [],
+          },
+          Bootstrap: [
+            ...RELAY_ADDRS
+          ]
         }
       };
 
@@ -122,55 +108,11 @@ export class ZCHAIN {
       await this.zId.create(fileNameOrPath); // get existing/create new peer id
       const ipfsOptions = await this._getIPFSOptions(listenAddrs);
 
-      //console.log('OP ', ipfsOptions);
-
-      // this.ipfs = await IPFS.create({
-      //   ...ipfsOptions,
-      //   repo: path.join(os.homedir(), '/.jsipfs'),
-      // });
-
       this.ipfs = await IPFS.create({
-        repo: path.join(os.homedir(), '/.jsipfs'),
-        relay:{ enabled:true, hop: { enabled:true, active: true }},
-        config: {
-          Bootstrap: [],
-          Addresses: {
-            Swarm: [
-              // '/dns4/wrtc-star1.par.dwebops.pub/tcp/443/wss/p2p-webrtc-star',
-              // '/dns4/wrtc-star2.sjc.dwebops.pub/tcp/443/wss/p2p-webrtc-star',
-              // '/ip4/0.0.0.0/tcp/0',
-              // '/ip4/0.0.0.0/tcp/0/ws',
-              // '/dns4/vast-escarpment-62759.herokuapp.com/tcp/443/wss/p2p-webrtc-star/',
-            ]
-          }
-        },
-        libp2p: {
-          addresses: {
-            listen: [
-              '/ip4/0.0.0.0/tcp/0',
-              '/ip4/0.0.0.0/tcp/0/ws',
-              // custom deployed webrtc-star signalling server
-              '/dns4/vast-escarpment-62759.herokuapp.com/tcp/443/wss/p2p-webrtc-star/',
-              '/dns4/vast-escarpment-62759.herokuapp.com/tcp/443/ws/p2p-webrtc-star/',
-            ]
-          },
-          modules: {
-            transport: [TCP, WebRTCStar, WebSocket]
-          },
-          config: {
-            peerDiscovery: {
-              webRTCStar: { // <- note the lower-case w - see https://github.com/libp2p/js-libp2p/issues/576
-                enabled: true
-              }
-            },
-            transport: {
-              WebRTCStar: { // <- note the upper-case w- see https://github.com/libp2p/js-libp2p/issues/576
-                wrtc
-              }
-            }
-          }
-        }
+        ...ipfsOptions,
+        //repo: path.join(os.homedir(), '/.jsipfs'),
       });
+
 
       console.log('this ', await this.ipfs.config.getAll());
 
@@ -182,52 +124,9 @@ export class ZCHAIN {
       console.log("\n★", chalk.cyan('zChain Node Activated: ' + node.peerId.toB58String()) + " ★\n");
       this.node = node;
 
-      console.log('! ', 1);
       // intialize zstore
       this.zStore = new ZStore(this.ipfs, this.node, password);
         await this.zStore.init();
-
-      console.log('! ', 2);
-      // initialize discovery class
-      this.peerDiscovery = new PeerDiscovery(this.zStore, this.node);
-      return node;
-    }
-
-    // just an above copied function, for testing (CLI)
-    async initCLI (fileNameOrPath: string, listenAddrs?: string[]): Promise<void> {
-      this.zId = new ZID();
-      await this.zId.create(fileNameOrPath); // get existing/create new peer id
-      const ipfsOptions = await this._getIPFSOptions(listenAddrs);
-
-      this.ipfs = await IPFS.create({
-        ...ipfsOptions,
-        repo: path.join(os.homedir(), '/.jsipfs'),
-        start: false
-      });
-
-      console.log("\n★", chalk.cyan('zChain Node Activated: ' + await (await this.ipfs.id()).id) + " ★\n");
-    }
-
-    // just an above copied function, for testing (CLI)
-    async loadCLI (zIdPath: string, password: string, listenAddrs?: string[]): Promise<Libp2p> {
-      this.zId = new ZID();
-      await this.zId.create(zIdPath); // get existing/create new peer id
-      const ipfsOptions = await this._getIPFSOptions(listenAddrs);
-
-      this.ipfs = await IPFS.create({
-        ...ipfsOptions,
-        repo: path.join(os.homedir(), '/.jsipfs'),
-      });
-
-      // need to go through type hacks here..
-      const node = (this.ipfs as any).libp2p as Libp2p;
-
-      console.log("\n★", chalk.cyan('Loading zChain Node: ' + node.peerId.toB58String()) + " ★\n");
-      this.node = node;
-
-      // intialize zstore
-      this.zStore = new ZStore(this.ipfs, this.node, password);
-      await this.zStore.init();
 
       // initialize discovery class
       this.peerDiscovery = new PeerDiscovery(this.zStore, this.node);
@@ -241,12 +140,16 @@ export class ZCHAIN {
      * TODO: think about how to handle "password" (message encryption/decryption)
      */
     async startDaemon (fileNameOrPath?: string, listenAddrs?: string[]): Promise<Daemon> {
+      if (!fs.existsSync(path.join(os.homedir(), '/.jsipfs'))) {
+        fs.mkdirSync(path.join(os.homedir(), '/.jsipfs'));
+      }
+
       // load zId
       this.zId = new ZID();
       await this.zId.create(fileNameOrPath); // get existing/create new peer id
 
       // handle case when trying to start daemon with another zId
-      if (fs.existsSync(path.join(os.homedir(), '/.jsipfs'))) {
+      if (fs.existsSync(path.join(os.homedir(), '/.jsipfs', 'config'))) {
         const config = fs.readFileSync(path.join(os.homedir(), '/.jsipfs', 'config'), "utf-8");
         const parsedConfig = JSON.parse(config);
         const peerIdStr = parsedConfig['Identity']['PeerID'];
@@ -255,17 +158,17 @@ export class ZCHAIN {
         }
       }
 
+      // save (copy) the json to ~/.jsipfs/peer.json
+      fs.writeFileSync(
+        path.join(os.homedir(), '/.jsipfs', 'peer.json'),
+        JSON.stringify(this.zId.peerId.toJSON(), null, 2)
+      );
+
       // start daemon, initialize ipfs + libp2p
       const ipfsOptions = await this._getIPFSOptions(listenAddrs);
       const daemon = new Daemon({
         ...ipfsOptions,
         repo: path.join(os.homedir(), '/.jsipfs'),
-        "relay": {
-          "enabled": true, // enable relay dialer/listener (STOP)
-          "hop": {
-            "enabled": true // make this node a relay (HOP)
-          }
-        },
       });
       await daemon.start();
       this.ipfs = daemon._ipfs;
@@ -276,11 +179,8 @@ export class ZCHAIN {
       console.log("\n★", chalk.cyan('zChain Daemon Activated: ' + node.peerId.toB58String()) + " ★\n");
       this.node = node;
 
-      console.log('Op:: ', await daemon._ipfs.config.getAll())
-
       // intialize zstore
       this.zStore = new ZStore(this.ipfs, this.node, password);
-      await this.zStore.init();
 
       // initialize discovery class
       this.peerDiscovery = new PeerDiscovery(this.zStore, this.node);
@@ -291,31 +191,28 @@ export class ZCHAIN {
      * Initializes from an existing daemon http endpoint (located at ~/.jsipfs/api)
      */
     async load(): Promise<void> {
-    //   if (!isDaemonOn()) {
-    //     throw new Error(`Daemon not initialized at ~/.jsipfs. Please run "meow daemon .."`);
-    //   }
-    //   this.ipfs = await getIpfs();
+      if (!isDaemonOn()) {
+        throw new Error(chalk.red(`Daemon not initialized at ~/.jsipfs. Please run "meow daemon .."`));
+      }
+      this.ipfs = await getIpfs();
 
-    //   // [hack] issue with ipfs: while loading ipfs node from httpClient, we cannot access
-    //   // ipfs.libp2p, so we have to load peerId from config, and explicitely create node
-    //   const peerIdStr = await this.ipfs.config.get('Identity.PeerID');
-    //   this.zId = new ZID();
-    //   this.zId.createFromB58String(peerIdStr as string);
+      // create zId from saved json peer-id (at ~/.jsipfs/peer.json)
+      this.zId = new ZID();
+      await this.zId.create(path.join(os.homedir(), '/.jsipfs', 'peer.json'));
 
+      const ipfsOptions = await this._getIPFSOptions();
+      const libp2p = new Libp2p(ipfsOptions.libp2p);
+      (this.ipfs as any).libp2p = libp2p;
 
-    //   const ipfsOptions = await this._getIPFSOptions();
-    //   const libp2p = new Libp2p(ipfsOptions.libp2p);
-    //   (this.ipfs as any).libp2p = libp2p;
+      const node = (this.ipfs as any).libp2p as Libp2p;
+      this.node = node;
 
-    //   const node = (this.ipfs as any).libp2p as Libp2p;
-    //   this.node = node;
+      // intialize zstore
+      this.zStore = new ZStore(this.ipfs, this.node, password);
+      await this.zStore.init();
 
-    //   // intialize zstore
-    //   this.zStore = new ZStore(this.ipfs, this.node, password);
-    //   await this.zStore.init();
-
-    //   // initialize discovery class
-    //   this.peerDiscovery = new PeerDiscovery(this.zStore, this.node);
+      // initialize discovery class
+      this.peerDiscovery = new PeerDiscovery(this.zStore, this.node);
     }
 
     subscribe (topic: string): void {

@@ -55,10 +55,6 @@ export class ZStore {
   }
 
   async init(): Promise<void> {
-    //const ipfs = httpClient({ url: '/ip4/127.0.0.1/tcp/5002/http' });
-    //const orbitdb1 = await OrbitDB.createInstance(ipfs as any);
-    //console.log("orbitdb1 ", orbitdb1);
-
     const peerId = await this.ipfs.config.get('Identity.PeerID')
     this.orbitdb = await OrbitDB.createInstance(
       this.ipfs as any,
