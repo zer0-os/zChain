@@ -64,7 +64,7 @@ export class ZCHAIN {
         },
         config: {
           dht: {
-            enabled: false
+            enabled: true
           },
           pubsub: {
             enabled: true,
