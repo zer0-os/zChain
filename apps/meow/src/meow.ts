@@ -49,6 +49,26 @@ export class MEOW {
     await this.store.handleIncomingOrbitDbAddress(this.zchain);
   }
 
+  async connect(peerAddress: string) {
+    const connectedPeers = (await this.zchain.ipfs.swarm.peers()).map(p => p.peer);
+    const relayAddresses = RELAY_ADDRS.map(addr => addr.split('/p2p/')[1]);
+    if (!(relayAddresses.includes(peerAddress) && connectedPeers.includes(peerAddress))) {
+      // try to connect via relay protocol (using all relays), if not connected & is not a relay
+      let connected = false;
+      for (const relay of RELAY_ADDRS) {
+        if (connected === true) { break; }
+        const address = `${relay}/p2p-circuit/p2p/${peerAddress}`;
+        try {
+          await this.zchain.ipfs.swarm.connect(address);
+          connected = true;
+        } catch (e) {
+          // not sure if i follow this :: an abort error is thrown but the connection still goes through
+          // console.log(chalk.yellow(`[${peerAddress}]: ${e}`));
+        }
+      }
+    }
+  }
+
   /**
    * Initializes a new Zchain node
    * @param fileName json present in /ids. Contains peer metadata
@@ -65,8 +85,7 @@ export class MEOW {
     //await this._initModules();
 
     this.zchain.node.on('peer:discovery', async (peerId) => {
-      //console.log('D ');
-      console.log('Discovered????:', peerId.toB58String());
+      console.log('Discovered:', peerId.toB58String());
     });
 
     this.zchain.node.connectionManager.on('peer:connect', async (connection) => {
@@ -91,27 +110,27 @@ export class MEOW {
       console.log('Discovered:', peerAddress);
 
       await delay(3 * 1000); // add delay of 3s after discovery
-      const connectedPeers = (await this.zchain.ipfs.swarm.peers()).map(p => p.peer);
-      const relayAddresses = RELAY_ADDRS.map(addr => addr.split('/p2p/')[1]);
-      if (!(relayAddresses.includes(peerAddress) && connectedPeers.includes(peerAddress))) {
-        // try to connect via relay protocol (using all relays), if not connected & is not a relay
-        let connected = false;
-        for (const relay of RELAY_ADDRS) {
-          if (connected === true) { break; }
-          const address = `${relay}/p2p-circuit/p2p/${peerAddress}`;
-          try {
-            await this.zchain.ipfs.swarm.connect(address);
-            connected = true;
-          } catch (e) {
-            console.log(chalk.yellow(`[${peerAddress}]: ${e.message}`));
-          }
-        }
-      }
+      await this.connect(peerAddress);
     });
 
     this.zchain.node.connectionManager.on('peer:connect', async (connection) => {
       console.log(chalk.green(`Connection established to: ${connection.remotePeer.toB58String()}`));
     });
+
+    /**
+     * Logic: In every 10s check the diff b/w all known and connected address. Try to connect
+     * to those peers who are known, but not connected (& not a relay).
+     */
+    const relayAddresses = RELAY_ADDRS.map(addr => addr.split('/p2p/')[1]);
+    setInterval(async () => {
+      const connectedPeers = (await this.zchain.ipfs.swarm.peers()).map(p => p.peer);
+      const discoveredPeers = await this.zchain.ipfs.swarm.addrs();
+      for (const discoveredPeer of discoveredPeers) {
+        if (!(relayAddresses.includes(discoveredPeer.id) && connectedPeers.includes(discoveredPeer.id))) {
+          await this.connect(discoveredPeer.id);
+        }
+      }
+    }, 10 * 1000);
 
     return daemon;
   }
@@ -122,7 +141,7 @@ export class MEOW {
 
     this.store = new MStore(this.zchain);
     await this.store.init();
-    //await this._initModules();
+    await this._initModules();
   }
 
   async sendMeow (msg: string): Promise<void> {
