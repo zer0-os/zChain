@@ -38,6 +38,8 @@
   },
   "dependencies": {
     "@types/node": "^17.0.21",
-    "chalk": "^4.0.0"
+    "chalk": "^4.0.0",
+    "config": "^3.3.7",
+    "web3": "^1.7.1"
   }
 }
