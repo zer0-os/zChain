@@ -14,7 +14,7 @@ export default {
    * @param {import('../../types').Context} argv.ctx
    * @param {Uint8Array} argv.data
    */
-  async handler ({ ctx: { meow }, data }) {
+  async handler ({ ctx: { ipfs, meow }, data }) {
     await meow.sendMeow(data);
   }
 }
