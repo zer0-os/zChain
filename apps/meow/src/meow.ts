@@ -154,12 +154,6 @@ export class MEOW {
 
     this.store = new MStore(this.zchain);
     await this.store.init();
-    //await this._initModules();
-
-    setInterval(async () => {
-      // to avoid "socket hang up"
-      await this.zchain.ipfs.id();
-    }, 5 * 1000);
   }
 
   async sendMeow (msg: string): Promise<void> {

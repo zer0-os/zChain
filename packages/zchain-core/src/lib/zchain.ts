@@ -87,7 +87,14 @@ export class ZCHAIN {
           },
           Bootstrap: [
             ...RELAY_ADDRS
-          ]
+          ],
+          "Swarm": {
+              "ConnMgr": {
+                  "LowWater": 50,
+                  "HighWater": 2000
+              },
+              "DisableNatPortMap": false
+          },
         }
       };
 
