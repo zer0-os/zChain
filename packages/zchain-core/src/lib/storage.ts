@@ -29,7 +29,7 @@ export class ZStore {
   orbitdb: OrbitDB;
   private password: string;
   private paths: LogPaths;
-  protected dbs: DBs;
+  dbs: DBs;
   private feedMap: Map<string, number>
 
   /**

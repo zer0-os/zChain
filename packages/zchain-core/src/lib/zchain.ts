@@ -110,8 +110,6 @@ export class ZCHAIN {
       });
 
 
-      console.log('this ', await this.ipfs.config.getAll());
-
       // need to go through type hacks here..
       //const node = await Libp2p.create(ipfsOptions.libp2p);
       const node = (this.ipfs as any).libp2p as Libp2p;
@@ -122,7 +120,7 @@ export class ZCHAIN {
 
       // intialize zstore
       this.zStore = new ZStore(this.ipfs, this.node, password);
-        await this.zStore.init();
+      await this.zStore.init();
 
       // initialize discovery class
       this.peerDiscovery = new PeerDiscovery(this.zStore, this.node);
@@ -205,6 +203,7 @@ export class ZCHAIN {
 
       // intialize zstore (note we're initializing both in meow app)
       this.zStore = new ZStore(this.ipfs, this.node, password);
+      await this.zStore.init();
 
       // initialize discovery class
       this.peerDiscovery = new PeerDiscovery(this.zStore, this.node);

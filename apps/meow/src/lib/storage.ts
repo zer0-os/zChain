@@ -15,6 +15,7 @@ const APP_PATH = 'apps';
  */
 export class MStore extends ZStore {
   // key value storage of nodes i follow
+  zChain: ZCHAIN;
   protected meowDbs: MeowDBs;
 
   /**
@@ -23,6 +24,11 @@ export class MStore extends ZStore {
    */
   constructor (zChain: ZCHAIN) {
     super(zChain.ipfs, zChain.node, password);
+
+    // todo: check why we need this?
+    this.dbs = zChain.zStore.dbs
+
+    this.zChain = zChain;
     this.orbitdb = zChain.zStore.orbitdb;
     this.meowDbs = {} as any;
     this.meowDbs.followingZIds = {} as any;
@@ -51,8 +57,6 @@ export class MStore extends ZStore {
   }
 
   async init(): Promise<void> {
-    await super.init();
-
     const basePath = this.peerID() + "." + APP_PATH;
     this.meowDbs.followingZIds = await this.getKeyValueOrbitDB(
       basePath + '.followers'
