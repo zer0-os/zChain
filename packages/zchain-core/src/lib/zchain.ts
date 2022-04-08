@@ -10,7 +10,6 @@ import Mplex from "libp2p-mplex";
 import TCP from 'libp2p-tcp';
 import { fromString } from "uint8arrays/from-string";
 import { toString as uint8ArrayToString } from "uint8arrays/to-string";
-import Bootstrap from 'libp2p-bootstrap';
 
 import { PubSubMessage, ZChainMessage } from "../types";
 import { PeerDiscovery } from "./peer-discovery";
@@ -25,9 +24,6 @@ import os from 'os'
 import path from 'path'
 import fs from "fs";
 import { getIpfs, isDaemonOn } from './utils';
-
-import wrtc from 'wrtc' // or 'electron-webrtc'
-import WebRTCStar from 'libp2p-webrtc-star'
 import WebSocket from 'libp2p-websockets'
 
 export const password = "ratikjindal@3445"
@@ -207,9 +203,8 @@ export class ZCHAIN {
       const node = (this.ipfs as any).libp2p as Libp2p;
       this.node = node;
 
-      // intialize zstore
+      // intialize zstore (note we're initializing both in meow app)
       this.zStore = new ZStore(this.ipfs, this.node, password);
-      await this.zStore.init();
 
       // initialize discovery class
       this.peerDiscovery = new PeerDiscovery(this.zStore, this.node);
