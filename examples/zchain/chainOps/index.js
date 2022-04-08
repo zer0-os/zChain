@@ -61,7 +61,7 @@ async function verifyNode(msgSender,msgReceived,graphClient){
 	let ownedZnas,ownedAddress
         if(msgReceived.ethAddress && msgReceived.ethSig){
 		var claimedAddress = await web3.eth.accounts.recover(msgSender,msgReceived.ethSig)
-		if(claimedAddress == msgReceived.ethAddress){
+		if(claimedAddress == web3.utils.toChecksumAddress(msgReceived.ethAddress)){
                                 /* dev comments
                                         -Here we verified that the peer Id owns that eth address
                                         -Storing this node in db with address
