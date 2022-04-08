@@ -92,6 +92,7 @@ async function promptConfig(myNodeId){
         await setConfig(friendlyName,ethAddress,ethSig)
 }
 async function getZnaFromSubgraph(address,graphClient){
+	address = address.toLowerCase()
 	const graphQuery = gql`{
 		account(id:"${address}"){
 			ownedDomains {
