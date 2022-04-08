@@ -102,7 +102,6 @@ async function getZnaFromSubgraph(address,graphClient){
 		}
 	}`
 	var ownedDomains = await graphClient.request(graphQuery)
-	console.log(ownedDomains)
 	if(ownedDomains.account && ownedDomains.account.ownedDomains)
 		return ownedDomains.account.ownedDomains
 }
