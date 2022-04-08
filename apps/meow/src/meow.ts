@@ -11,7 +11,7 @@ import delay from "delay";
 export class MEOW {
   zchain: ZCHAIN | undefined;
   private readonly topics: string[];
-  private store: MStore | undefined;
+  store: MStore | undefined;
 
   constructor () { this.topics = [EVERYTHING_TOPIC]; }
 
@@ -22,6 +22,7 @@ export class MEOW {
     return this.zchain;
   }
 
+  // todo: review and remove
   private async _initModules() {
     this.zchain.peerDiscovery.onConnect(async (connection) => {
       console.log('Connection established to:', connection.remotePeer.toB58String());
@@ -132,6 +133,18 @@ export class MEOW {
       }
     }, 10 * 1000);
 
+    // this logic is to listen to all subscribed topics at the daemon level
+    const set = new Set([]);
+    setInterval(async () => {
+      const list = await this.zchain.ipfs.pubsub.ls();
+      for (const l of list) {
+        if (l.startsWith('#') && !set.has(l)) {
+          this.zchain.subscribe(l);
+          set.add(l);
+        }
+      }
+    }, 5 * 1000);
+
     return daemon;
   }
 
@@ -141,7 +154,12 @@ export class MEOW {
 
     this.store = new MStore(this.zchain);
     await this.store.init();
-    await this._initModules();
+    //await this._initModules();
+
+    setInterval(async () => {
+      // to avoid "socket hang up"
+      await this.zchain.ipfs.id();
+    }, 5 * 1000);
   }
 
   async sendMeow (msg: string): Promise<void> {
@@ -173,11 +191,15 @@ export class MEOW {
   }
 
   async followTopic(topic: string) {
+    if (topic[0] !== `#`) { topic = '#' + topic; }
+
     this.zchain.subscribe(topic);
     await this.store.followTopic(topic);
   }
 
   async unFollowTopic(topic: string) {
+    if (topic[0] !== `#`) { topic = '#' + topic; }
+
     this.zchain.unsubscribe(topic);
     await this.store.unFollowTopic(topic);
   }
@@ -195,6 +217,12 @@ export class MEOW {
   }
 
   async displayTopicFeed(topic: string, n: number) {
+    if (topic[0] !== `#`) { topic = '#' + topic; }
+
     await this.store.displayTopicFeed(topic, n);
+  }
+
+  async listDBs() {
+    await this.store.listDBs();
   }
 }
