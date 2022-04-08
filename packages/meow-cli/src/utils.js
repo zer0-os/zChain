@@ -105,12 +105,14 @@ export async function loadMeow () {
 
   const meow = new MEOW();
   await meow.load();
+  const ipfs = meow.zchain.ipfs;
 
   // 2s delay
   await delay(2 * 1000);
 
   return {
     meow,
+    ipfs,
     cleanup: async () => { }
   }
 }

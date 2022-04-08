@@ -64,8 +64,6 @@ export class ZStore {
       }
     );
 
-    //console.log('THIS.orbitdb:: ', this.orbitdb);
-
     // eg. ./zchain-db/{peerId}/sys/<log>
     this.paths.default = this.libp2p.peerId.toB58String() + "." + SYSPATH;
     this.paths.discovery = this.paths.default + '.discovery';
@@ -76,7 +74,6 @@ export class ZStore {
       this.paths.feeds
     );
     this.dbs.discovery = await this.getKeyValueOrbitDB(this.paths.discovery);
-
   }
 
   /**

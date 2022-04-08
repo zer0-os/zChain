@@ -78,11 +78,12 @@ async function main (argv) {
     const data = await cli(command, async (argv) => {
       if (!['daemon', 'init'].includes(command[0])) {
         // @ts-ignore argv as no properties in common
-        const { meow, cleanup } = await loadMeow()
+        const { meow, ipfs, cleanup } = await loadMeow()
 
         ctx = {
           ...ctx,
           meow,
+          ipfs,
           cleanup
         }
       }
