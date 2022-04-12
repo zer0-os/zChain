@@ -7,10 +7,14 @@ import { GraphQLClient, gql } from 'graphql-request'
 import prompt from 'prompt';
 import fs from 'fs';
 import config from "config";
+import jwkToPem from 'jwk-to-pem'
+import crypto from "crypto";
+import {ZScreen} from "./zScreen.js";
 
 const configFile = './config/default.json';
 var fileJson = JSON.parse(fs.readFileSync(configFile))
 prompt.start();
+
 
 const publicWebRTCStarServers = [
   '/dns4/wrtc-star1.par.dwebops.pub/tcp/443/wss/p2p-webrtc-star',
@@ -18,12 +22,43 @@ const publicWebRTCStarServers = [
 ];
 const password = 'jindalratik@1234';
 const authTopic = "authentication"
+const encryptedTopic = "encryptedMessages"
+let destNode;
+var nodeTopics = [authTopic,encryptedTopic];
 
 let web3,nodeAuthData,graphClient;
+var verifiedNodesArray=[];
+var storedNodes =[];
 ;(async () => {
+	var zScreen = new ZScreen()
+	zScreen.screen.render()
 	//init zchain
 	let myNode = new ZCHAIN();
         await myNode.initialize('bustawei.json', password,publicWebRTCStarServers);
+	destNode = myNode.node.peerId.toB58String()
+	const encryptedMessage = await encryptMessage("Hello world",myNode.node.peerId)
+
+	myNode.peerDiscovery.onConnect((connection) => {
+		zScreen.connectionsLogBox.log("Connected to : "+connection.remotePeer.toB58String())
+		zScreen.screen.render()
+	});
+	myNode.peerDiscovery.onDiscover((peerId) => {
+		zScreen.connectionsLogBox.log("Discovered :"+peerId.toB58String())
+		zScreen.screen.render()
+	});
+	setInterval(async () => {
+		var encapsulatedMessage = {destNode,encryptedMessage}
+                await myNode.publish(encryptedTopic, JSON.stringify(encapsulatedMessage));
+        }, 10000);
+	myNode.node.pubsub.on(encryptedTopic, async (msg) => {
+		var msgReceived = uint8ArrayToString(msg.data)
+		msgReceived = JSON.parse(msgReceived)
+		var msgSender = msg.receivedFrom
+		if(msgReceived.destNode == myNode.node.peerId.toB58String()){
+			var decryptedMessage = await decryptMessage(msgReceived.encryptedMessage,myNode.node.peerId)
+			zScreen.subscribedTopicsLog.log("received "+decryptedMessage+" from "+msgSender+" in topic "+encryptedTopic)
+		}
+        });
 
 	//check if already initialized
 	if(config.get("ethAddress") !== "" && config.get("ethSig") !== "" && config.get("friendlyName") !== "")
@@ -31,7 +66,7 @@ let web3,nodeAuthData,graphClient;
 		//implement the ability to change address and friendly name ...
 	}
 	else{
-		await promptConfig(myNode.peer.peerId.toB58String())
+		await promptConfig(myNode.node.peerId.toB58String())
 	}
 	await initConfig()
 
@@ -42,19 +77,38 @@ let web3,nodeAuthData,graphClient;
 		var msgReceived = uint8ArrayToString(msg.data)
 		var msgSender = msg.receivedFrom
 		var [verifiedAddress,ownedZnas] = await verifyNode(msg.receivedFrom,msg.data,graphClient)
-		console.log("node with ID :"+msgSender)
-		if(verifiedAddress)
-			console.log("proved that it onws eth address "+verifiedAddress)
+		if(verifiedAddress && storedNodes.indexOf(msgSender) < 0){
+			storedNodes.push(msgSender)
+			verifiedNodesArray.push([msgSender,verifiedAddress])
+			zScreen.subscribedTopicsLog.log("authenticated "+msgSender+" with address "+verifiedAddress+" in topic "+authTopic)
+		}
 		if(ownedZnas){
-			console.log("we could find this domains owned by this address :")
-			console.log(ownedZnas)
 		}
 	});
+	
 	myNode.subscribe(authTopic)
+	myNode.subscribe(encryptedTopic)
 	await myNode.node.start();
 
 })();
 
+
+async function decryptMessage(msg,myPeerId){
+	var rsaPrivateKey = jwkToPem(myPeerId.privKey._key,{private: true})
+	msg = Buffer.from(msg,"base64")
+	return(crypto.privateDecrypt({
+		key: rsaPrivateKey,
+		padding: crypto.constants.RSA_PKCS1_PADDING,
+	},msg));
+}
+async function encryptMessage(msg,peerId){
+	var rsaPubKey = jwkToPem(peerId.pubKey._key)
+	var encryptedMessage = crypto.publicEncrypt({
+		key: rsaPubKey,
+		padding: crypto.constants.RSA_PKCS1_PADDING,
+	},Buffer.from(msg));
+	return encryptedMessage.toString("base64")
+}
 async function verifyNode(msgSender,msgReceived,graphClient){
 	msgReceived = uint8ArrayToString(msgReceived)
 	msgReceived = JSON.parse(msgReceived)
@@ -102,7 +156,6 @@ async function getZnaFromSubgraph(address,graphClient){
 		}
 	}`
 	var ownedDomains = await graphClient.request(graphQuery)
-	console.log(ownedDomains)
 	if(ownedDomains.account && ownedDomains.account.ownedDomains)
 		return ownedDomains.account.ownedDomains
 }

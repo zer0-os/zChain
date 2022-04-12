@@ -4,5 +4,5 @@
 	"ethSig" : "0x37c0cbdd33978263b1c773520682f8661e8a7a641021e461ebd736c79ef6b92316e082a9addfbc3a37b9616dde8996dc92839f9386b1e47fc97b54bc277eeed21b",
 	"providerUrl" : "https://mainnet.infura.io/v3/[add_key]",
 	"graphQlEndpoint" :  "https://api.thegraph.com/subgraphs/name/zer0-os/zns",
-	"friendlyName" : ""
+	"friendlyName" : "Bustawei node"
 }
