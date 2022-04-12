@@ -12,6 +12,7 @@ import FeedStore from "orbit-db-feedstore";
 import KeyValueStore from "orbit-db-kvstore";
 import chalk from "chalk";
 import os from 'os'
+import Store from "orbit-db-store";
 
 // maybe we should change this to ~/.zchain-db ?
 const ZCHAIN_DEFAULT_STORAGE_DIR = "./zchain-db";
@@ -68,13 +69,38 @@ export class ZStore {
     this.paths.default = this.libp2p.peerId.toB58String() + "." + SYSPATH;
     this.paths.discovery = this.paths.default + '.discovery';
     this.paths.feeds = this.paths.default + '.feed';
+    this.paths.addressBook = this.paths.default + '.addressBook';
     //this.paths.topics = path.join(this.paths.default, 'topics');
 
     this.dbs.feeds[this.libp2p.peerId.toB58String()] = await this.getFeedsOrbitDB(
       this.paths.feeds
     );
     this.dbs.discovery = await this.getKeyValueOrbitDB(this.paths.discovery);
+    this.dbs.addressBook = await this.getKeyValueOrbitDB(this.paths.addressBook);
   }
+
+  // we may use it later, commenting for now
+  // /**
+  //  * Get public orbitdb address from a topic
+  //  * @param topic topic to extract db address of
+  //  */
+  // protected async getGlobalAddressBookDB(): Promise<KeyValueStore<unknown>> {
+  //   const options = {
+  //     // Give write access to ourselves
+  //     accessController: {
+  //       write: ['*']
+  //     },
+  //     meta: { topic: '#addressbook' } // this is what makes the db for each topic "unique" from one another
+  //   }
+  //   const address = await this.orbitdb.determineAddress(
+  //     this.paths.addressBook, 'keyvalue', options
+  //   );
+
+  //   const db = await this.orbitdb.open(address.toString());
+  //   await db.load();
+  //   // i wonder why.. It returns a type "Store", but we know it's a KeyValueStore
+  //   return db as any;
+  // }
 
   /**
    * @returns orbitdb database of the node's feed (list of messages posted by node)

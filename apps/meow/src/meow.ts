@@ -176,12 +176,12 @@ export class MEOW {
     console.log(chalk.green('Sent!'));
   }
 
-  async followZId(peerId: string) {
-    await this.store.followZId(peerId);
+  async followZId(peerIdOrName: string) {
+    await this.store.followZId(peerIdOrName);
   }
 
-  async unFollowZId(peerId: string) {
-    await this.store.unFollowZId(peerId);
+  async unfollowZId(peerIdOrName: string) {
+    await this.store.unfollowZId(peerIdOrName);
   }
 
   async followTopic(topic: string) {
@@ -206,8 +206,8 @@ export class MEOW {
     this.store.listFollowedTopics();
   }
 
-  async displayFeed(peerId: string, n: number) {
-    await this.store.displayFeed(peerId, n);
+  async displayFeed(peerIdOrName: string, n: number) {
+    await this.store.displayFeed(peerIdOrName, n);
   }
 
   async displayTopicFeed(topic: string, n: number) {
@@ -218,5 +218,14 @@ export class MEOW {
 
   async listDBs() {
     await this.store.listDBs();
+  }
+
+  /**
+   * Sets a name of the peerId in the local address book
+   * @param peerId peerID
+   * @param name name to set
+   */
+  async set(peerId: string, name: string) {
+    await this.store.setNameInAddressBook(peerId, name);
   }
 }
