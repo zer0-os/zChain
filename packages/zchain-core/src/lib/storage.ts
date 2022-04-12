@@ -120,6 +120,7 @@ export class ZStore {
   async appendZChainMessageToFeed(feedStore: FeedStore<unknown>, topic: string, message: string): Promise<void> {
     await feedStore.load(1); // load last block to memory
 
+    // this is a bug (check it)
     let prev = null;
     const lastBlock = feedStore.iterator({ limit: 1, reverse: true }).collect()
       .map((e) => e.payload.value);
@@ -128,6 +129,7 @@ export class ZStore {
       prev = parsed.message; // hash of prev message
     }
 
+    // verify you cannot spoof a signature, like i can't just copy it & spam it
     const zChainMessage = {
       prev: prev,
       from: this.libp2p.peerId.toB58String(),

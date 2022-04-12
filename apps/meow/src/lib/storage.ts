@@ -50,9 +50,11 @@ export class MStore extends ZStore {
         );
       }
 
-      await this.meowDbs.followingZIds.put(msg.from, uint8ArrayToString(msg.data));
-      this.dbs.feeds[msg.from] = await this.orbitdb.open(orbitDBAddress) as FeedStore<unknown>;
-      this.listenForReplicatedEvent(this.dbs.feeds[msg.from]);
+      if (this.meowDbs.followingZIds.get(msg.from) === 1 || this.meowDbs.followingZIds.get(msg.from) === undefined) {
+        await this.meowDbs.followingZIds.put(msg.from, uint8ArrayToString(msg.data));
+        this.dbs.feeds[msg.from] = await this.orbitdb.open(orbitDBAddress) as FeedStore<unknown>;
+        this.listenForReplicatedEvent(this.dbs.feeds[msg.from]);
+      }
     });
   }
 
