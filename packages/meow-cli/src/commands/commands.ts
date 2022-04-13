@@ -1,12 +1,6 @@
-import path, { dirname } from 'path'
+import path from 'path'
 import glob from 'it-glob'
 import all from 'it-all'
-import { fileURLToPath } from 'url'
-
-// @ts-ignore need to set module to es2020 to use import.meta.url, which we do,
-// but then the "--module" setting doesn't get used by the "--build" setting
-// which we use to build types from jsdoc
-const __dirname = dirname(fileURLToPath(import.meta.url))
 
 export default {
   command: 'commands',

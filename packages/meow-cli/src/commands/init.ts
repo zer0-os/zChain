@@ -2,8 +2,8 @@ import os from 'os';
 import fs from 'fs';
 import path from 'path';
 import chalk from 'chalk';
-import { ipfsPathHelp } from '../utils.js'
-import { MEOW } from "../../../../apps/meow/build/index.js";
+import { ipfsPathHelp } from '../utils'
+import { MEOW } from "meow-app";
 
 export default {
   command: 'init',
@@ -52,7 +52,7 @@ export default {
         console.warn(chalk.yellow(`zChain node config already present at ~/.jsipfs. Use --force to override`));
       } else {
         const meow = new MEOW();
-        await meow.initCLI(argv.zid);
+        //await meow.initCLI(argv.zid);
 
         // save peer json path
         fs.writeFileSync(

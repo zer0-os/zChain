@@ -9,12 +9,14 @@
  * @param {string} [origin]
  */
 import semver from 'semver'
-import * as pkg from './package.js'
+import * as pkg from './package'
 import debug from 'debug'
 
 import { cli } from "./index.js";
 
-import { loadMeow, print, getRepoPath } from './utils.js';
+import { loadMeow, print, getRepoPath } from './utils';
+import { Context } from './types';
+import { MEOW } from "meow-app";
 
 /**
  * @param {any} err
@@ -62,8 +64,10 @@ if (!semver.satisfies(process.versions.node, pkg.node)) {
  */
 async function main (argv) {
   let exitCode = 0
+  let meow: MEOW;
   let ctx = {
     print,
+    meow,
     getStdin: () => process.stdin,
     repoPath: getRepoPath(),
     cleanup: () => {},

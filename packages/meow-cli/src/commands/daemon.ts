@@ -1,8 +1,8 @@
 import os from 'os';
 import fs from 'fs';
 import path from 'path';
-import { ipfsPathHelp } from '../utils.js'
-import { MEOW } from "../../../../apps/meow/build/index.js";
+import { ipfsPathHelp } from '../utils';
+import { MEOW } from "meow-app";
 
 export default {
   command: 'daemon',

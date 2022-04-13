@@ -1,4 +1,4 @@
-import { commands } from './peer/index.js'
+import { commands } from './peer/index'
 
 export default {
   command: 'peer <command>',
@@ -10,7 +10,7 @@ export default {
    */
   builder (yargs) {
     return yargs
-      // @ts-expect-error types are wrong
+
       .command(commands)
   }
 }

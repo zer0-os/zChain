@@ -1,13 +1,19 @@
 import type { IPFS } from 'ipfs-core-types'
 import type { Multiaddr } from 'multiaddr'
+import { MEOW } from "meow-app";
 
-declare module '@hapi/hapi' {
-  interface ServerInfo {
-    ma: Multiaddr
-  }
+// declare module '@hapi/hapi' {
+//   interface ServerInfo {
+//     ma: Multiaddr
+//   }
+// }
+
+export interface Argv {
+  ctx: Context
 }
 
 export interface Context {
+  meow: MEOW
   ipfs: IPFS
   print: Print
   isDaemon: boolean

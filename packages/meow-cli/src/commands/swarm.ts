@@ -1,4 +1,4 @@
-import { commands } from './swarm/index.js'
+import { commands } from './swarm/index'
 
 export default {
   command: 'swarm <command>',
@@ -10,7 +10,6 @@ export default {
    */
   builder (yargs) {
     return yargs
-      // @ts-expect-error types are wrong
       .command(commands)
   }
 }
