@@ -27,6 +27,7 @@ export interface LogPaths {
   discovery: string | undefined
   feeds: string
   topics: string
+  addressBook: string
 }
 
 export interface FeedMap {
@@ -38,4 +39,5 @@ export interface DBs {
   feeds: FeedMap
   //topics: FeedMap
   discovery: KeyValueStore<unknown>
+  addressBook: KeyValueStore<unknown>
 }

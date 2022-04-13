@@ -1,21 +1,21 @@
 export default {
-  command: 'unfollow <peerId>',
+  command: 'unfollow <peerId-or-name>',
 
   describe: 'UnFollow a peer (#zId)',
 
   builder: {
-    peerId: {
+    peerIdOrName: {
       type: 'string',
-      describe: 'peerId string to unfollow'
+      describe: 'peerId/name string to unfollow'
     }
   },
 
   /**
    * @param {object} argv
    * @param {import('../../types').Context} argv.ctx
-   * @param {Uint8Array} argv.peerId
+   * @param {string} argv.peerIdOrName
    */
-  async handler ({ ctx: { meow }, peerId }) {
-    await meow.unFollowZId(peerId);
+  async handler ({ ctx: { meow }, peerIdOrName }) {
+    await meow.unfollowZId(peerIdOrName);
   }
 }

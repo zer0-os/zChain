@@ -1,12 +1,12 @@
 export default {
-  command: 'feed <peerId> <n>',
+  command: 'feed <peerId-or-name> <n>',
 
   describe: 'Display last n messages published by a peer',
 
   builder: {
-    peerId: {
+    peerIdOrName: {
       type: 'string',
-      describe: 'peer id'
+      describe: 'peer id or name'
     },
     n: {
       type: "number",
@@ -17,10 +17,10 @@ export default {
   /**
    * @param {object} argv
    * @param {import('../../types').Context} argv.ctx
-   * @param {string} argv.peerId
+   * @param {string} argv.peerIdOrName
    * @param {number} argv.n
    */
-  async handler ({ ctx: { meow }, peerId, n }) {
-    await meow.displayFeed(peerId, n);
+  async handler ({ ctx: { meow }, peerIdOrName, n }) {
+    await meow.displayFeed(peerIdOrName, n);
   }
 }

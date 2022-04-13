@@ -7,6 +7,7 @@ import open from './open.js';
 // import init from './init.js';
 import swarm from './swarm.js';
 import db from './db.js';
+import set from './set.js';
 
 export const commandList = [
   //init,
@@ -14,6 +15,7 @@ export const commandList = [
   topic,
   peer,
   swarm,
+  set,
   db,
   commands,
   daemon,

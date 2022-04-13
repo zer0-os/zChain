@@ -7,6 +7,17 @@ import { MeowDBs } from "../types";
 import { fromString } from "uint8arrays/from-string";
 import { toString as uint8ArrayToString } from "uint8arrays/to-string";
 
+function isValidzId(zId: string): Boolean {
+  let isValid = true;
+  try {
+    assertValidzId(zId);
+  } catch (error) {
+    isValid = false;
+  }
+
+  return isValid;
+}
+
 // meow operations are at the "application" level
 const APP_PATH = 'apps';
 
@@ -37,6 +48,30 @@ export class MStore extends ZStore {
   }
 
   peerID() { return this.libp2p.peerId.toB58String(); }
+
+  /**
+   * Determines {peerId, name, display string} for given peerId/name
+   */
+  private getNameAndPeerID(peerIdOrName: string): [string, string | undefined, string] {
+    let peerId: string, name: string | undefined, str: string;
+    if (isValidzId(peerIdOrName)) {
+      peerId = peerIdOrName;
+      name = this.dbs.addressBook.get(peerId) as string | undefined;
+      str = name !== undefined ? `${peerId} (${name})` : `${peerId}`
+    } else {
+      name = peerIdOrName;
+
+      // if you get a name, peerID must be defined
+      if (this.dbs.addressBook.get(name) === undefined) {
+        throw new Error(chalk.red(`No peer id found for name ${name}`));
+      } else {
+        peerId = this.dbs.addressBook.get(name) as string;
+        str = `${peerId} (${name})`;
+      }
+    }
+
+    return [peerId, name, str];
+  }
 
   private async _subscribeToFeed(peerId: string) {
     await this.ipfs.pubsub.subscribe(`${peerId}.sys.feed`, async (msg: types.PubSubMessage) => {
@@ -169,41 +204,41 @@ export class MStore extends ZStore {
 
   // append to the Followers database (keyvalue) store for the
   // peerId you follow
-  async followZId(peerId: string): Promise<void> {
-    assertValidzId(peerId);
+  async followZId(peerIdOrName: string): Promise<void> {
+    const [peerId, _, displayStr] = this.getNameAndPeerID(peerIdOrName);
 
     const data = this.meowDbs.followingZIds.get(peerId);
     if (data === undefined) {
       await this.meowDbs.followingZIds.put(peerId, 1);
       await this._subscribeToFeed(peerId);
-      console.info(chalk.green(`Great! You're now following ${peerId}`));
+      console.info(chalk.green(`Great! You're now following ${displayStr}`));
     } else {
-      console.info(chalk.yellow(`Already following ${peerId}`));
+      console.info(chalk.yellow(`Already following ${displayStr}`));
     }
   }
 
-  async unFollowZId(peerId: string): Promise<void> {
-    assertValidzId(peerId);
+  async unfollowZId(peerIdOrName: string): Promise<void> {
+    const [peerId, _, displayStr] = this.getNameAndPeerID(peerIdOrName);
 
     const data = this.meowDbs.followingZIds.get(peerId);
     if (data !== undefined) {
       await this.meowDbs.followingZIds.del(peerId);
-      console.info(chalk.green(`You've successfully unfollowed ${peerId}`));
+      console.info(chalk.green(`You've successfully unfollowed ${displayStr}`));
     }
 
     const feed = this.dbs.feeds[peerId];
-    if (feed) {
+    if (feed && peerId !== this.peerID()) {
       await feed.drop(); // drop the db
       this.dbs.feeds[peerId] = undefined;
     }
   }
 
-  async displayFeed(peerId: string, n: number): Promise<void> {
-    assertValidzId(peerId);
+  async displayFeed(peerIdOrName: string, n: number): Promise<void> {
+    const [peerId, _, displayStr] = this.getNameAndPeerID(peerIdOrName);
 
     if (peerId !== this.peerID() && this.meowDbs.followingZIds.get(peerId) === undefined) {
       console.error(
-        chalk.red(`Cannot fetch feed (Invalid request): You're not following ${peerId}`)
+        chalk.red(`Cannot fetch feed (Invalid request): You're not following ${displayStr}`)
       );
       return;
     }
@@ -211,7 +246,7 @@ export class MStore extends ZStore {
     const feed = this.dbs.feeds[peerId];
     if (feed === undefined) {
       console.error(
-        chalk.red(`Error while loading feed for zId ${peerId}: not found. The node is possibly offline and feeds are not synced yet.`)
+        chalk.red(`Error while loading feed for zId ${displayStr}: not found. The node is possibly offline and feeds are not synced yet.`)
       );
       return;
     }
@@ -222,9 +257,15 @@ export class MStore extends ZStore {
   // list peers followed by "this" node
   listFollowedPeers() {
     const all = this.meowDbs.followingZIds.all;
+    if (Object.entries(all).length === 0) {
+      console.log(chalk.yellow(`Not following any peer`));
+      return;
+    }
+
     console.log(`\n${this.peerID()} is following peers:`);
     for (const key in all) {
-      console.log(`${chalk.green('>')} ${key}`);
+      const [_, __, displayStr] = this.getNameAndPeerID(key);
+      console.log(`${chalk.green('>')} ${displayStr}`);
     }
   }
 
@@ -371,6 +412,7 @@ export class MStore extends ZStore {
     const dbs = {};
     const topicsList = this.meowDbs.followingTopics.all;
     const followerList = this.meowDbs.followingZIds.all;
+    const addressBook = this.dbs.addressBook.all;
 
     dbs["followingZIds"] = {
       "address": this.meowDbs.followingZIds.address.toString(),
@@ -380,6 +422,11 @@ export class MStore extends ZStore {
     dbs["followingTopics"] = {
       "address": this.meowDbs.followingTopics.address.toString(),
       "entries": Object.entries(topicsList).length
+    }
+
+    dbs["addressBook"] = {
+      "address": this.dbs.addressBook.address.toString(),
+      "entries": Object.entries(addressBook).length
     }
 
     dbs["Peer feeds"] = {};
@@ -409,6 +456,33 @@ export class MStore extends ZStore {
     }
 
     console.log(dbs);
+  }
+
+  /**
+   * Sets a name of the peerId in the local address book
+   * @param peerId peerID
+   * @param name name to set
+   */
+  async setNameInAddressBook(peerId: string, name: string): Promise<void> {
+    assertValidzId(peerId);
+
+    let db = this.dbs.addressBook;
+    if (!db) {
+      console.log("Internal error: address book db not defined in ctx");
+      return;
+    }
+
+    const peerName = await db.get(peerId);
+    const peerID = await db.get(name);
+    if (peerName !== undefined) {
+      console.warn(chalk.yellowBright(`Name for peer ${peerId} has already been set to ${peerName}`));
+    } else if (peerID !== undefined) {
+      console.warn(chalk.yellowBright(`A peerId has already been set against this name (${name}) to ${peerID}`));
+    } else {
+      db.set(peerId, name);
+      db.set(name, peerId);
+      console.info(chalk.green(`Successfully set name for ${peerId} to ${name} in local address book`));
+    }
   }
 }
 
