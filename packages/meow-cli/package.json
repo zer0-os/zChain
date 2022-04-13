@@ -1,0 +1,64 @@
+{
+  "name": "meow-cli",
+  "version": "0.12.1",
+  "description": "CLI for meow",
+  "keywords": [
+    "zChain",
+    "meow"
+  ],
+  "license": "(Apache-2.0 OR MIT)",
+  "type": "module",
+  "main": "src/index.js",
+  "types": "types/src/index.d.ts",
+  "preferGlobal": true,
+  "typesVersions": {
+    "*": {
+      "*": [
+        "types/*",
+        "types/src/*"
+      ],
+      "types/*": [
+        "types/*",
+        "types/src/*"
+      ]
+    }
+  },
+  "files": [
+    "*",
+    "!**/*.tsbuildinfo"
+  ],
+  "publishConfig": {
+    "directory": "dist"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zer0-os/zChain"
+  },
+  "bin": {
+    "meow": "src/cli.js"
+  },
+  "scripts": {
+    "test": "npm run test:node",
+    "build": "echo ok",
+    "meow": "meow"
+  },
+  "dependencies": {
+    "@ipld/dag-cbor": "^7.0.0",
+    "@ipld/dag-json": "^8.0.1",
+    "@ipld/dag-pb": "^2.1.3",
+    "debug": "^4.1.1",
+    "err-code": "^3.0.1",
+    "ipfs": "^0.62.2",
+    "ipfs-core-types": "^0.10.2",
+    "ipfs-daemon": "^0.12.2",
+    "ipfs-http-client": "^56.0.2",
+    "it-all": "^1.0.4",
+    "it-glob": "^1.0.0",
+    "yargs": "^16.0.3"
+  },
+  "devDependencies": {
+    "@types/yargs": "^16.0.0",
+    "peer-id": "^0.16.0",
+    "sinon": "^12.0.0"
+  }
+}

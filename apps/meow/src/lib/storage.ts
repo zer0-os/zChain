@@ -3,7 +3,9 @@ import { ZCHAIN, ZStore, assertValidzId, types, decode } from "zchain-core";
 import { DB_ADDRESS_PROTOCOL, password } from "./constants";
 import { pipe } from 'it-pipe';
 import chalk from "chalk";
-import { MeowDBs } from "./types";
+import { MeowDBs } from "../types";
+import { fromString } from "uint8arrays/from-string";
+import { toString as uint8ArrayToString } from "uint8arrays/to-string";
 
 // meow operations are at the "application" level
 const APP_PATH = 'apps';
@@ -13,6 +15,7 @@ const APP_PATH = 'apps';
  */
 export class MStore extends ZStore {
   // key value storage of nodes i follow
+  zChain: ZCHAIN;
   protected meowDbs: MeowDBs;
 
   /**
@@ -21,6 +24,11 @@ export class MStore extends ZStore {
    */
   constructor (zChain: ZCHAIN) {
     super(zChain.ipfs, zChain.node, password);
+
+    // todo: check why we need this?
+    this.dbs = zChain.zStore.dbs
+
+    this.zChain = zChain;
     this.orbitdb = zChain.zStore.orbitdb;
     this.meowDbs = {} as any;
     this.meowDbs.followingZIds = {} as any;
@@ -28,8 +36,30 @@ export class MStore extends ZStore {
     this.meowDbs.topics = {} as any;
   }
 
+  peerID() { return this.libp2p.peerId.toB58String(); }
+
+  private async _subscribeToFeed(peerId: string) {
+    await this.ipfs.pubsub.subscribe(`${peerId}.sys.feed`, async (msg: types.PubSubMessage) => {
+      const orbitDBAddress = uint8ArrayToString(msg.data);
+      console.log(`Received from ${msg.from}: ${orbitDBAddress}`);
+
+      // just a sanity check, it should be defined.
+      if (this.meowDbs.followingZIds) {
+        this.meowDbs.followingZIds = await this.getKeyValueOrbitDB(
+          this.peerID() + "." + APP_PATH + '.followers'
+        );
+      }
+
+      if (this.meowDbs.followingZIds.get(msg.from) === 1 || this.meowDbs.followingZIds.get(msg.from) === undefined) {
+        await this.meowDbs.followingZIds.put(msg.from, uint8ArrayToString(msg.data));
+        this.dbs.feeds[msg.from] = await this.orbitdb.open(orbitDBAddress) as FeedStore<unknown>;
+        this.listenForReplicatedEvent(this.dbs.feeds[msg.from]);
+      }
+    });
+  }
+
   async init(): Promise<void> {
-    const basePath = this.libp2p.peerId.toB58String() + "." + APP_PATH;
+    const basePath = this.peerID() + "." + APP_PATH;
     this.meowDbs.followingZIds = await this.getKeyValueOrbitDB(
       basePath + '.followers'
     );
@@ -59,6 +89,32 @@ export class MStore extends ZStore {
         this.listenForReplicatedEvent(this.meowDbs.topics[key]);
       }
     }
+
+    // a) broadcast your "own" feed database address on the topic
+    setInterval(async () => {
+      const feedDB = this.getFeedDB();
+      await this.ipfs.pubsub.publish(
+        `${this.peerID()}.sys.feed`,
+        fromString(feedDB.address.toString())
+      );
+    }, 5 * 1000);
+
+    // subscribe & listen to the events from peers we're following, & they broadcast their feed address
+    for (const key in followerList) {
+      const feed = this.dbs.feeds[key];
+
+      // we're following this guy, but we don't have the addr yet
+      if (this.meowDbs.followingZIds.get(key) === 1) {
+        await this._subscribeToFeed(key);
+      }
+
+      // now open the databases as per usual
+      const remoteAddress = this.meowDbs.followingZIds.get(key);
+      if (!feed && typeof remoteAddress === "string") {
+        this.dbs.feeds[key] = await this.orbitdb.open(remoteAddress) as FeedStore<unknown>;
+        this.listenForReplicatedEvent(this.dbs.feeds[key]);
+      }
+    }
   }
 
   // log replication ("sync" events accross all dbs)
@@ -81,21 +137,29 @@ export class MStore extends ZStore {
           for await (const msg of source) {
             // if i follow this connection, and feed is not defined yet, load(replicate) it's db
             const address = String(msg).toString().replace('\n', '');
+
+            // i don't think this is a good approach
+            self.meowDbs.followingZIds = await self.getKeyValueOrbitDB(
+              self.peerID() + "." + APP_PATH + '.followers'
+            );
+
             if (
               address.includes(`/orbitdb/`)
               && self.meowDbs.followingZIds.get(connection.remotePeer.toB58String()) !== undefined
             ) {
-              let feed = self.dbs.feeds[connection.remotePeer.toB58String()];
+              //let feed = self.dbs.feeds[connection.remotePeer.toB58String()];
 
               // save db address of the node we're follwing, in our "followers" keyValue store
               self.meowDbs.followingZIds.put(connection.remotePeer.toB58String(), address);
 
               // load the db if not loaded yet
-              if (feed === undefined) {
-                feed = await self.orbitdb.open(address) as FeedStore<unknown>;
-                self.dbs.feeds[connection.remotePeer.toB58String()] = feed;
-                self.listenForReplicatedEvent(feed);
-              }
+              // NOTE: commenting because we don't need to open a db during daemon run.
+              // we'll open it during load()
+              // if (feed === undefined) {
+              //   feed = await self.orbitdb.open(address) as FeedStore<unknown>;
+              //   self.dbs.feeds[connection.remotePeer.toB58String()] = feed;
+              //   self.listenForReplicatedEvent(feed);
+              // }
             }
           }
         }
@@ -111,6 +175,7 @@ export class MStore extends ZStore {
     const data = this.meowDbs.followingZIds.get(peerId);
     if (data === undefined) {
       await this.meowDbs.followingZIds.put(peerId, 1);
+      await this._subscribeToFeed(peerId);
       console.info(chalk.green(`Great! You're now following ${peerId}`));
     } else {
       console.info(chalk.yellow(`Already following ${peerId}`));
@@ -136,7 +201,7 @@ export class MStore extends ZStore {
   async displayFeed(peerId: string, n: number): Promise<void> {
     assertValidzId(peerId);
 
-    if (this.meowDbs.followingZIds.get(peerId) === undefined) {
+    if (peerId !== this.peerID() && this.meowDbs.followingZIds.get(peerId) === undefined) {
       console.error(
         chalk.red(`Cannot fetch feed (Invalid request): You're not following ${peerId}`)
       );
@@ -157,7 +222,7 @@ export class MStore extends ZStore {
   // list peers followed by "this" node
   listFollowedPeers() {
     const all = this.meowDbs.followingZIds.all;
-    console.log(`\n${this.libp2p.peerId.toB58String()} is following peers:`);
+    console.log(`\n${this.peerID()} is following peers:`);
     for (const key in all) {
       console.log(`${chalk.green('>')} ${key}`);
     }
@@ -165,7 +230,7 @@ export class MStore extends ZStore {
 
   listFollowedTopics() {
     const all = this.meowDbs.followingTopics.all;
-    console.log(`\n${this.libp2p.peerId.toB58String()} is following topics:`);
+    console.log(`\n${this.peerID()} is following topics:`);
     for (const key in all) {
       console.log(`${chalk.green('>')} ${key}`);
     }
@@ -297,6 +362,53 @@ export class MStore extends ZStore {
         message: await decode(msg.message, password)
       });
     }
+  }
+
+  /**
+   * Lists all db's with address & no. of entries
+   */
+  async listDBs(): Promise<void> {
+    const dbs = {};
+    const topicsList = this.meowDbs.followingTopics.all;
+    const followerList = this.meowDbs.followingZIds.all;
+
+    dbs["followingZIds"] = {
+      "address": this.meowDbs.followingZIds.address.toString(),
+      "entries": Object.entries(followerList).length
+    }
+
+    dbs["followingTopics"] = {
+      "address": this.meowDbs.followingTopics.address.toString(),
+      "entries": Object.entries(topicsList).length
+    }
+
+    dbs["Peer feeds"] = {};
+    for (const key in followerList) {
+      const feed = this.dbs.feeds[key];
+      const remoteAddress = this.meowDbs.followingZIds.get(key);
+      if (feed && typeof remoteAddress === "string") {
+        await feed.load();
+        dbs["Peer feeds"][key] = {
+          "address": remoteAddress,
+          "entries": feed.iterator({ limit: -1 }).collect().length
+        }
+      }
+    }
+
+    dbs["Topic feeds"] = {};
+    for (const key in topicsList) {
+      const topicDB = this.meowDbs.topics[key];
+      const remoteAddress = this.meowDbs.followingTopics.get(key);
+      if (topicDB && typeof remoteAddress === "string") {
+        await topicDB.load();
+        dbs["Topic feeds"][key] = {
+          "address": remoteAddress,
+          "entries": topicDB.iterator({ limit: -1 }).collect().length
+        }
+      }
+    }
+
+    console.log(dbs);
   }
 }
 

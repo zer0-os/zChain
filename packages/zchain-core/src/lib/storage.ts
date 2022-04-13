@@ -6,11 +6,12 @@ import { decode, encode } from "./encryption";
 import { toString as uint8ArrayToString } from "uint8arrays/to-string";
 import { fromString } from "uint8arrays/from-string";
 
-import { IPFS as IIPFS } from 'ipfs-core';
+import { IPFS as IIPFS } from 'ipfs';
 import OrbitDB from "orbit-db";
 import FeedStore from "orbit-db-feedstore";
 import KeyValueStore from "orbit-db-kvstore";
 import chalk from "chalk";
+import os from 'os'
 
 // maybe we should change this to ~/.zchain-db ?
 const ZCHAIN_DEFAULT_STORAGE_DIR = "./zchain-db";
@@ -28,7 +29,7 @@ export class ZStore {
   orbitdb: OrbitDB;
   private password: string;
   private paths: LogPaths;
-  protected dbs: DBs;
+  dbs: DBs;
   private feedMap: Map<string, number>
 
   /**
@@ -54,7 +55,14 @@ export class ZStore {
   }
 
   async init(): Promise<void> {
-    this.orbitdb = await OrbitDB.createInstance(this.ipfs as any, { directory: "./zchain-db" });
+    const peerId = await this.ipfs.config.get('Identity.PeerID')
+    this.orbitdb = await OrbitDB.createInstance(
+      this.ipfs as any,
+      {
+        directory: path.join(os.homedir(), '/.zchain-db'),
+        peerId: peerId as string
+      }
+    );
 
     // eg. ./zchain-db/{peerId}/sys/<log>
     this.paths.default = this.libp2p.peerId.toB58String() + "." + SYSPATH;
@@ -80,8 +88,8 @@ export class ZStore {
    * @param dbName name of the database
    */
   async getKeyValueOrbitDB(dbName: string): Promise<KeyValueStore<unknown>> {
-    const db = this.orbitdb.keyvalue(dbName);
-    await (await db).load();
+    const db = await this.orbitdb.keyvalue(dbName);
+    await db.load();
     return db;
   }
 
@@ -90,8 +98,8 @@ export class ZStore {
    * @param dbName name of the database
    */
   async getFeedsOrbitDB(dbName: string) {
-    const db = this.orbitdb.feed(dbName);
-    await (await db).load();
+    const db = await this.orbitdb.feed(dbName);
+    await db.load();
     return db;
   }
 
@@ -112,6 +120,7 @@ export class ZStore {
   async appendZChainMessageToFeed(feedStore: FeedStore<unknown>, topic: string, message: string): Promise<void> {
     await feedStore.load(1); // load last block to memory
 
+    // this is a bug (check it)
     let prev = null;
     const lastBlock = feedStore.iterator({ limit: 1, reverse: true }).collect()
       .map((e) => e.payload.value);
@@ -120,6 +129,7 @@ export class ZStore {
       prev = parsed.message; // hash of prev message
     }
 
+    // verify you cannot spoof a signature, like i can't just copy it & spam it
     const zChainMessage = {
       prev: prev,
       from: this.libp2p.peerId.toB58String(),

@@ -12,7 +12,8 @@ export function assertValidzId(peerId: string) {
   try {
     PeerId.createFromB58String(peerId);
   } catch (error) {
-    console.error(chalk.red(`Invalid zId: ${peerId}`));
+    throw new Error(chalk.red(`Invalid zId: ${peerId}`))
+    //console.error(chalk.red(`Invalid zId: ${peerId}`));
   }
 }
 
@@ -28,13 +29,30 @@ export class ZID {
    * If file does not exist, creates a new peerid and save it to the json.
    * @param fileName name of .json file containing peer id
    */
-  async create (fileName: string): Promise<void> {
-    if (!fileName.endsWith(jsonExt)) {
+  async create (fileNameOrPath: string): Promise<void> {
+    let fileName = path.basename(fileNameOrPath);
+    if (path.extname(fileName) !== jsonExt) {
       throw new Error(`File ${fileName} is not a json`);
     }
 
-    const filePath = getPathFromDirRecursive(PEER_ID_DIR, fileName);
+    let filePath: string;
+    if (fileNameOrPath === fileName) {
+      // get path from /ids if not passed "explicitely"
+      filePath = getPathFromDirRecursive(PEER_ID_DIR, fileName);
+    } else {
+      filePath = fileNameOrPath;
+    }
+
     if (filePath !== undefined) {
+      if (!fs.existsSync(filePath)) {
+        console.info(`Generating new peer id at ${filePath}`);
+
+        this.peerId = await PeerId.create();
+        this.writeFile(
+          filePath,
+          JSON.stringify(this.peerId.toJSON(), null, 2)
+        );
+      }
       const content = this.readFile(filePath);
       this.peerId = await PeerId.createFromJSON(JSON.parse(content));
     } else {
@@ -46,6 +64,10 @@ export class ZID {
         JSON.stringify(this.peerId.toJSON(), null, 2)
       );
     }
+  }
+
+  createFromB58String (peerIdStr: string): void {
+    this.peerId = PeerId.createFromB58String(peerIdStr);
   }
 
   private readFile (path: string): string {

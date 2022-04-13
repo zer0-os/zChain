@@ -2,7 +2,7 @@
   "name": "zchain",
   "version": "1.0.0",
   "description": "",
-  "packageManager": "yarn@3.1.1",
+  "packageManager": "yarn@3.2.0",
   "license": "Apache-2.0",
   "private": true,
   "type": "module",
@@ -15,7 +15,7 @@
   },
   "scripts": {
     "build": "yarn workspaces run build",
-    "watch": "tsc --build --watch packages/zchain-core",
+    "watch": "tsc --build --watch packages/zchain-core apps/meow",
     "lint": "yarn workspaces run lint",
     "lint:fix": "yarn workspaces run lint:fix"
   },
