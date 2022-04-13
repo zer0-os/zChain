@@ -1,4 +1,4 @@
-import { commands } from './topic/index'
+import { commands } from './topic/index.js'
 
 export default {
   command: 'topic <command>',
@@ -10,7 +10,6 @@ export default {
    */
   builder (yargs) {
     return yargs
-
       .command(commands)
   }
 }

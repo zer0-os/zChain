@@ -76,7 +76,7 @@ export class MStore extends ZStore {
   private async _subscribeToFeed(peerId: string) {
     await this.ipfs.pubsub.subscribe(`${peerId}.sys.feed`, async (msg: types.PubSubMessage) => {
       const orbitDBAddress = uint8ArrayToString(msg.data);
-      console.log(`Received from ${msg.from}: ${orbitDBAddress}`);
+      //console.log(`Received from ${msg.from}: ${orbitDBAddress}`);
 
       // just a sanity check, it should be defined.
       if (this.meowDbs.followingZIds) {

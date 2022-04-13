@@ -10,7 +10,6 @@ export default {
    */
   builder (yargs) {
     return yargs
-
       .command(commands)
   }
 }
