@@ -8,6 +8,7 @@ import open from './open';
 import swarm from './swarm';
 import db from './db';
 import set from './set';
+import sandbox from './sandbox';
 
 export const commandList = [
   //init,
@@ -16,6 +17,7 @@ export const commandList = [
   peer,
   swarm,
   set,
+  sandbox,
   db,
   commands,
   daemon,
