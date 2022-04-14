@@ -182,7 +182,7 @@ export class MStore extends ZStore {
               address.includes(`/orbitdb/`)
               && self.meowDbs.followingZIds.get(connection.remotePeer.toB58String()) !== undefined
             ) {
-              //let feed = self.dbs.feeds[connection.remotePeer.toB58String()];
+              let feed = self.dbs.feeds[connection.remotePeer.toB58String()];
 
               // save db address of the node we're follwing, in our "followers" keyValue store
               self.meowDbs.followingZIds.put(connection.remotePeer.toB58String(), address);
@@ -190,11 +190,11 @@ export class MStore extends ZStore {
               // load the db if not loaded yet
               // NOTE: commenting because we don't need to open a db during daemon run.
               // we'll open it during load()
-              // if (feed === undefined) {
-              //   feed = await self.orbitdb.open(address) as FeedStore<unknown>;
-              //   self.dbs.feeds[connection.remotePeer.toB58String()] = feed;
-              //   self.listenForReplicatedEvent(feed);
-              // }
+              if (feed === undefined) {
+                feed = await self.orbitdb.open(address) as FeedStore<unknown>;
+                self.dbs.feeds[connection.remotePeer.toB58String()] = feed;
+                self.listenForReplicatedEvent(feed);
+              }
             }
           }
         }
