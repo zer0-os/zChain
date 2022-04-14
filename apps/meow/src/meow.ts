@@ -39,7 +39,7 @@ export class MEOW {
           stream
         );
       } catch (error) {
-        console.log("E ", error);
+        // console.log("E ", error);
         // could fail intially because of Mdns <-> webrtc-star
       }
     });
@@ -84,15 +84,23 @@ export class MEOW {
 
     this.store = new MStore(this.zchain);
     await this.store.init();
+
+    /**
+     * Logic: In every 10s check the diff b/w all known and connected address. Try to connect
+     * to those peers who are known, but not connected (& not a relay).
+     */
+    const relayAddresses = RELAY_ADDRS.map(addr => addr.split('/p2p/')[1]);
+    setInterval(async () => {
+      const connectedPeers = (await this.zchain.ipfs.swarm.peers()).map(p => p.peer);
+      const discoveredPeers = await this.zchain.ipfs.swarm.addrs();
+      for (const discoveredPeer of discoveredPeers) {
+        if (!(relayAddresses.includes(discoveredPeer.id) && connectedPeers.includes(discoveredPeer.id))) {
+          await this.connect(discoveredPeer.id);
+        }
+      }
+    }, 10 * 1000);
+
     await this._initModules();
-
-    // this.zchain.node.on('peer:discovery', async (peerId) => {
-    //   console.log('Discovered:', peerId.toB58String());
-    // });
-
-    // this.zchain.node.connectionManager.on('peer:connect', async (connection) => {
-    //   console.log('C ', connection.remotePeer.toB58String());
-    // });
 
     // listen and subscribe to the everything topic (aka "super" node)
     //this.zchain.subscribe(EVERYTHING_TOPIC);
