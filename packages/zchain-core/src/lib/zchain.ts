@@ -107,6 +107,10 @@ export class ZCHAIN {
      * @returns libp2p node instance
      */
     async initialize (fileNameOrPath: string, password: string, listenAddrs?: string[]): Promise<Libp2p> {
+      if (!fs.existsSync(path.join(os.homedir(), '/.jsipfs'))) {
+        fs.mkdirSync(path.join(os.homedir(), '/.jsipfs'));
+      }
+
       this.zId = new ZID();
       await this.zId.create(fileNameOrPath); // get existing/create new peer id
       const ipfsOptions = await this._getIPFSOptions(listenAddrs);
@@ -116,13 +120,9 @@ export class ZCHAIN {
         //repo: path.join(os.homedir(), '/.jsipfs'),
       });
 
-
       // need to go through type hacks here..
-      //const node = await Libp2p.create(ipfsOptions.libp2p);
       const node = (this.ipfs as any).libp2p as Libp2p;
-      //await node.start();
-
-      console.log("\n★", chalk.cyan('zChain Node Activated: ' + node.peerId.toB58String()) + " ★\n");
+      console.log("\n★ ", chalk.cyan('zChain Node Activated: ' + node.peerId.toB58String()) + " ★\n");
       this.node = node;
 
       // intialize zstore
