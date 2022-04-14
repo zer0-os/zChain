@@ -60,7 +60,7 @@ export class ZStore {
     this.orbitdb = await OrbitDB.createInstance(
       this.ipfs as any,
       {
-        directory: `.zchain-db`,
+        directory: path.join(os.homedir(), '/.zchain-db'),
         peerId: peerId as string
       }
     );

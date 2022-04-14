@@ -117,7 +117,7 @@ export class ZCHAIN {
 
       this.ipfs = await IPFS.create({
         ...ipfsOptions,
-        //repo: path.join(os.homedir(), '/.jsipfs'),
+        repo: path.join(os.homedir(), '/.jsipfs'),
       });
 
       // need to go through type hacks here..
