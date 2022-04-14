@@ -23,6 +23,7 @@ export class MEOW {
   }
 
   // todo: review and remove
+  // update: i think for sandbox we can use this logic
   private async _initModules() {
     this.zchain.peerDiscovery.onConnect(async (connection) => {
       console.log('Connection established to:', connection.remotePeer.toB58String());
@@ -83,15 +84,15 @@ export class MEOW {
 
     this.store = new MStore(this.zchain);
     await this.store.init();
-    //await this._initModules();
+    await this._initModules();
 
-    this.zchain.node.on('peer:discovery', async (peerId) => {
-      console.log('Discovered:', peerId.toB58String());
-    });
+    // this.zchain.node.on('peer:discovery', async (peerId) => {
+    //   console.log('Discovered:', peerId.toB58String());
+    // });
 
-    this.zchain.node.connectionManager.on('peer:connect', async (connection) => {
-      console.log('C ', connection.remotePeer.toB58String());
-    });
+    // this.zchain.node.connectionManager.on('peer:connect', async (connection) => {
+    //   console.log('C ', connection.remotePeer.toB58String());
+    // });
 
     // listen and subscribe to the everything topic (aka "super" node)
     //this.zchain.subscribe(EVERYTHING_TOPIC);
