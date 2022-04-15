@@ -29,15 +29,42 @@ var nodeTopics = [authTopic,encryptedTopic];
 let web3,nodeAuthData,graphClient;
 var verifiedNodesArray=[];
 var storedNodes =[];
+var isConnectedTab = false;
+var tabSelectedItem=""
+let zScreen;
 ;(async () => {
-	var zScreen = new ZScreen()
-	zScreen.screen.render()
-	//init zchain
+	zScreen = new ZScreen()
+        zScreen.screen.render()
 	let myNode = new ZCHAIN();
         await myNode.initialize('bustawei.json', password,publicWebRTCStarServers);
 	destNode = myNode.node.peerId.toB58String()
 	const encryptedMessage = await encryptMessage("Hello world",myNode.node.peerId)
-
+	zScreen.choiceListBox.on("element click",function(selectedItem,mouse){
+		if(selectedItem.content == "Connections"){
+			isConnectedTab = true;
+			zScreen.drawConnectionsBox(storedNodes);
+		}
+		if(selectedItem.content =="Profile"){
+			isConnectedTab =false;
+			zScreen.drawProfileBox();
+			autoCompleteProfileBox();
+		}
+	});
+	setInterval(async()=>{
+		if(isConnectedTab){
+			zScreen.drawConnectionsBox(storedNodes)
+			zScreen.verifiedNodesList.on("element click",async function(element,mouse){
+                		isConnectedTab = false;
+				var targetAddress="";
+				verifiedNodesArray.forEach(node =>{
+					if(node[0] === element.content)
+						targetAddress = node[1]
+				});
+                		var ownedZnas = await getZnaFromSubgraph(targetAddress,graphClient)
+                		zScreen.drawOwnedZnasBox(ownedZnas)
+        });
+		}
+	},5000);
 	myNode.peerDiscovery.onConnect((connection) => {
 		zScreen.connectionsLogBox.log("Connected to : "+connection.remotePeer.toB58String())
 		zScreen.screen.render()
@@ -68,8 +95,8 @@ var storedNodes =[];
 	else{
 		await promptConfig(myNode.node.peerId.toB58String())
 	}
-	await initConfig()
-
+	await initConfig();
+	await autoCompleteProfileBox();
 	setInterval(async () => {
 		await myNode.publish(authTopic, JSON.stringify(nodeAuthData));
 	}, 10000);
@@ -77,7 +104,7 @@ var storedNodes =[];
 		var msgReceived = uint8ArrayToString(msg.data)
 		var msgSender = msg.receivedFrom
 		var [verifiedAddress,ownedZnas] = await verifyNode(msg.receivedFrom,msg.data,graphClient)
-		if(verifiedAddress && storedNodes.indexOf(msgSender) < 0){
+		if(verifiedAddress){
 			storedNodes.push(msgSender)
 			verifiedNodesArray.push([msgSender,verifiedAddress])
 			zScreen.subscribedTopicsLog.log("authenticated "+msgSender+" with address "+verifiedAddress+" in topic "+authTopic)
@@ -93,6 +120,12 @@ var storedNodes =[];
 })();
 
 
+async function autoCompleteProfileBox(){
+	zScreen.profileNodeId.content = destNode;
+	zScreen.profileNodeFn.value = config.get("friendlyName")
+        zScreen.profileNodeAddress.value = config.get("ethAddress")
+        zScreen.profileNodeSig.value = config.get("ethSig")
+}
 async function decryptMessage(msg,myPeerId){
 	var rsaPrivateKey = jwkToPem(myPeerId.privKey._key,{private: true})
 	msg = Buffer.from(msg,"base64")
@@ -175,4 +208,9 @@ async function setConfig(friendlyName,ethAddress,ethSig){
         fileJson.ethSig = ethSig
         await fs.writeFileSync(configFile, JSON.stringify(fileJson));
 
+}
+async function sleep(ms) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
 }

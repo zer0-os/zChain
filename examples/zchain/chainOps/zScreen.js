@@ -8,10 +8,11 @@ export class ZScreen {
 	constructor(){
 		this.screen = blessed.screen({smartCSR: true});
 	        this.screen.title = "Zchain"
-		this.screen.key(['escape', 'q', 'C-c'], function(ch, key) {return process.exit(0);});
+		this.screen.key(['escape',  'C-c'], function(ch, key) {return process.exit(0);});
 		this.grid = new contrib.grid({rows: 12, cols: 12, screen: this.screen});
 		this.choices = ["Profile","Connections","Settings","Topics feed"]
 		this.meowAsci = fs.readFileSync("meowAsci.txt")
+		this.verifiedNodesList=blessed.list({});
 		this.initStaticScreen()
 	}
 	initStaticScreen(){
@@ -32,7 +33,148 @@ export class ZScreen {
 			fg : "green",
 			content : this.meowAsci.toString()
 		});
+		this.drawProfileBox();
 
 	}
+	//znas owned by a node
+	drawOwnedZnasBox(ownedDomains){
+		var formattedZnas=[]
+		ownedDomains.forEach(zna=>{
+			var lastIndexOfPoint = zna.name.lastIndexOf(".")
+			formattedZnas.push([zna.name.substring(0,lastIndexOfPoint),zna.name.substring(lastIndexOfPoint+1)])
+		});
 
+		this.ownedZnasTable = this.grid.set(0,2,6,6,contrib.table,{
+			keys: true,
+			fg: 'green',
+			selectedFg: 'white',
+			selectedBg: 'blue',
+			interactive: true,
+			label: 'Owned domains',
+			border: {type: "line", fg: "cyan"},
+			mouse:true,
+			data:{headers: ['Subdomain', 'index'],data:formattedZnas},
+			width:"shrink",
+			style: {border: {fg: 'red'},header: {fg: 'blue',bold: true},cell: {fg: 'green'}},
+			align:"center",
+			columnSpacing :10,
+			columnWidth: [25,45]
+		});
+	}
+
+	//verified connections box
+	drawConnectionsBox(verifiedNodes){
+		this.verifiedNodesList = this.grid.set(0,2,6,6,blessed.list,{
+			label:"Verified nodes",
+			mouse:true,
+			selectedFg:"blue",
+			selectedBg:"green",
+			fg:"white",
+			items:verifiedNodes,
+			interactive:true
+		});
+	}
+
+	//Profile Box
+	drawProfileBox(){
+		this.profileBox = this.grid.set(0,2,6,6,blessed.form,{
+			keys:true,
+			label:"Profile settings",
+			mouse:true
+		});
+		this.submitProfileButton = blessed.button({
+			parent: this.profileBox,
+			mouse:true,
+			keys:true,
+			shrink:true,
+			content:"Save changes",
+			style: {bg: 'black',focus: {bg: 'blue'},hover: {bg: 'blue'},fg:"white"},
+			padding: {left: 1,right: 1},
+			left:"80%",
+			top:"90%"
+		});
+		this.profileNodeIdLabel = blessed.text({
+			parent:this.profileBox,
+			content:"Node id : ",
+			left:"5%",
+			top:"5%",
+			fg:"green"
+		});
+		this.profileNodeId = blessed.text({
+			parent:this.profileBox,
+			left:"35%",
+			top:"5%",
+			bg:"gray",
+			fg:"white",
+			content:""
+		});
+		this.profileNodeFnLabel = blessed.text({
+			parent:this.profileBox,
+			content:"Node friendly name :",
+			left:"5%",
+			top:"20%",
+			fg:"green"
+		});
+		this.profileNodeFn = blessed.textbox({
+			parent:this.profileBox,
+			left:"35%",
+			inputOnFocus: true,
+			width:"60%",
+			top:"15%",
+			fg:"blue",
+			focus:{fg:"blue"},
+			border:{type:"line"},
+			shrink:true,
+			value:""
+		});
+		this.profileNodeFn.on("click",function(){
+
+		});
+		this.profileNodeAddressLabel = blessed.text({
+                        parent:this.profileBox,
+                        content:"ethereum address :",
+                        left:"5%",
+                        top:"35%",
+			fg:"green"
+                });
+                this.profileNodeAddress = blessed.textbox({
+                        parent:this.profileBox,
+                        left:"35%",
+                        inputOnFocus: true,
+                        width:"60%",
+                        top:"30%",
+                        fg:"blue",
+                        focus:{fg:"blue"},
+                        border:{type:"line"},
+                        shrink:true,
+                        value:""
+                });
+                this.profileNodeAddress.on("click",function(){
+
+                });
+		this.profileNodeSigLabel = blessed.text({
+                        parent:this.profileBox,
+                        content:"ethereum signature :",
+                        left:"5%",
+                        top:"48%",
+			fg:"green"
+                });
+                this.profileNodeSig = blessed.textbox({
+                        parent:this.profileBox,
+                        left:"35%",
+                        inputOnFocus: true,
+                        width:"60%",
+                        top:"45%",
+                        fg:"blue",
+                        focus:{fg:"blue"},
+                        border:{type:"line"},
+                        shrink:true,
+                        value:""
+                });
+                this.profileNodeSig.on("click",function(){
+
+                });
+
+
+	}
 }
