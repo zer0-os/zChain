@@ -10,6 +10,7 @@ import config from "config";
 import jwkToPem from 'jwk-to-pem'
 import crypto from "crypto";
 import {ZScreen} from "./zScreen.js";
+import {IP2Location} from "ip2location-nodejs";
 
 const configFile = './config/default.json';
 var fileJson = JSON.parse(fs.readFileSync(configFile))
@@ -33,6 +34,8 @@ var isConnectedTab = false;
 var tabSelectedItem=""
 let zScreen;
 ;(async () => {
+	let ip2location = new IP2Location();
+	ip2location.open("./ip2loc/ip2location.bin");
 	zScreen = new ZScreen()
         zScreen.screen.render()
 	let myNode = new ZCHAIN();
@@ -43,16 +46,19 @@ let zScreen;
 		if(selectedItem.content == "Connections"){
 			isConnectedTab = true;
 			zScreen.drawConnectionsBox(storedNodes);
+			zScreen.screen.render()
 		}
 		if(selectedItem.content =="Profile"){
 			isConnectedTab =false;
 			zScreen.drawProfileBox();
 			autoCompleteProfileBox();
+			zScreen.screen.render()
 		}
 	});
 	setInterval(async()=>{
 		if(isConnectedTab){
 			zScreen.drawConnectionsBox(storedNodes)
+			zScreen.screen.render()
 			zScreen.verifiedNodesList.on("element click",async function(element,mouse){
                 		isConnectedTab = false;
 				var targetAddress="";
@@ -62,11 +68,16 @@ let zScreen;
 				});
                 		var ownedZnas = await getZnaFromSubgraph(targetAddress,graphClient)
                 		zScreen.drawOwnedZnasBox(ownedZnas)
+				zScreen.screen.render()
         });
 		}
 	},5000);
 	myNode.peerDiscovery.onConnect((connection) => {
 		zScreen.connectionsLogBox.log("Connected to : "+connection.remotePeer.toB58String())
+		var connectionIp = connection.remoteAddr.toString().split("/")[2]
+		var connectionLat = ip2location.getLatitude(connectionIp)
+		var connectionLon = ip2location.getLongitude(connectionIp)
+		zScreen.mapBox.addMarker({"lon" : connectionLon, "lat" : connectionLat, color: "red", char: "X"})
 		zScreen.screen.render()
 	});
 	myNode.peerDiscovery.onDiscover((peerId) => {
