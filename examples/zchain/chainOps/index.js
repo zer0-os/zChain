@@ -60,7 +60,6 @@ let zScreen;
 			isConnectedTab = true;
 			zScreen.drawConnectionsBox(storedNodes);
 			zScreen.screen.render()
-			console.log("ok")
 		}
 		if(selectedItem.content =="Profile"){
 			isConnectedTab =false;
