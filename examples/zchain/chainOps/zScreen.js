@@ -1,4 +1,3 @@
-
 import blessed from 'blessed';
 import contrib from 'blessed-contrib';
 import fs from "fs";
@@ -182,4 +181,3 @@ export class ZScreen {
 
 
 	}
-}
