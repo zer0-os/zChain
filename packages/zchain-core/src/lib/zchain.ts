@@ -94,7 +94,7 @@ export class ZCHAIN {
       // need to go through type hacks here..
       const node = (this.ipfs as any).libp2p as Libp2p;
 
-      //console.log("\n★", chalk.cyan('zChain Node Activated: ' + node.peerId.toB58String()) + " ★\n");
+      console.log("\n★", chalk.cyan('zChain Node Activated: ' + node.peerId.toB58String()) + " ★\n");
       this.node = node;
 
       // intialize zstore
@@ -108,7 +108,7 @@ export class ZCHAIN {
 
     listen (topic: string): void {
       this.node.pubsub.on(topic, async (msg: PubSubMessage) => {
-        //console.log(`Received from ${msg.from}: ${uint8ArrayToString(msg.data)}`);
+        console.log(`Received from ${msg.from}: ${uint8ArrayToString(msg.data)}`);
 
         // append message to feeds, topics hypercore logs
         await this.zStore.handleListen(topic, msg);
@@ -120,7 +120,7 @@ export class ZCHAIN {
         throw new Error('pubsub has not been configured');
       }
       this.node.pubsub.subscribe(topic);
-      //console.log(this.zId.peerId.toB58String() + " has subscribed to: " + topic);
+      console.log(this.zId.peerId.toB58String() + " has subscribed to: " + topic);
     }
 
     async publish (topic: string, msg: string): Promise<void> {
