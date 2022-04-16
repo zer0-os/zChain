@@ -1,12 +1,14 @@
+
 import blessed from 'blessed';
 import contrib from 'blessed-contrib';
 import fs from "fs";
+import bigInt from "big-integer";
 
 
 export class ZScreen {
 
 	constructor(){
-		this.screen = blessed.screen({smartCSR: true});
+		this.screen = blessed.screen({smartCSR: true,autoPadding:true});
 	        this.screen.title = "Zchain"
 		this.screen.key(['escape',  'C-c'], function(ch, key) {return process.exit(0);});
 		this.grid = new contrib.grid({rows: 12, cols: 12, screen: this.screen});
@@ -41,9 +43,10 @@ export class ZScreen {
 		var formattedZnas=[]
 		ownedDomains.forEach(zna=>{
 			var lastIndexOfPoint = zna.name.lastIndexOf(".")
-			formattedZnas.push([zna.name.substring(0,lastIndexOfPoint),zna.name.substring(lastIndexOfPoint+1)])
+			formattedZnas.push([zna.name.substring(0,lastIndexOfPoint),zna.name.substring(lastIndexOfPoint+1),new bigInt(zna.id.substring(2),16)])
 		});
-
+		if(formattedZnas.length>0)
+		{
 		this.ownedZnasTable = this.grid.set(0,2,6,6,contrib.table,{
 			keys: true,
 			fg: 'green',
@@ -53,13 +56,14 @@ export class ZScreen {
 			label: 'Owned domains',
 			border: {type: "line", fg: "cyan"},
 			mouse:true,
-			data:{headers: ['Subdomain', 'index'],data:formattedZnas},
+			data:{headers: ['Subdomain', 'Index','Token Id'],data:formattedZnas},
 			width:"shrink",
-			style: {border: {fg: 'red'},header: {fg: 'blue',bold: true},cell: {fg: 'green'}},
+			style: {border: {fg: 'red'},header: {fg: 'blue',bold: true,align:"center"},cell: {fg: 'green',align:"center"}},
 			align:"center",
-			columnSpacing :10,
-			columnWidth: [25,45]
+			columnSpacing :3,
+			columnWidth: [25,5,60]
 		});
+		}
 	}
 
 	//verified connections box
@@ -67,10 +71,11 @@ export class ZScreen {
 		this.verifiedNodesList = this.grid.set(0,2,6,6,blessed.list,{
 			label:"Verified nodes",
 			mouse:true,
+			align:"center",
 			selectedFg:"blue",
 			selectedBg:"green",
 			fg:"white",
-			items:verifiedNodes,
+			items:verifiedNodes.filter(function(item, pos, self) {return self.indexOf(item) == pos;}),
 			interactive:true
 		});
 	}

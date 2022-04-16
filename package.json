@@ -39,6 +39,7 @@
   "dependencies": {
     "@types/node": "^17.0.21",
     "blessed": "^0.1.81",
+    "big-integer": "^1.6.51",
     "blessed-contrib": "^4.11.0",
     "chalk": "^4.0.0",
     "config": "^3.3.7",
