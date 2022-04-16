@@ -1,4 +1,4 @@
-import { ipfsPathHelp } from '../utils.js'
+import { ipfsPathHelp } from '../utils'
 
 export default {
   command: 'dbs',

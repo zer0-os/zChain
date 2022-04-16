@@ -1,5 +1,5 @@
-import parser from './parser.js'
-import commandAlias from './command-alias.js'
+import parser from './parser'
+import commandAlias from './command-alias'
 import errCode from 'err-code'
 
 /**

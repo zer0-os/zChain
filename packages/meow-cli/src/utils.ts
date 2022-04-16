@@ -2,12 +2,11 @@ import fs from 'fs'
 import os from 'os'
 import path from 'path'
 import debug from 'debug'
-// @ts-expect-error no types
 import { create } from 'ipfs'
 import { Multiaddr } from 'multiaddr'
 import { fromString as uint8ArrayFromString } from 'uint8arrays/from-string'
 import { create as httpClient } from 'ipfs-http-client'
-import { MEOW } from '../../../apps/meow/build/index.js'
+import { MEOW } from "meow-app";
 import delay from "delay";
 
 const log = debug('meow:cli:utils')

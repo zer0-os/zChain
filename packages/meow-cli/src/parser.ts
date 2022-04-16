@@ -1,6 +1,6 @@
 import yargs from 'yargs'
-import { ipfsPathHelp, disablePrinting } from './utils.js'
-import { commandList } from './commands/index.js'
+import { ipfsPathHelp, disablePrinting } from './utils'
+import { commandList } from './commands/index'
 
 const args = yargs(process.argv.slice(2))
   .option('silent', {

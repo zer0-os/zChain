@@ -1,11 +1,11 @@
 import {
   coerceMultiaddr
-} from '../../utils.js'
+} from '../../utils'
 
 export default {
-  command: 'connect <address>',
+  command: 'disconnect <address>',
 
-  describe: 'Open connection to a given address',
+  describe: 'Close connection to a given address',
 
   builder: {
     address: {
@@ -20,9 +20,7 @@ export default {
    * @param {import('multiaddr').Multiaddr} argv.address
    */
   async handler ({ ctx: { ipfs, print }, address }) {
-    await ipfs.swarm.connect(address, {
-      timeout
-    })
+    await ipfs.swarm.disconnect(address)
 
     print(`${address}`)
   }

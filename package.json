@@ -15,7 +15,7 @@
   },
   "scripts": {
     "build": "yarn workspaces run build",
-    "watch": "tsc --build --watch packages/zchain-core apps/meow",
+    "watch": "tsc --build --watch packages/zchain-core packages/meow-cli apps/meow",
     "lint": "yarn workspaces run lint",
     "lint:fix": "yarn workspaces run lint:fix"
   },

@@ -7,9 +7,8 @@
     "meow"
   ],
   "license": "(Apache-2.0 OR MIT)",
-  "type": "module",
-  "main": "src/index.js",
-  "types": "types/src/index.d.ts",
+  "main": "build/src/index.js",
+  "types": "build/src/index.d.ts",
   "preferGlobal": true,
   "typesVersions": {
     "*": {
@@ -35,11 +34,12 @@
     "url": "git+https://github.com/zer0-os/zChain"
   },
   "bin": {
-    "meow": "src/cli.js"
+    "meow": "build/src/cli.js"
   },
   "scripts": {
     "test": "npm run test:node",
-    "build": "echo ok",
+    "build": "tsc --build .",
+    "build:watch": "tsc -w -p .",
     "meow": "meow"
   },
   "dependencies": {

@@ -1,4 +1,4 @@
-import swarmAddrsLocal from './local.js'
+import swarmAddrsLocal from './local'
 
 export const commands = [
   swarmAddrsLocal
