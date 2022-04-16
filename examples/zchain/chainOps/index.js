@@ -47,6 +47,9 @@ let zScreen;
         await initConfig();
 	let ip2location = new IP2Location();
 	ip2location.open("./ip2loc/ip2location.bin");
+	for (let func in console) {
+   console[func] = function() {};
+}
 	zScreen = new ZScreen()
         zScreen.screen.render()
 	destNode = myNode.node.peerId.toB58String()
@@ -57,6 +60,7 @@ let zScreen;
 			isConnectedTab = true;
 			zScreen.drawConnectionsBox(storedNodes);
 			zScreen.screen.render()
+			console.log("ok")
 		}
 		if(selectedItem.content =="Profile"){
 			isConnectedTab =false;
