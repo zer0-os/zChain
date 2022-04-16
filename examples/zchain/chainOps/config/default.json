@@ -1,0 +1,8 @@
+{
+
+	"ethAddress" : "",
+	"ethSig" : "",
+	"providerUrl" : "https://mainnet.infura.io/v3/[add_key]",
+	"graphQlEndpoint" :  "https://api.thegraph.com/subgraphs/name/zer0-os/zns",
+	"friendlyName" : ""
+}
