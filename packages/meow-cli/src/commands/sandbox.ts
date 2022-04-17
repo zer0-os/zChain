@@ -6,7 +6,7 @@ import { MEOW } from 'meow-app';
 import os from 'os';
 import fs from 'fs';
 import path from 'path';
-import util from 'util';
+import delay from 'delay';
 
 // handle top level await
 export function preprocess(input: string): string {
@@ -71,10 +71,13 @@ async function startConsole(fileNameOrPath: string): Promise<void> {
     await meow.init(fileNameOrPath);
 
 		console.log("★", chalk.cyan(" Welcome to meow console "), "★");
+		meow.help();
+
 		console.log(chalk.green(`Try typing: meow.sendmeow("Hello World")\n`));
 
+		await delay(6 * 1000);
 		const server = repl.start({
-			prompt: "meow> ",
+			prompt: chalk.cyan("meow> "),
 			eval: evaluate,
 		});
 

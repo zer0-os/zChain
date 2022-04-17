@@ -237,4 +237,23 @@ export class MEOW {
   async set(peerId: string, name: string) {
     await this.store.setNameInAddressBook(peerId, name);
   }
+
+  help() {
+    console.log(`
+Avalilable functions:
+	meow.listDBs()				Lists all databases and entries
+	meow.sendMeow(msg)			Sends a message accross all #hastags (channels)
+	meow.set(peerID, name)			Sets a display name for a peerID. Saved in local address book.
+
+	meow.followZId(peerIdOrName)		Follow a peer (by ID or display name)
+	meow.unfollowZId(peerIdOrName)  	Unfollow a peer (by ID or display name)
+	meow.listFollowedPeers()        	Lists all peers followed by this node
+	meow.displayFeed(peerIdOrName, n) 	Display last "n" messages published by this peer
+
+	meow.followTopic(topic)         	Follow a topic (#hashtag)
+	meow.unFollowTopic(topic)       	Unfollow a topic (#hashtag)
+	meow.listFollowedTopics()       	Lists all topics followed by this node
+	meow.displayTopicFeed(topic, n) 	Display last "n" messages published on a topic
+`);
+  }
 }
