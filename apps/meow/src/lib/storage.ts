@@ -43,8 +43,8 @@ export class MStore extends ZStore {
     this.orbitdb = zChain.zStore.orbitdb;
     this.meowDbs = {} as any;
     this.meowDbs.followingZIds = {} as any;
-    this.meowDbs.followingTopics = {} as any;
-    this.meowDbs.topics = {} as any;
+    this.meowDbs.followingChannels = {} as any;
+    this.meowDbs.channels = {} as any;
   }
 
   peerID() { return this.libp2p.peerId.toB58String(); }
@@ -98,8 +98,8 @@ export class MStore extends ZStore {
     this.meowDbs.followingZIds = await this.getKeyValueOrbitDB(
       basePath + '.followers'
     );
-    this.meowDbs.followingTopics = await this.getKeyValueOrbitDB(
-      basePath + '.topics'
+    this.meowDbs.followingChannels = await this.getKeyValueOrbitDB(
+      basePath + '.channels'
     );
 
     // during initialization, load the remote databases
@@ -114,18 +114,18 @@ export class MStore extends ZStore {
       }
     }
 
-    // similarly load db for each "topic" (#hashtag)
-    const topicsList = this.meowDbs.followingTopics.all;
-    for (const key in topicsList) {
-      const topicDB = this.meowDbs.topics[key];
-      const remoteAddress = this.meowDbs.followingTopics.get(key);
-      if (!topicDB && typeof remoteAddress === "string") {
-        this.meowDbs.topics[key] = await this.orbitdb.open(remoteAddress) as FeedStore<unknown>;
-        this.listenForReplicatedEvent(this.meowDbs.topics[key]);
+    // similarly load db for each "channel" (#hashtag)
+    const channelsList = this.meowDbs.followingChannels.all;
+    for (const key in channelsList) {
+      const channelDB = this.meowDbs.channels[key];
+      const remoteAddress = this.meowDbs.followingChannels.get(key);
+      if (!channelDB && typeof remoteAddress === "string") {
+        this.meowDbs.channels[key] = await this.orbitdb.open(remoteAddress) as FeedStore<unknown>;
+        this.listenForReplicatedEvent(this.meowDbs.channels[key]);
       }
     }
 
-    // a) broadcast your "own" feed database address on the topic
+    // a) broadcast your "own" feed database address on the channel
     setInterval(async () => {
       const feedDB = this.getFeedDB();
       await this.ipfs.pubsub.publish(
@@ -269,97 +269,97 @@ export class MStore extends ZStore {
     }
   }
 
-  listFollowedTopics() {
-    const all = this.meowDbs.followingTopics.all;
-    console.log(`\n${this.peerID()} is following topics:`);
+  listFollowedChannels() {
+    const all = this.meowDbs.followingChannels.all;
+    console.log(`\n${this.peerID()} is following channels:`);
     for (const key in all) {
       console.log(`${chalk.green('>')} ${key}`);
     }
   }
 
   /**
-   * Get public orbitdb address from a topic
-   * @param topic topic to extract db address of
+   * Get public orbitdb address from a channel
+   * @param channel channel to extract db address of
    */
-  private async getTopicPublicDBAddress(topic: string): Promise<string> {
-    if (topic[0] !== `#`) { topic = '#' + topic; }
+  private async getChannelPublicDBAddress(channel: string): Promise<string> {
+    if (channel[0] !== `#`) { channel = '#' + channel; }
 
     const options = {
       // Give write access to ourselves
       accessController: {
         write: ['*']
       },
-      meta: { topic: topic } // this is what makes the db for each topic "unique" from one another
+      meta: { channel: channel } // this is what makes the db for each channel "unique" from one another
     }
     const address = await this.orbitdb.determineAddress(
-      APP_PATH + `.${topic}.feed`, 'feed', options
+      APP_PATH + `.${channel}.feed`, 'feed', options
     );
     return address.toString();
   }
 
   /**
-   * Follow a topic (#hashtag). Save public orbitdb address of the topic
-   * to the "followingTopics" database
-   * @param topic topic to follow
+   * Follow a channel (#hashtag). Save public orbitdb address of the channel
+   * to the "followingChannels" database
+   * @param channel channel to follow
    */
-  async followTopic(topic: string) {
-    if (topic[0] !== `#`) { topic = '#' + topic; }
+  async followChannel(channel: string) {
+    if (channel[0] !== `#`) { channel = '#' + channel; }
 
-    const data = this.meowDbs.followingTopics.get(topic);
+    const data = this.meowDbs.followingChannels.get(channel);
     if (data === undefined) {
-      // save {"topic": "topic-db-address"} to db
-      const address = await this.getTopicPublicDBAddress(topic);
-      await this.meowDbs.followingTopics.put(topic, address);
+      // save {"channel": "channel-db-address"} to db
+      const address = await this.getChannelPublicDBAddress(channel);
+      await this.meowDbs.followingChannels.put(channel, address);
 
       // also initialize the database in our local map
-      this.meowDbs.topics[topic] = await this.orbitdb.open(address) as FeedStore<unknown>;
+      this.meowDbs.channels[channel] = await this.orbitdb.open(address) as FeedStore<unknown>;
 
-      console.info(chalk.green(`Great! You're now following topic ${topic}`));
+      console.info(chalk.green(`Great! You're now following channel ${channel}`));
     } else {
-      console.info(chalk.yellow(`Already following topic ${topic}`));
+      console.info(chalk.yellow(`Already following channel ${channel}`));
     }
   }
 
   /**
-   * Unfollow a topic (#hashtag). Remove entry from database, and drop the topic
+   * Unfollow a channel (#hashtag). Remove entry from database, and drop the channel
    * database, if present.
-   * @param topic topic to unfollow
+   * @param channel channel to unfollow
    */
-  async unFollowTopic(topic: string) {
-    if (topic[0] !== `#`) { topic = '#' + topic; }
+  async unFollowChannel(channel: string) {
+    if (channel[0] !== `#`) { channel = '#' + channel; }
 
-    const data = this.meowDbs.followingTopics.get(topic);
+    const data = this.meowDbs.followingChannels.get(channel);
     if (data !== undefined) {
-      await this.meowDbs.followingTopics.del(topic);
-      console.info(chalk.green(`You've successfully unfollowed ${topic}`));
+      await this.meowDbs.followingChannels.del(channel);
+      console.info(chalk.green(`You've successfully unfollowed ${channel}`));
     }
 
-    const topicDb = this.meowDbs.topics[topic];
-    if (topicDb) {
-      await topicDb.drop(); // drop the db
-      this.meowDbs.topics[topic] = undefined;
+    const channelDb = this.meowDbs.channels[channel];
+    if (channelDb) {
+      await channelDb.drop(); // drop the db
+      this.meowDbs.channels[channel] = undefined;
     }
   }
 
   /**
-   * Publish a message on a topic. Note: it doesn't matter if "this" node is following
-   * this topic or not, we write to the orbitdb on the publishing side of pubsub msg.
-   * @param topic topic on which to publish message on
+   * Publish a message on a channel. Note: it doesn't matter if "this" node is following
+   * this channel or not, we write to the orbitdb on the publishing side of pubsub msg.
+   * @param channel channel on which to publish message on
    */
-  async publishMessageOnTopic(topic: string, message: string): Promise<void> {
-    if (topic[0] !== `#`) { topic = '#' + topic; }
+  async publishMessageOnChannel(channel: string, message: string): Promise<void> {
+    if (channel[0] !== `#`) { channel = '#' + channel; }
 
     let db: FeedStore<unknown>;
     let dropDB = false;
-    if (this.meowDbs.topics[topic]) {
-      db = this.meowDbs.topics[topic];
+    if (this.meowDbs.channels[channel]) {
+      db = this.meowDbs.channels[channel];
     } else {
-      const address = await this.getTopicPublicDBAddress(topic);
+      const address = await this.getChannelPublicDBAddress(channel);
       db = await this.orbitdb.open(address) as FeedStore<unknown>;
-      dropDB = true; // since we're not following this topic, we should drop this db, after publish
+      dropDB = true; // since we're not following this channel, we should drop this db, after publish
     }
 
-    await this.appendZChainMessageToFeed(db, topic, message);
+    await this.appendZChainMessageToFeed(db, channel, message);
 
     // TODO: think about it more (dropping a db if not following -- the problem is if no
     // other node is online, and we publish & drop the db, the "appended" data us actually LOST)
@@ -367,35 +367,35 @@ export class MStore extends ZStore {
   }
 
   /**
-   * Lists messages published on a topic.
-   * @param topic topic of which to display feed of
+   * Lists messages published on a channel.
+   * @param channel channel of which to display feed of
    * @param n number of messages (in reverse order) to list
    * @returns
    */
-  async displayTopicFeed(topic: string, n: number): Promise<void> {
-    if (topic[0] !== `#`) { topic = '#' + topic; }
+  async displayChannelFeed(channel: string, n: number): Promise<void> {
+    if (channel[0] !== `#`) { channel = '#' + channel; }
 
-    if (this.meowDbs.followingTopics.get(topic) === undefined) {
+    if (this.meowDbs.followingChannels.get(channel) === undefined) {
       console.error(
-        chalk.red(`Cannot fetch feed (Invalid request): You're not following ${topic}`)
+        chalk.red(`Cannot fetch feed (Invalid request): You're not following ${channel}`)
       );
       return;
     }
 
-    const topicDB = this.meowDbs.topics[topic];
-    if (topicDB === undefined) {
+    const channelDB = this.meowDbs.channels[channel];
+    if (channelDB === undefined) {
       console.error(
-        chalk.red(`Error while loading feed for ${topic}: NOT FOUND.`)
+        chalk.red(`Error while loading feed for ${channel}: NOT FOUND.`)
       );
       return;
     }
 
-    await topicDB.load(n); // load last "n" messages to memory
-    const messages = topicDB.iterator({
+    await channelDB.load(n); // load last "n" messages to memory
+    const messages = channelDB.iterator({
       limit: n, reverse: true
     }).collect();
 
-    console.log(chalk.cyanBright(`Last ${n} messages published on ${topic}`));
+    console.log(chalk.cyanBright(`Last ${n} messages published on ${channel}`));
     for (const m of messages) {
       const msg = m.payload.value as types.ZChainMessage;
       console.log(`${chalk.green('>')} `, {
@@ -410,7 +410,7 @@ export class MStore extends ZStore {
    */
   async listDBs(): Promise<void> {
     const dbs = {};
-    const topicsList = this.meowDbs.followingTopics.all;
+    const channelsList = this.meowDbs.followingChannels.all;
     const followerList = this.meowDbs.followingZIds.all;
     const addressBook = this.dbs.addressBook.all;
 
@@ -419,9 +419,9 @@ export class MStore extends ZStore {
       "entries": Object.entries(followerList).length
     }
 
-    dbs["followingTopics"] = {
-      "address": this.meowDbs.followingTopics.address.toString(),
-      "entries": Object.entries(topicsList).length
+    dbs["followingChannels"] = {
+      "address": this.meowDbs.followingChannels.address.toString(),
+      "entries": Object.entries(channelsList).length
     }
 
     dbs["addressBook"] = {
@@ -442,15 +442,15 @@ export class MStore extends ZStore {
       }
     }
 
-    dbs["Topic feeds"] = {};
-    for (const key in topicsList) {
-      const topicDB = this.meowDbs.topics[key];
-      const remoteAddress = this.meowDbs.followingTopics.get(key);
-      if (topicDB && typeof remoteAddress === "string") {
-        await topicDB.load();
-        dbs["Topic feeds"][key] = {
+    dbs["Channel feeds"] = {};
+    for (const key in channelsList) {
+      const channelDB = this.meowDbs.channels[key];
+      const remoteAddress = this.meowDbs.followingChannels.get(key);
+      if (channelDB && typeof remoteAddress === "string") {
+        await channelDB.load();
+        dbs["Channel feeds"][key] = {
           "address": remoteAddress,
-          "entries": topicDB.iterator({ limit: -1 }).collect().length
+          "entries": channelDB.iterator({ limit: -1 }).collect().length
         }
       }
     }

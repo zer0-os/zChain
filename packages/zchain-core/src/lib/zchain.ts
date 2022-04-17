@@ -216,35 +216,35 @@ export class ZCHAIN {
       this.peerDiscovery = new PeerDiscovery(this.zStore, this.node);
     }
 
-    subscribe (topic: string): void {
+    subscribe (channel: string): void {
       if (!this.ipfs.pubsub) {
         throw new Error('pubsub has not been configured');
       }
 
-      this.ipfs.pubsub.subscribe(topic, async (msg: PubSubMessage) => {
+      this.ipfs.pubsub.subscribe(channel, async (msg: PubSubMessage) => {
         console.log(`Received from ${msg.from}: ${uint8ArrayToString(msg.data)}`);
 
-        // append message to feeds, topics hypercore logs
-        //await this.zStore.handleListen(topic, msg);
+        // append message to feeds, channels hypercore logs
+        //await this.zStore.handleListen(channel, msg);
       });
 
-      console.log(this.zId.peerId.toB58String() + " has subscribed to: " + topic);
+      console.log(this.zId.peerId.toB58String() + " has subscribed to: " + channel);
     }
 
-    unsubscribe (topic: string): void {
+    unsubscribe (channel: string): void {
       if (!this.ipfs.pubsub) {
         throw new Error('pubsub has not been configured');
       }
 
-      this.ipfs.pubsub.unsubscribe(topic);
-      console.log(this.zId.peerId.toB58String() + " has unsubscribed from: " + topic);
+      this.ipfs.pubsub.unsubscribe(channel);
+      console.log(this.zId.peerId.toB58String() + " has unsubscribed from: " + channel);
     }
 
-    async publish (topic: string, msg: string): Promise<void> {
+    async publish (channel: string, msg: string): Promise<void> {
       await this.ipfs.pubsub
-        .publish(topic, fromString(msg))
+        .publish(channel, fromString(msg))
         .catch(err => { throw new Error(err); });
 
-      await this.zStore.handlePublish(topic, msg);
+      await this.zStore.handlePublish(channel, msg);
     }
 }

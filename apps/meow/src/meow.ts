@@ -10,10 +10,10 @@ import delay from "delay";
 
 export class MEOW {
   zchain: ZCHAIN | undefined;
-  private readonly topics: string[];
+  private readonly channels: string[];
   store: MStore | undefined;
 
-  constructor () { this.topics = [EVERYTHING_TOPIC]; }
+  constructor () { this.channels = [EVERYTHING_TOPIC]; }
 
   assertZChainInitialized (): ZCHAIN {
     if (this.zchain === undefined) {
@@ -102,7 +102,7 @@ export class MEOW {
 
     await this._initModules();
 
-    // listen and subscribe to the everything topic (aka "super" node)
+    // listen and subscribe to the everything channel (aka "super" node)
     //this.zchain.subscribe(EVERYTHING_TOPIC);
   }
 
@@ -142,7 +142,7 @@ export class MEOW {
       }
     }, 10 * 1000);
 
-    // this logic is to listen to all subscribed topics at the daemon level
+    // this logic is to listen to all subscribed channels at the daemon level
     const set = new Set([]);
     setInterval(async () => {
       const list = await this.zchain.ipfs.pubsub.ls();
@@ -172,14 +172,14 @@ export class MEOW {
       throw new Error(`Length of a message exceeds maximum length of ${MAX_MESSAGE_LEN}`);
     }
 
-    // extract hashtags(topics) from the msg
+    // extract hashtags(channels) from the msg
     const hashtags = msg.match(/#[a-z0-9_]+/g) ?? [];
 
-    // publish message on each topic
+    // publish message on each channel
     // messages published to "#everything" will be listened by only "super node"
     for (const hashtag of [ EVERYTHING_TOPIC, ...hashtags]) {
       await this.zchain.publish(hashtag, msg);
-      await this.store.publishMessageOnTopic(hashtag, msg);
+      await this.store.publishMessageOnChannel(hashtag, msg);
     }
 
     console.log(chalk.green('Sent!'));
@@ -193,36 +193,36 @@ export class MEOW {
     await this.store.unfollowZId(peerIdOrName);
   }
 
-  async followTopic(topic: string) {
-    if (topic[0] !== `#`) { topic = '#' + topic; }
+  async followChannel(channel: string) {
+    if (channel[0] !== `#`) { channel = '#' + channel; }
 
-    this.zchain.subscribe(topic);
-    await this.store.followTopic(topic);
+    this.zchain.subscribe(channel);
+    await this.store.followChannel(channel);
   }
 
-  async unFollowTopic(topic: string) {
-    if (topic[0] !== `#`) { topic = '#' + topic; }
+  async unFollowChannel(channel: string) {
+    if (channel[0] !== `#`) { channel = '#' + channel; }
 
-    this.zchain.unsubscribe(topic);
-    await this.store.unFollowTopic(topic);
+    this.zchain.unsubscribe(channel);
+    await this.store.unFollowChannel(channel);
   }
 
   listFollowedPeers() {
     this.store.listFollowedPeers();
   }
 
-  listFollowedTopics() {
-    this.store.listFollowedTopics();
+  listFollowedChannels() {
+    this.store.listFollowedChannels();
   }
 
   async displayFeed(peerIdOrName: string, n: number) {
     await this.store.displayFeed(peerIdOrName, n);
   }
 
-  async displayTopicFeed(topic: string, n: number) {
-    if (topic[0] !== `#`) { topic = '#' + topic; }
+  async displayChannelFeed(channel: string, n: number) {
+    if (channel[0] !== `#`) { channel = '#' + channel; }
 
-    await this.store.displayTopicFeed(topic, n);
+    await this.store.displayChannelFeed(channel, n);
   }
 
   async listDBs() {
@@ -250,10 +250,10 @@ Avalilable functions:
 	meow.listFollowedPeers()        	Lists all peers followed by this node
 	meow.displayFeed(peerIdOrName, n) 	Display last "n" messages published by this peer
 
-	meow.followTopic(topic)         	Follow a topic (#hashtag)
-	meow.unFollowTopic(topic)       	Unfollow a topic (#hashtag)
-	meow.listFollowedTopics()       	Lists all topics followed by this node
-	meow.displayTopicFeed(topic, n) 	Display last "n" messages published on a topic
+	meow.followChannel(channel)         	Follow a channel (#hashtag)
+	meow.unFollowChannel(channel)       	Unfollow a channel (#hashtag)
+	meow.listFollowedChannels()       	Lists all channels followed by this node
+	meow.displayChannelFeed(channel, n) 	Display last "n" messages published on a channel
 `);
   }
 }

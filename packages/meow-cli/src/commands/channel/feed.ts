@@ -1,10 +1,10 @@
 export default {
-  command: 'feed <topic> <n>',
+  command: 'feed <channel> <n>',
 
-  describe: 'Display last n messages published on topic',
+  describe: 'Display last n messages published on channel',
 
   builder: {
-    topic: {
+    channel: {
       type: 'string',
       describe: '#hashtag'
     },
@@ -17,10 +17,10 @@ export default {
   /**
    * @param {object} argv
    * @param {import('../../types').Context} argv.ctx
-   * @param {string} argv.topic
+   * @param {string} argv.channel
    * @param {number} argv.n
    */
-  async handler ({ ctx: { meow }, topic, n }) {
-    await meow.displayTopicFeed(topic, n);
+  async handler ({ ctx: { meow }, channel, n }) {
+    await meow.displayChannelFeed(channel, n);
   }
 }

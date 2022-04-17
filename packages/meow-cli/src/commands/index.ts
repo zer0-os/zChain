@@ -1,6 +1,6 @@
 import commands from './commands'
 import daemon from './daemon'
-import topic from './topic'
+import channel from './channel'
 import sendmeow from './sendmeow';
 import peer from './peer';
 import open from './open';
@@ -13,7 +13,7 @@ import sandbox from './sandbox';
 export const commandList = [
   //init,
   sendmeow,
-  topic,
+  channel,
   peer,
   swarm,
   set,
