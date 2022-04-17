@@ -1,9 +1,9 @@
-import { commands } from './topic/index.js'
+import { commands } from './channel/index.js'
 
 export default {
-  command: 'topic <command>',
+  command: 'channel <command>',
 
-  description: 'Topic commands',
+  description: 'Channel commands',
 
   /**
    * @param {import('yargs').Argv} yargs

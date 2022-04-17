@@ -80,7 +80,7 @@ async function main (argv) {
 
   try {
     const data = await cli(command, async (argv) => {
-      if (!['daemon', 'init'].includes(command[0])) {
+      if (!['daemon', 'init', 'sandbox'].includes(command[0])) {
         // @ts-ignore argv as no properties in common
         const { meow, ipfs, cleanup } = await loadMeow()
 

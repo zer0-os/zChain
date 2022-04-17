@@ -70,7 +70,7 @@ export class ZStore {
     this.paths.discovery = this.paths.default + '.discovery';
     this.paths.feeds = this.paths.default + '.feed';
     this.paths.addressBook = this.paths.default + '.addressBook';
-    //this.paths.topics = path.join(this.paths.default, 'topics');
+    //this.paths.channels = path.join(this.paths.default, 'channels');
 
     this.dbs.feeds[this.libp2p.peerId.toB58String()] = await this.getFeedsOrbitDB(
       this.paths.feeds
@@ -81,8 +81,8 @@ export class ZStore {
 
   // we may use it later, commenting for now
   // /**
-  //  * Get public orbitdb address from a topic
-  //  * @param topic topic to extract db address of
+  //  * Get public orbitdb address from a channel
+  //  * @param channel channel to extract db address of
   //  */
   // protected async getGlobalAddressBookDB(): Promise<KeyValueStore<unknown>> {
   //   const options = {
@@ -90,7 +90,7 @@ export class ZStore {
   //     accessController: {
   //       write: ['*']
   //     },
-  //     meta: { topic: '#addressbook' } // this is what makes the db for each topic "unique" from one another
+  //     meta: { channel: '#addressbook' } // this is what makes the db for each channel "unique" from one another
   //   }
   //   const address = await this.orbitdb.determineAddress(
   //     this.paths.addressBook, 'keyvalue', options
@@ -143,7 +143,7 @@ export class ZStore {
     }
   }
 
-  async appendZChainMessageToFeed(feedStore: FeedStore<unknown>, topic: string, message: string): Promise<void> {
+  async appendZChainMessageToFeed(feedStore: FeedStore<unknown>, channel: string, message: string): Promise<void> {
     await feedStore.load(1); // load last block to memory
 
     // this is a bug (check it)
@@ -159,7 +159,7 @@ export class ZStore {
     const zChainMessage = {
       prev: prev,
       from: this.libp2p.peerId.toB58String(),
-      topic: topic,
+      channel: channel,
       message: await encode(message, this.password),
       timestamp: Math.round(+new Date() / 1000),
       // these keys are in the pubsub message, but maybe we could create our own?
@@ -172,45 +172,45 @@ export class ZStore {
   }
 
   /**
-   * Appends message to topic feeds
+   * Appends message to channel feeds
    * @param message libp2p pubsub message
    */
-  async appendMessageToTopicsFeed(topic: string, message: PubSubMessage): Promise<void> {
-    // if (this.dbs.topics[topic] === undefined) {
-    //   this.dbs.topics[topic] = await this.getHypercore(
-    //     path.join(this.paths.topics, topic)
+  async appendMessageToChannelsFeed(channel: string, message: PubSubMessage): Promise<void> {
+    // if (this.dbs.channels[channel] === undefined) {
+    //   this.dbs.channels[channel] = await this.getHypercore(
+    //     path.join(this.paths.channels, channel)
     //   );
     // }
 
-    // await this.appendZChainMessageToFeed(this.dbs.topics[topic], topic, message);
+    // await this.appendZChainMessageToFeed(this.dbs.channels[channel], channel, message);
   }
 
   /**
-   * Appends message to feeds (user's feeds + topic feeds)
-   * @param topic topic accross which message was published
+   * Appends message to feeds (user's feeds + channel feeds)
+   * @param channel channel accross which message was published
    * @param message libp2p pubsub message
    */
-  async handleListen(topic: string, message: PubSubMessage): Promise<void> {
-    // only append to "topics" cores if we received the message from someone else
+  async handleListen(channel: string, message: PubSubMessage): Promise<void> {
+    // only append to "channels" cores if we received the message from someone else
     // self messaging feeds are handled in "publish"
     if (message.from === this.libp2p.peerId.toB58String()) { return; }
 
     // const feed = this.dbs.feeds[this.libp2p.peerId.toB58String()];
-    // await this.appendZChainMessageToFeed(feed, topic, message);
+    // await this.appendZChainMessageToFeed(feed, channel, message);
 
-    // for (const topic of message.topicIDs) {
-    //   this.appendMessageToTopicsFeed(topic, message);
+    // for (const channel of message.channelIDs) {
+    //   this.appendMessageToChannelsFeed(channel, message);
     // }
   }
 
   /**
    * Handle publishing of a message
-   * @param topic topic accross which message was published
+   * @param channel channel accross which message was published
    * @param message libp2p pubsub message
    */
-  async handlePublish(topic: string, message: string): Promise<void> {
+  async handlePublish(channel: string, message: string): Promise<void> {
     // const pubsubMsg = {
-    //   topicIDs: [topic],
+    //   channelIDs: [channel],
     //   from: this.libp2p.peerId.toB58String(),
     //   data: fromString(message),
     //   seqno: new Uint8Array([0]),
@@ -220,11 +220,11 @@ export class ZStore {
     // };
 
     // only append to my feed a single time (eg. if we're publishing same
-    // message accross multiple topics, we only want to append it to feed single time)
+    // message accross multiple channels, we only want to append it to feed single time)
     const currTs = Math.round(+new Date() / 10000);
     if (this.feedMap.get(message + currTs.toString()) === undefined) {
       const feedCore = this.dbs.feeds[this.libp2p.peerId.toB58String()];
-      await this.appendZChainMessageToFeed(feedCore, topic, message);
+      await this.appendZChainMessageToFeed(feedCore, channel, message);
       this.feedMap.set(message + currTs.toString(), 1);
     }
   }

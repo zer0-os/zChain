@@ -8,29 +8,29 @@ import { MEOW } from "../meow";
   // // 3s delay for discovery and connection of other peers
   // await delay(3 * 1000);
 
-  // // tweet by meow
-  // await meow.sendMeow(`Thrilled to join the football gaming revolution
-  // with @UFLgame bringing the new #fairtoplay experience to
-  // football gamers worldwide! See you in the Game soon! #ucl`);
+  // tweet by meow
+  await meow.sendMeow(`Thrilled to join the football gaming revolution
+  with @UFLgame bringing the new #fairtoplay experience to
+  football gamers worldwide! See you in the Game soon! #ucl`);
 
-  // /********    Following a peer    *********/
-  // const ratikId = 'QmTsUsXsRsUpvHxRNXWJKmw3RvSPN3c8Noa95Kpduu5Wcv';
+  /********    Following a peer    *********/
+  const ratikId = 'QmTsUsXsRsUpvHxRNXWJKmw3RvSPN3c8Noa95Kpduu5Wcv';
 
-  // // follow ratik
-  // await meow.followZId(ratikId);
-  // meow.listFollowedPeers();
+  // follow ratik
+  await meow.followZId(ratikId);
+  meow.listFollowedPeers();
 
-  // // display last 5 messages posted by ratik
-  // await delay(6 * 1000);
-  // await meow.displayFeed(ratikId, 5);
+  // display last 5 messages posted by ratik
+  await delay(6 * 1000);
+  await meow.displayFeed(ratikId, 5);
 
-  // /********    Following a topic    *********/
+  /********    Following a channel    *********/
 
-  // await meow.followTopic('#ucl');
-  // meow.listFollowedTopics();
+  await meow.followChannel('#ucl');
+  meow.listFollowedChannels();
 
-  // await delay(6 * 1000);
-  // await meow.displayTopicFeed('#ucl', 3); // display last 3 messages on topic #ucl
+  await delay(6 * 1000);
+  await meow.displayChannelFeed('#ucl', 3); // display last 3 messages on channel #ucl
 
   // setInterval(async () => {
   //   console.log("P: ", await meow.zchain.ipfs.swarm.peers());
