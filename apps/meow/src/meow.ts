@@ -177,9 +177,10 @@ export class MEOW {
 
     // publish message on each channel
     // messages published to "#everything" will be listened by only "super node"
-    for (const hashtag of [ EVERYTHING_TOPIC, ...hashtags]) {
-      await this.zchain.publish(hashtag, msg);
-      await this.store.publishMessageOnChannel(hashtag, msg);
+    const channels = [ EVERYTHING_TOPIC, ...hashtags];
+    for (const hashtag of channels) {
+      await this.zchain.publish(hashtag, msg, channels);
+      await this.store.publishMessageOnChannel(hashtag, msg, channels);
     }
 
     console.log(chalk.green('Sent!'));

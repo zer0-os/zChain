@@ -240,11 +240,11 @@ export class ZCHAIN {
       console.log(this.zId.peerId.toB58String() + " has unsubscribed from: " + channel);
     }
 
-    async publish (channel: string, msg: string): Promise<void> {
+    async publish (channel: string, msg: string, channels: string[]): Promise<void> {
       await this.ipfs.pubsub
         .publish(channel, fromString(msg))
         .catch(err => { throw new Error(err); });
 
-      await this.zStore.handlePublish(channel, msg);
+      await this.zStore.handlePublish(msg, channels);
     }
 }
