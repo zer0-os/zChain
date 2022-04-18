@@ -1,4 +1,3 @@
-docker system prune -f # cleanup
 docker container stop zchain
 docker container rm zchain
 docker build . -t zchain
