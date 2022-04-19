@@ -52,7 +52,7 @@ export class MStore extends ZStore {
   /**
    * Determines {peerId, name, display string} for given peerId/name
    */
-  private getNameAndPeerID(peerIdOrName: string): [string, string | undefined, string] {
+  getNameAndPeerID(peerIdOrName: string): [string, string | undefined, string] {
     let peerId: string, name: string | undefined, str: string;
     if (isValidzId(peerIdOrName)) {
       peerId = peerIdOrName;
@@ -303,7 +303,11 @@ export class MStore extends ZStore {
    * @param channel channel to follow
    */
   async followChannel(channel: string) {
-    if (channel[0] !== `#`) { channel = '#' + channel; }
+    this.ipfs.pubsub.subscribe(channel, async (msg: types.PubSubMessage) => {
+      const [_, __, displayStr] = this.getNameAndPeerID(msg.from);
+
+      console.log(`Received from ${displayStr}: ${uint8ArrayToString(msg.data)}`);
+    });
 
     const data = this.meowDbs.followingChannels.get(channel);
     if (data === undefined) {
@@ -326,7 +330,6 @@ export class MStore extends ZStore {
    * @param channel channel to unfollow
    */
   async unFollowChannel(channel: string) {
-    if (channel[0] !== `#`) { channel = '#' + channel; }
 
     const data = this.meowDbs.followingChannels.get(channel);
     if (data !== undefined) {

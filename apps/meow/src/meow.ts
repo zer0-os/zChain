@@ -26,7 +26,9 @@ export class MEOW {
   // update: i think for sandbox we can use this logic
   private async _initModules() {
     this.zchain.peerDiscovery.onConnect(async (connection) => {
-      console.log('Connection established to:', connection.remotePeer.toB58String());
+      const [_, __, displayStr] = this.store.getNameAndPeerID(connection.remotePeer.toB58String())
+
+      console.log('Connection established to:', displayStr);
       const listenerMa = new Multiaddr(`/dns4/vast-escarpment-62759.herokuapp.com/tcp/443/wss/p2p-webrtc-star/p2p/${connection.remotePeer.toB58String()}`)
       try {
         const { stream } = await this.zchain.node.dialProtocol(listenerMa, DB_ADDRESS_PROTOCOL);
@@ -45,7 +47,8 @@ export class MEOW {
     });
 
     this.zchain.peerDiscovery.onDiscover((peerId) => {
-      console.log('Discovered:', peerId.toB58String());
+      const [_, __, displayStr] = this.store.getNameAndPeerID(peerId.toB58String())
+      console.log('Discovered:', displayStr);
     });
 
     await this.store.handleIncomingOrbitDbAddress(this.zchain);
@@ -197,7 +200,7 @@ export class MEOW {
   async followChannel(channel: string) {
     if (channel[0] !== `#`) { channel = '#' + channel; }
 
-    this.zchain.subscribe(channel);
+    //this.zchain.subscribe(channel);
     await this.store.followChannel(channel);
   }
 
