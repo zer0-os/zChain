@@ -1,6 +1,7 @@
 process.env.ALLOW_CONFIG_MUTATIONS = "true";
 import importFresh from 'import-fresh';
-import { ZCHAIN } from "zchain-core";
+import { ZCHAIN ,types ,decode} from "zchain-core";
+import { MEOW } from "meow-app"
 import { toString as uint8ArrayToString } from "uint8arrays/to-string";
 import Web3 from 'web3';
 import { GraphQLClient, gql } from 'graphql-request'
@@ -17,25 +18,22 @@ var fileJson = JSON.parse(fs.readFileSync(configFile))
 prompt.start();
 
 
-const publicWebRTCStarServers = [
-  '/dns4/wrtc-star1.par.dwebops.pub/tcp/443/wss/p2p-webrtc-star',
-  '/dns4/wrtc-star2.sjc.dwebops.pub/tcp/443/wss/p2p-webrtc-star'
-];
 const password = 'jindalratik@1234';
 const authTopic = "authentication"
-const encryptedTopic = "encryptedMessages"
+//const encryptedTopic = "encryptedMessages"
 let destNode;
-var nodeTopics = [authTopic,encryptedTopic];
+var nodeTopics = [authTopic];
 
 let web3,nodeAuthData,graphClient;
 var verifiedNodesArray=[];
 var storedNodes =[];
 var isConnectedTab = false;
 var tabSelectedItem=""
-let zScreen;
+let zScreen,myMeow;
 ;(async () => {
-	let myNode = new ZCHAIN();
-        await myNode.initialize('bustawei.json', password,publicWebRTCStarServers);
+	myMeow = new MEOW();
+        await myMeow.init('bustawei.json');
+	let myNode = myMeow.zchain;
 	//check if already initialized
         if(config.get("ethAddress") !== "" && config.get("ethSig") !== "" && config.get("friendlyName") !== "")
         {
@@ -47,16 +45,24 @@ let zScreen;
         await initConfig();
 	let ip2location = new IP2Location();
 	ip2location.open("./ip2loc/ip2location.bin");
-	for (let func in console) {
-   console[func] = function() {};
-}
 	zScreen = new ZScreen()
         zScreen.screen.render()
+	for (let func in console) {
+		if(func == "error")continue;
+		if(func == "log"){
+			console[func] = function(text){
+				zScreen.subscribedTopicsLog.log(text)
+			}
+			continue;
+		}
+		console[func] = function() {};
+	}
 	destNode = myNode.node.peerId.toB58String()
 	await autoCompleteProfileBox();
-	const encryptedMessage = await encryptMessage("Hello world",myNode.node.peerId)
+	//await myMeow.followChannel("#authentication");
+	//const encryptedMessage = await encryptMessage("Hello world",myNode.node.peerId)
 	zScreen.choiceListBox.on("element click",function(selectedItem,mouse){
-		if(selectedItem.content == "Connections"){
+		if(selectedItem.content == "Verified nodes"){
 			isConnectedTab = true;
 			zScreen.drawConnectionsBox(storedNodes);
 			zScreen.screen.render()
@@ -66,6 +72,29 @@ let zScreen;
 			zScreen.drawProfileBox();
 			autoCompleteProfileBox();
 			zScreen.screen.render()
+		}
+		if(selectedItem.content == "Chat"){
+			if(isConnectedTab)
+				isConnectedTab = false;
+			nodeTopics = myMeow.store.meowDbs.followingChannels.all;
+			zScreen.drawTopicsBox(Object.keys(nodeTopics));
+			zScreen.screen.render()
+			zScreen.screen.on("keypress",async function(ch,key){
+				if(key.full=="delete"){
+					let targetTopic = zScreen.topicsBox.getItem(zScreen.topicsBox.selected).content
+					if(targetTopic && zScreen.choiceListBox.getItem(zScreen.choiceListBox.selected).content=="Chat"){
+					await myMeow.unFollowChannel(targetTopic)
+					nodeTopics = myMeow.store.meowDbs.followingChannels.all;
+		                        zScreen.drawTopicsBox(Object.keys(nodeTopics));
+					zScreen.topicsBox.on("element click",handleTopicsBoxClick)
+                        		zScreen.submitTopicCreateButton.on("click",handleTopicCreate)
+					zScreen.screen.render()
+					}
+
+				}
+			});
+			zScreen.topicsBox.on("element click",handleTopicsBoxClick)
+			zScreen.submitTopicCreateButton.on("click",handleTopicCreate)
 		}
 	});
 	setInterval(async()=>{
@@ -99,19 +128,6 @@ let zScreen;
 		zScreen.connectionsLogBox.log("Discovered :"+peerId.toB58String())
 		zScreen.screen.render()
 	});
-	setInterval(async () => {
-		var encapsulatedMessage = {destNode,encryptedMessage}
-                await myNode.publish(encryptedTopic, JSON.stringify(encapsulatedMessage));
-        }, 10000);
-	myNode.node.pubsub.on(encryptedTopic, async (msg) => {
-		var msgReceived = uint8ArrayToString(msg.data)
-		msgReceived = JSON.parse(msgReceived)
-		var msgSender = msg.receivedFrom
-		if(msgReceived.destNode == myNode.node.peerId.toB58String()){
-			var decryptedMessage = await decryptMessage(msgReceived.encryptedMessage,myNode.node.peerId)
-			zScreen.subscribedTopicsLog.log("received "+decryptedMessage+" from "+msgSender+" in topic "+encryptedTopic)
-		}
-        });
 
 	setInterval(async () => {
 		await myNode.publish(authTopic, JSON.stringify(nodeAuthData));
@@ -130,17 +146,66 @@ let zScreen;
 	});
 	
 	myNode.subscribe(authTopic)
-	myNode.subscribe(encryptedTopic)
 	await myNode.node.start();
 
 })();
 
+async function handleTopicCreate(){
+	let newTopic = zScreen.topicCreateName.content
+        zScreen.topicCreateName.destroy()
+        await myMeow.followChannel(newTopic);
+        nodeTopics = myMeow.store.meowDbs.followingChannels.all;
+        zScreen.drawTopicsBox(Object.keys(nodeTopics));
+	zScreen.topicsBox.on("element click",handleTopicsBoxClick)
+        zScreen.screen.render()
+}
+async function handleTopicsBoxClick(){
+	let topicChannel = zScreen.topicsBox.getItem(zScreen.topicsBox.selected).content
+	zScreen.topicsWrapper.destroy()
+	if(topicChannel){
+		zScreen.topicsBox.removeListener("element click");
+		zScreen.drawTopicChatBox(topicChannel)
+		if(myMeow.store.meowDbs.followingChannels.get(topicChannel)){
+			const channelMessages = await myMeow.store.getChannelFeed(topicChannel,15)
+			channelMessages.forEach(msg => {
+				let msgFrom = msg[0]
+				let msgValue = msg[1].replace(/#\w+/g,"")
+				let msgTimestamp = msg[2]
+				zScreen.topicChatLogs.log(msgFrom.substring(20)+" : "+msgValue)
+			});
+		}
+		zScreen.submitTopicChatButton.on("click",handleSendMeow)
+		zScreen.screen.render()
+	}
 
+}
+async function handleSendMeow(){
+	let msgToSend = zScreen.topicChatNew.content
+	let msgTopic = zScreen.topicChatBox.name
+        zScreen.topicChatBox.destroy()
+	zScreen.topicChatNew.destroy()
+        await myMeow.sendMeow(msgToSend+" "+msgTopic)
+	zScreen.drawTopicChatBox(msgTopic)
+	let topicChannel = msgTopic
+	if(myMeow.store.meowDbs.followingChannels.get(topicChannel)){
+		const channelMessages = await myMeow.store.getChannelFeed(topicChannel,15)
+		channelMessages.forEach(msg => {
+			let msgFrom = msg[0]
+                        let msgValue = msg[1].replace(/#\w+/g,"")
+                        let msgTimestamp = msg[2]
+                        zScreen.topicChatLogs.log(msgFrom.substring(20)+" : "+msgValue)
+
+		});
+	}
+	zScreen.submitTopicChatButton.removeListener("click")
+	zScreen.submitTopicChatButton.on("click",handleSendMeow)
+	zScreen.screen.render()
+}
 async function autoCompleteProfileBox(){
 	var configFresh = importFresh("config");
 	zScreen.profileNodeId.content = destNode;
 	zScreen.profileNodeFn.value = configFresh.get("friendlyName")
-        zScreen.profileNodeAddress.value = configFresh.get("ethAddress")
+	zScreen.profileNodeAddress.value = configFresh.get("ethAddress")
         zScreen.profileNodeSig.value = configFresh.get("ethSig")
 }
 async function decryptMessage(msg,myPeerId){
