@@ -365,7 +365,33 @@ export class MStore extends ZStore {
     // other node is online, and we publish & drop the db, the "appended" data us actually LOST)
     //if (dropDB === true) { await db.drop(); }
   }
+  //get channel feed from db
+  async getChannelFeed(channel: string, n:number):Promise<string[]> {
+   if (channel[0] !== `#`) { channel = '#' + channel; }
+   let channelFeed=[];
+    if (this.meowDbs.followingChannels.get(channel) === undefined) {
+      return ["not following"];
+    }
 
+    const channelDB = this.meowDbs.channels[channel];
+    if (channelDB === undefined) {
+      return [];
+    }
+
+    await channelDB.load(n); // load last "n" messages to memory
+    const messages = channelDB.iterator({
+      limit: n, reverse: true
+    }).collect();
+    for (const m of messages) {
+      const msg = m.payload.value as types.ZChainMessage;
+      const msgValue = await decode(msg.message,password)
+      const msgSender = msg.from
+      const msgTimestamp = msg.timestamp
+      channelFeed.push([msgSender,msgValue,msgTimestamp])
+    }
+    return channelFeed;
+
+  }
   /**
    * Lists messages published on a channel.
    * @param channel channel of which to display feed of
