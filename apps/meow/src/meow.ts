@@ -1,17 +1,25 @@
-import { isDaemonOn, RELAY_ADDRS, ZCHAIN } from "zchain-core";
+import { RELAY_ADDRS, ZCHAIN } from "zchain-core";
 
-import { DB_ADDRESS_PROTOCOL, EVERYTHING_TOPIC, MAX_MESSAGE_LEN, password } from "./lib/constants";
+import { APP_KEY, APP_SECRET, DB_ADDRESS_PROTOCOL, EVERYTHING_TOPIC, MAX_MESSAGE_LEN, password } from "./lib/constants";
 import { pipe } from 'it-pipe';
 import { Multiaddr } from 'multiaddr';
 import { MStore } from "./lib/storage";
 import { Daemon } from 'ipfs-daemon'
 import chalk from "chalk";
 import delay from "delay";
+import fs from "fs";
+import prompt from 'prompt';
+import open from "open";
+import path from 'path';
+import os from 'os';
+import { Twitter } from "./lib/twitter";
+import { TwitterApi } from "twitter-api-v2";
 
 export class MEOW {
   zchain: ZCHAIN | undefined;
   private readonly channels: string[];
   store: MStore | undefined;
+  twitter: Twitter | undefined;
 
   constructor () { this.channels = [EVERYTHING_TOPIC]; }
 
@@ -87,6 +95,11 @@ export class MEOW {
 
     this.store = new MStore(this.zchain);
     await this.store.init();
+
+    const twitterConfig = this._getTwitterConfig();
+    if (twitterConfig && twitterConfig["enabled"] === 'true') {
+      this.twitter = new Twitter(this.zchain, this.store);
+    }
 
     /**
      * Logic: In every 10s check the diff b/w all known and connected address. Try to connect
@@ -186,6 +199,7 @@ export class MEOW {
       await this.store.publishMessageOnChannel(hashtag, msg, channels);
     }
 
+    if (this.twitter) { await this.twitter.tweet(msg); }
     console.log(chalk.green('Sent!'));
   }
 
@@ -241,6 +255,103 @@ export class MEOW {
   async set(peerId: string, name: string) {
     await this.store.setNameInAddressBook(peerId, name);
   }
+
+  private _getTwitterConfig() {
+    const jsipfsPath = path.join(os.homedir(), '/.jsipfs');
+    const twitterConfigPath = path.join(jsipfsPath, 'twitter-config.json');
+    if (!fs.existsSync(jsipfsPath)) {
+      throw new Error(chalk.red(`No ipfs repo found at ~/.jsipfs. Initialize node first.`));
+    }
+
+    if (fs.existsSync(twitterConfigPath)) {
+      const twitterConfig = fs.readFileSync(
+        twitterConfigPath, "utf8"
+      );
+      return JSON.parse(twitterConfig);
+    }
+
+    return undefined;
+  }
+
+  /**
+   * Enables twitter (saves config at ~/.jsipfs/twitter.json)
+   */
+  async enableTwitter(force: Boolean = false) {
+    const twitterConfig = this._getTwitterConfig();
+
+    if (!twitterConfig || force === true) {
+      console.log(chalk.yellow(`
+Twitter config not found.
+Please enter the pin after authorizing meow-app to access your twitter account.`
+));
+
+      const authClient = new TwitterApi({
+        appKey: APP_KEY,
+        appSecret: APP_SECRET,
+      });
+      const authLink = await authClient.generateAuthLink('oob', { linkMode: 'authorize' });
+
+      const client = new TwitterApi({
+        appKey: APP_KEY,
+        appSecret: APP_SECRET,
+        accessToken: authLink.oauth_token,
+        accessSecret: authLink.oauth_token_secret,
+      });
+
+      // open auth link now, and get the PIN
+      await open(authLink.url);
+
+      const { pin } = await prompt.get({
+        properties: {
+          pin: {
+            description: "PIN"
+          }
+        }
+      });
+
+      const { client: loggedClient, accessToken, accessSecret } = await client.login(String(pin));
+      const config = {
+        "appKey": APP_KEY,
+        "appSecret": APP_SECRET,
+        "accessToken": accessToken,
+        "accessSecret": accessSecret,
+        "enabled": "true"
+      }
+
+      fs.writeFileSync(
+        path.join(os.homedir(), '/.jsipfs', 'twitter-config.json'),
+        JSON.stringify(config, null, 2)
+      );
+
+      this.twitter = new Twitter(this.zchain, this.store);
+      console.log(chalk.green('Successfully set twitter config and initialized client'));
+    } else {
+
+      twitterConfig["enabled"] = "true";
+      fs.writeFileSync(
+        path.join(os.homedir(), '/.jsipfs', 'twitter-config.json'),
+        JSON.stringify(twitterConfig, null, 2)
+      );
+      console.log(chalk.green(`Successfully enabled twitter.\n`));
+    }
+  }
+
+  /**
+   * Disables twitter (saves config at ~/.jsipfs/twitter.json with "enabled": false)
+   */
+  async disableTwitter() {
+    const twitterConfig = this._getTwitterConfig();
+    if (twitterConfig) {
+      twitterConfig["enabled"] = "false";
+      fs.writeFileSync(
+        path.join(os.homedir(), '/.jsipfs', 'twitter-config.json'),
+        JSON.stringify(twitterConfig, null, 2)
+      );
+      this.twitter = undefined;
+      console.log(chalk.green('Disabled Twitter'));
+    }
+  }
+
 
   help() {
     console.log(`
