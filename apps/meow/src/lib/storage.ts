@@ -372,8 +372,31 @@ export class MStore extends ZStore {
    * @param n number of messages (in reverse order) to list
    * @returns
    */
+  async getChannelFeed(channel: string, n:number):Promise<string[]> {
+   if (channel[0] !== `#`) { channel = '#' + channel; }
+   let channelFeed=[];
+    if (this.meowDbs.followingChannels.get(channel) === undefined) {
+      return [];
+    }
+
+    const channelDB = this.meowDbs.channels[channel];
+    if (channelDB === undefined) {
+      return [];
+    }
+
+    await channelDB.load(n); // load last "n" messages to memory
+    const messages = channelDB.iterator({
+      limit: n, reverse: true
+    }).collect();
+    for (const m of messages) {
+      const msg = m.payload.value as types.ZChainMessage;
+      const msgValue = await decode(msg.message,password)
+      channelFeed.push([msg,msgValue])
+    }
+    return channelFeed;
+
+  }
   async displayChannelFeed(channel: string, n: number): Promise<void> {
-    if (channel[0] !== `#`) { channel = '#' + channel; }
 
     if (this.meowDbs.followingChannels.get(channel) === undefined) {
       console.error(
@@ -390,17 +413,13 @@ export class MStore extends ZStore {
       return;
     }
 
-    await channelDB.load(n); // load last "n" messages to memory
-    const messages = channelDB.iterator({
-      limit: n, reverse: true
-    }).collect();
-
+    const messages = await this.getChannelFeed(channel,n);
     console.log(chalk.cyanBright(`Last ${n} messages published on ${channel}`));
     for (const m of messages) {
-      const msg = m.payload.value as types.ZChainMessage;
+      const msg = m[0];
       console.log(`${chalk.green('>')} `, {
-        ...msg,
-        message: await decode(msg.message, password)
+        msg,
+        message: m[1]
       });
     }
   }
