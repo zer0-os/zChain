@@ -62,18 +62,18 @@ let zScreen,myMeow;
 	//await myMeow.followChannel("#authentication");
 	//const encryptedMessage = await encryptMessage("Hello world",myNode.node.peerId)
 	zScreen.choiceListBox.on("element click",function(selectedItem,mouse){
-		if(selectedItem.content == "Verified nodes"){
+		if(selectedItem.content == "VERIFIED NODES"){
 			isConnectedTab = true;
 			zScreen.drawConnectionsBox(storedNodes);
 			zScreen.screen.render()
 		}
-		if(selectedItem.content =="Profile"){
+		if(selectedItem.content =="PROFILE"){
 			isConnectedTab =false;
 			zScreen.drawProfileBox();
 			autoCompleteProfileBox();
 			zScreen.screen.render()
 		}
-		if(selectedItem.content == "Chat"){
+		if(selectedItem.content == "MEOW CHAT"){
 			if(isConnectedTab)
 				isConnectedTab = false;
 			nodeTopics = myMeow.store.meowDbs.followingChannels.all;
@@ -82,7 +82,7 @@ let zScreen,myMeow;
 			zScreen.screen.on("keypress",async function(ch,key){
 				if(key.full=="delete"){
 					let targetTopic = zScreen.topicsBox.getItem(zScreen.topicsBox.selected).content
-					if(targetTopic && zScreen.choiceListBox.getItem(zScreen.choiceListBox.selected).content=="Chat"){
+					if(targetTopic && zScreen.choiceListBox.getItem(zScreen.choiceListBox.selected).content=="Meow chat"){
 					await myMeow.unFollowChannel(targetTopic)
 					nodeTopics = myMeow.store.meowDbs.followingChannels.all;
 		                        zScreen.drawTopicsBox(Object.keys(nodeTopics));
@@ -133,6 +133,7 @@ let zScreen,myMeow;
 		await myNode.publish(authTopic, JSON.stringify(nodeAuthData));
 	}, 10000);
 	myNode.node.pubsub.on(authTopic, async (msg) => {
+		console.log(uint8ArrayToString(msg.data))
 		var msgReceived = uint8ArrayToString(msg.data)
 		var msgSender = msg.receivedFrom
 		if(storedNodes.indexOf(msgSender)<0){
@@ -168,9 +169,9 @@ async function handleTopicsBoxClick(){
 		if(myMeow.store.meowDbs.followingChannels.get(topicChannel)){
 			const channelMessages = await myMeow.store.getChannelFeed(topicChannel,15)
 			channelMessages.forEach(msg => {
-				let msgFrom = msg[0]
+				let msgFrom = msg[0]["from"]
 				let msgValue = msg[1].replace(/#\w+/g,"")
-				let msgTimestamp = msg[2]
+				let msgTimestamp = msg[0]["timestamp"]
 				zScreen.topicChatLogs.log(msgFrom.substring(20)+" : "+msgValue)
 			});
 		}
@@ -190,9 +191,9 @@ async function handleSendMeow(){
 	if(myMeow.store.meowDbs.followingChannels.get(topicChannel)){
 		const channelMessages = await myMeow.store.getChannelFeed(topicChannel,15)
 		channelMessages.forEach(msg => {
-			let msgFrom = msg[0]
+			let msgFrom = msg[0]["from"]
                         let msgValue = msg[1].replace(/#\w+/g,"")
-                        let msgTimestamp = msg[2]
+                        let msgTimestamp = msg[0]["timestamp"]
                         zScreen.topicChatLogs.log(msgFrom.substring(20)+" : "+msgValue)
 
 		});
