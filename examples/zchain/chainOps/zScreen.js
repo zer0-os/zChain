@@ -11,7 +11,7 @@ export class ZScreen {
 	        this.screen.title = "Zchain"
 		this.screen.key(['escape',  'C-c'], function(ch, key) {return process.exit(0);});
 		this.grid = new contrib.grid({rows: 12, cols: 12, screen: this.screen});
-		this.choices = ["Profile","Verified nodes","Chat"]
+		this.choices = ["PROFILE","VERIFIED NODES","MEOW CHAT"]
 		this.meowAsci = fs.readFileSync("meowAsci.txt")
 		this.verifiedNodesList=blessed.list({});
 		this.initStaticScreen()
@@ -19,17 +19,17 @@ export class ZScreen {
 		this.topicChatForm = blessed.form({})
 	}
 	initStaticScreen(){
-		this.mapBox = this.grid.set(6,0,6,6,contrib.map,{label:"Nodes map"});
-		this.connectionsLogBox = this.grid.set(9,6,3,6,contrib.log,{fg:"green",selectedFg:"green",label:"Discovery and connections"});
-		this.subscribedTopicsLog = this.grid.set(6,6,3,6,blessed.log,{fg:"green",selectedFg:"green",label:"Console logs"});
+		this.mapBox = this.grid.set(6,0,6,6,contrib.map,{label:"NODES MAP"});
+		this.connectionsLogBox = this.grid.set(9,6,3,6,contrib.log,{fg:"#2e5a94",selectedFg:"green",label:"DISCOVERY AND CONNECTIONS"});
+		this.subscribedTopicsLog = this.grid.set(6,6,3,6,blessed.log,{fg:"#cca843",selectedFg:"green",label:"CONSOLE LOGS"});
 		this.choiceListBox = this.grid.set(0,0,6,2,blessed.list,{
 			interactive:true,
 			mouse: true,
 			items:this.choices,
 			selectedFg :"blue",
 			selectedBg :"green",
-			fg:"white",
-			label:"Select a function"
+			fg:"#9827c2",
+			label:"SELECT A FUNCTION"
 		});
 		this.logoBox = this.grid.set(0,8,6,4,blessed.text,{
 			align:"left",
@@ -82,7 +82,7 @@ export class ZScreen {
 	}
 	//topics Box
 	drawTopicsBox(topics){
-		this.topicsWrapper = this.grid.set(0,2,6,6,blessed.box,{label:"Topics dashboard"})
+		this.topicsWrapper = this.grid.set(0,2,6,6,blessed.box,{label:"TOPICS"})
 		this.topicsBox = blessed.list({
 			parent:this.topicsWrapper,
                         mouse:true,
@@ -140,7 +140,7 @@ export class ZScreen {
 			selectedFg: 'white',
 			selectedBg: 'blue',
 			interactive: true,
-			label: 'Owned domains',
+			label: 'OWNED DOMAINS',
 			border: {type: "line", fg: "cyan"},
 			mouse:true,
 			data:{headers: ['Subdomain', 'Index','Token Id'],data:formattedZnas},
@@ -156,7 +156,7 @@ export class ZScreen {
 	//verified connections box
 	drawConnectionsBox(verifiedNodes){
 		this.verifiedNodesList = this.grid.set(0,2,6,6,blessed.list,{
-			label:"Verified nodes",
+			label:"VERIFIED NODES",
 			mouse:true,
 			align:"center",
 			selectedFg:"blue",
@@ -171,7 +171,7 @@ export class ZScreen {
 	drawProfileBox(){
 		this.profileBox = this.grid.set(0,2,6,6,blessed.form,{
 			keys:true,
-			label:"Profile settings",
+			label:"PROFILE SETTINGS",
 			mouse:true
 		});
 		this.submitProfileButton = blessed.button({
@@ -187,35 +187,34 @@ export class ZScreen {
 		});
 		this.profileNodeIdLabel = blessed.text({
 			parent:this.profileBox,
-			content:"Node id : ",
+			content:"NODE ID",
 			left:"5%",
 			top:"5%",
-			fg:"green"
+			fg:"#cca843"
 		});
 		this.profileNodeId = blessed.text({
 			parent:this.profileBox,
 			left:"35%",
 			top:"5%",
-			bg:"gray",
 			fg:"white",
 			content:""
 		});
 		this.profileNodeFnLabel = blessed.text({
 			parent:this.profileBox,
-			content:"Node friendly name :",
+			content:"NODE FRIENDLY NAME",
 			left:"5%",
 			top:"20%",
-			fg:"green"
+			fg:"#cca843"
 		});
 		this.profileNodeFn = blessed.textbox({
 			parent:this.profileBox,
 			left:"35%",
 			inputOnFocus: true,
 			width:"60%",
-			top:"15%",
+			top:"20%",
 			fg:"blue",
 			focus:{fg:"blue"},
-			border:{type:"line"},
+			//border:{type:"line"},
 			shrink:true,
 			value:""
 		});
@@ -224,20 +223,20 @@ export class ZScreen {
 		});
 		this.profileNodeAddressLabel = blessed.text({
                         parent:this.profileBox,
-                        content:"ethereum address :",
+                        content:"ETHEREUM ADDRESS",
                         left:"5%",
                         top:"35%",
-			fg:"green"
+			fg:"#cca843"
                 });
                 this.profileNodeAddress = blessed.textbox({
                         parent:this.profileBox,
                         left:"35%",
                         inputOnFocus: true,
                         width:"60%",
-                        top:"30%",
+                        top:"35%",
                         fg:"blue",
                         focus:{fg:"blue"},
-                        border:{type:"line"},
+                        //border:{type:"line"},
                         shrink:true,
                         value:""
                 });
@@ -246,20 +245,20 @@ export class ZScreen {
                 });
 		this.profileNodeSigLabel = blessed.text({
                         parent:this.profileBox,
-                        content:"ethereum signature :",
+                        content:"ETHEREUM SIGNATURE",
                         left:"5%",
                         top:"48%",
-			fg:"green"
+			fg:"#cca843"
                 });
                 this.profileNodeSig = blessed.textbox({
                         parent:this.profileBox,
                         left:"35%",
                         inputOnFocus: true,
                         width:"60%",
-                        top:"45%",
+                        top:"48%",
                         fg:"blue",
                         focus:{fg:"blue"},
-                        border:{type:"line"},
+                        //border:{type:"line"},
                         shrink:true,
                         value:""
                 });
