@@ -26,11 +26,12 @@ import { MEOW } from "../meow";
 
   /********    Following a channel    *********/
 
-  await meow.followChannel('#ucl');
+  await meow.followChannel('#fairtoplay');
+
   meow.listFollowedChannels();
 
   await delay(6 * 1000);
-  await meow.displayChannelFeed('#ucl', 3); // display last 3 messages on channel #ucl
+  await meow.displayChannelFeed('#fairtoplay', 3); // display last 3 messages on channel #ucl
 
   // setInterval(async () => {
   //   console.log("P: ", await meow.zchain.ipfs.swarm.peers());
