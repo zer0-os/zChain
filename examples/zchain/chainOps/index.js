@@ -33,7 +33,7 @@ var fileJson = JSON.parse(fs.readFileSync(configFile))
 prompt.start();
 
 
-const password = 'jindalratik@1234';
+const password = 'ratikjindal@3445';
 const authTopic = "authentication"
 //const encryptedTopic = "encryptedMessages"
 let destNode;
@@ -182,12 +182,17 @@ async function handleTopicsBoxClick() {
         zScreen.drawTopicChatBox(topicChannel)
         if (myMeow.store.meowDbs.followingChannels.get(topicChannel)) {
             const channelMessages = await myMeow.store.getChannelFeed(topicChannel, 15)
-            channelMessages.forEach(msg => {
-                let msgFrom = msg[0]["from"]
-                let msgValue = msg[1].replace(/#\w+/g, "")
-                let msgTimestamp = msg[0]["timestamp"]
-                zScreen.topicChatLogs.log(msgFrom.substring(20) + " : " + msgValue)
-            });
+            for (const msg of channelMessages) {
+                let msgFrom = msg.from
+                try {
+                    let msgValue = await decode(msg.message, password)
+                    msgValue = msgValue.replace(/#\w+/g, "")
+                    let msgTimestamp = msg.timestamp
+                    zScreen.topicChatLogs.log(msgFrom.substring(20) + " : " + msgValue)
+                } catch (err) {
+                    console.log("wrong password")
+                }
+            }
         }
         zScreen.submitTopicChatButton.on("click", handleSendMeow)
         zScreen.screen.render()
