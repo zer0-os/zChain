@@ -223,9 +223,6 @@ export class ZCHAIN {
 
       this.ipfs.pubsub.subscribe(channel, async (msg: PubSubMessage) => {
         console.log(`Received from ${msg.from}: ${uint8ArrayToString(msg.data)}`);
-
-        // append message to feeds, channels hypercore logs
-        //await this.zStore.handleListen(channel, msg);
       });
 
       console.log(this.zId.peerId.toB58String() + " has subscribed to: " + channel);
@@ -240,11 +237,11 @@ export class ZCHAIN {
       console.log(this.zId.peerId.toB58String() + " has unsubscribed from: " + channel);
     }
 
-    async publish (channel: string, msg: string): Promise<void> {
+    async publish (channel: string, msg: string, channels: string[]): Promise<void> {
       await this.ipfs.pubsub
         .publish(channel, fromString(msg))
         .catch(err => { throw new Error(err); });
 
-      await this.zStore.handlePublish(channel, msg);
+      await this.zStore.handlePublish(msg, channels);
     }
 }

@@ -143,7 +143,11 @@ export class ZStore {
     }
   }
 
-  async appendZChainMessageToFeed(feedStore: FeedStore<unknown>, channel: string, message: string): Promise<void> {
+  async appendZChainMessageToFeed(
+    feedStore: FeedStore<unknown>,
+    message: string,
+    channels: string[]
+    ): Promise<void> {
     await feedStore.load(1); // load last block to memory
 
     // this is a bug (check it)
@@ -159,9 +163,10 @@ export class ZStore {
     const zChainMessage = {
       prev: prev,
       from: this.libp2p.peerId.toB58String(),
-      channel: channel,
+      channel: channels,
       message: await encode(message, this.password),
-      timestamp: Math.round(+new Date() / 1000),
+      // timestamp: Math.round(+new Date() / 1000),
+
       // these keys are in the pubsub message, but maybe we could create our own?
       // signature: message.signature,
       // seqno: message.seqno,
@@ -208,7 +213,7 @@ export class ZStore {
    * @param channel channel accross which message was published
    * @param message libp2p pubsub message
    */
-  async handlePublish(channel: string, message: string): Promise<void> {
+  async handlePublish(message: string, channels: string[]): Promise<void> {
     // const pubsubMsg = {
     //   channelIDs: [channel],
     //   from: this.libp2p.peerId.toB58String(),
@@ -224,7 +229,7 @@ export class ZStore {
     const currTs = Math.round(+new Date() / 10000);
     if (this.feedMap.get(message + currTs.toString()) === undefined) {
       const feedCore = this.dbs.feeds[this.libp2p.peerId.toB58String()];
-      await this.appendZChainMessageToFeed(feedCore, channel, message);
+      await this.appendZChainMessageToFeed(feedCore, message, channels);
       this.feedMap.set(message + currTs.toString(), 1);
     }
   }
