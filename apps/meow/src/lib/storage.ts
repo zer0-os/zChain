@@ -394,8 +394,8 @@ export class MStore extends ZStore {
       channelFeed.push([msg,msgValue])
     }
     return channelFeed;
-
   }
+  
   async displayChannelFeed(channel: string, n: number): Promise<void> {
     if (channel[0] !== `#`) { channel = '#' + channel; }
     if (this.meowDbs.followingChannels.get(channel) === undefined) {
