@@ -8,12 +8,12 @@ import { Daemon } from 'ipfs-daemon'
 import chalk from "chalk";
 import delay from "delay";
 import fs from "fs";
-import prompt from 'prompt';
 import open from "open";
 import path from 'path';
 import os from 'os';
 import { Twitter } from "./lib/twitter";
 import { TwitterApi } from "twitter-api-v2";
+var promptSync = require('prompt-sync')();
 
 export class MEOW {
   zchain: ZCHAIN | undefined;
@@ -301,14 +301,7 @@ Please enter the pin after authorizing meow-app to access your twitter account.`
       // open auth link now, and get the PIN
       await open(authLink.url);
 
-      const { pin } = await prompt.get({
-        properties: {
-          pin: {
-            description: "PIN"
-          }
-        }
-      });
-
+      const pin = promptSync('Please enter PIN: ');
       const { client: loggedClient, accessToken, accessSecret } = await client.login(String(pin));
       const config = {
         "appKey": APP_KEY,
@@ -325,6 +318,7 @@ Please enter the pin after authorizing meow-app to access your twitter account.`
 
       this.twitter = new Twitter(this.zchain, this.store);
       console.log(chalk.green('Successfully set twitter config and initialized client'));
+      return;
     } else {
 
       twitterConfig["enabled"] = "true";
