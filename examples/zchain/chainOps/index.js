@@ -52,6 +52,7 @@ let zScreen, myMeow;;
     }
     myMeow = new MEOW();
     await myMeow.init('bustawei.json');
+    await myMeow.followChannel("#"+authTopic);
     let myNode = myMeow.zchain;
     //check if already initialized
     if (config.get("ethAddress") !== "" && config.get("ethSig") !== "" && config.get("friendlyName") !== "") {
