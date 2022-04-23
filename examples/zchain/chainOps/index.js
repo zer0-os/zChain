@@ -52,12 +52,9 @@ let zScreen, myMeow;;
     }
     myMeow = new MEOW();
     await myMeow.init('bustawei.json');
-    await myMeow.followChannel("#"+authTopic);
     let myNode = myMeow.zchain;
-    //check if already initialized
-    if (config.get("ethAddress") !== "" && config.get("ethSig") !== "" && config.get("friendlyName") !== "") {
-        //implement the ability to change address and friendly name ...
-    } else {
+    await myMeow.followChannel("#" + authTopic)
+    if (config.get("ethAddress") !== "" && config.get("ethSig") !== "" && config.get("friendlyName") !== "") {} else {
         await promptConfig(myNode.node.peerId.toB58String())
     }
     await initConfig();
@@ -70,8 +67,6 @@ let zScreen, myMeow;;
     console["log"] = function(text) {
         zScreen.subscribedTopicsLog.log(text)
     }
-    //await myMeow.followChannel("#authentication");
-    //const encryptedMessage = await encryptMessage("Hello world",myNode.node.peerId)
     zScreen.choiceListBox.on("element click", function(selectedItem, mouse) {
         if (selectedItem.content == "VERIFIED NODES") {
             isConnectedTab = true;
@@ -148,7 +143,6 @@ let zScreen, myMeow;;
     });
 
     await myMeow.sendMeow(JSON.stringify(nodeAuthData) + "#" + authTopic);
-  
     setInterval(async () => {
         let authFeed = await myMeow.store.getChannelFeed(authTopic, 10);
         for (const msg of authFeed) {
@@ -157,10 +151,10 @@ let zScreen, myMeow;;
                 try {
                     let msgValue = await decode(msg.message, password)
                     msgValue = msgValue.replace(/#\w+/g, "")
-                    let [verifiedAddress, ownedZnas] = await verifyNode(msgFrom, msgValue, graphClient)
+                    let [verifiedAddress, ownedZnas, friendlyName] = await verifyNode(msgFrom, msgValue, graphClient)
                     if (verifiedAddress) {
                         storedNodes.push(msgFrom)
-                        verifiedNodesArray.push([msgFrom, verifiedAddress])
+                        verifiedNodesArray.push([msgFrom, verifiedAddress, friendlyName])
                         zScreen.subscribedTopicsLog.log("authenticated " + msgFrom + " with address " + verifiedAddress + " in topic " + authTopic)
                     }
 
@@ -194,7 +188,13 @@ async function handleTopicsBoxClick() {
         if (myMeow.store.meowDbs.followingChannels.get(topicChannel)) {
             const channelMessages = await myMeow.store.getChannelFeed(topicChannel, 15)
             for (const msg of channelMessages) {
-                let msgFrom = msg.from
+                let nodeFriendlyName = ""
+                for (const verifiedNode of verifiedNodesArray) {
+                    if (verifiedNode[0] === msg.from) {
+                        nodeFriendlyName = "(" + verifiedNode[2] + ")"
+                    }
+                }
+                let msgFrom = msg.from + nodeFriendlyName
                 try {
                     let msgValue = await decode(msg.message, password)
                     msgValue = msgValue.replace(/#\w+/g, "")
@@ -221,7 +221,14 @@ async function handleSendMeow() {
     if (myMeow.store.meowDbs.followingChannels.get(topicChannel)) {
         const channelMessages = await myMeow.store.getChannelFeed(topicChannel, 15)
         for (const msg of channelMessages) {
-            let msgFrom = msg.from
+            let nodeFriendlyName = ""
+            for (const verifiedNode of verifiedNodesArray) {
+                if (verifiedNode[0] === msg.from) {
+                    nodeFriendlyName = "(" + verifiedNode[2] + ")"
+                }
+            }
+            let msgFrom = msg.from + nodeFriendlyName
+
             try {
                 let msgValue = await decode(msg.message, password)
                 msgValue = msgValue.replace(/#\w+/g, "")
@@ -263,19 +270,20 @@ async function encryptMessage(msg, peerId) {
 }
 async function verifyNode(msgSender, msgReceived, graphClient) {
     msgReceived = JSON.parse(msgReceived)
-    let ownedZnas, ownedAddress
+    let ownedZnas, ownedAddress, friendlyName
     if (msgReceived.ethAddress && msgReceived.ethSig) {
         try {
             var claimedAddress = await web3.eth.accounts.recover(msgSender, msgReceived.ethSig)
             if (claimedAddress == web3.utils.toChecksumAddress(msgReceived.ethAddress)) {
                 ownedAddress = msgReceived.ethAddress
+                friendlyName = msgReceived.friendlyName
                 ownedZnas = await getZnaFromSubgraph(msgReceived.ethAddress, graphClient)
             }
         } catch (err) {
             console.log("received wrong ethereum data");
         }
     }
-    return [ownedAddress, ownedZnas]
+    return [ownedAddress, ownedZnas, friendlyName]
 }
 async function promptConfig(myNodeId) {
     const {
