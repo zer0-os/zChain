@@ -147,9 +147,8 @@ let zScreen, myMeow;;
         zScreen.screen.render()
     });
 
-    setInterval(async () => {
-        await myMeow.sendMeow(JSON.stringify(nodeAuthData) + "#" + authTopic);
-    }, 10000);
+    await myMeow.sendMeow(JSON.stringify(nodeAuthData) + "#" + authTopic);
+  
     setInterval(async () => {
         let authFeed = await myMeow.store.getChannelFeed(authTopic, 10);
         for (const msg of authFeed) {
