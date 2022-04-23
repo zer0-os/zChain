@@ -375,14 +375,14 @@ export class MStore extends ZStore {
    * @param n number of messages (in reverse order) to list
    * @returns
    */
-  async displayChannelFeed(channel: string, n: number): Promise<void> {
+  async getChannelFeed(channel: string, n:number): Promise<types.ZChainMessage[]> {
     if (channel[0] !== `#`) { channel = '#' + channel; }
-
+    let channelFeed =[]
     if (this.meowDbs.followingChannels.get(channel) === undefined) {
       console.error(
         chalk.red(`Cannot fetch feed (Invalid request): You're not following ${channel}`)
       );
-      return;
+      return[];
     }
 
     const channelDB = this.meowDbs.channels[channel];
@@ -390,23 +390,29 @@ export class MStore extends ZStore {
       console.error(
         chalk.red(`Error while loading feed for ${channel}: NOT FOUND.`)
       );
-      return;
+      return[];
     }
 
     await channelDB.load(n); // load last "n" messages to memory
     const messages = channelDB.iterator({
       limit: n, reverse: true
     }).collect();
-
+    for (const m of messages){
+       channelFeed.push(m.payload.value as types.ZChainMessage)
+    }
+    return channelFeed
+  }
+  async displayChannelFeed(channel: string, n: number): Promise<void> {
     console.log(chalk.cyanBright(`Last ${n} messages published on ${channel}`));
+    const messages = await this.getChannelFeed(channel,n)
     for (const m of messages) {
-      const msg = m.payload.value as types.ZChainMessage;
       console.log(`${chalk.green('>')} `, {
-        ...msg,
-        message: await decode(msg.message, password)
+        ...m,
+        message: await decode(m.message, password)
       });
     }
   }
+
 
   /**
    * Lists all db's with address & no. of entries
