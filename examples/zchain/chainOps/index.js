@@ -145,7 +145,7 @@ let zScreen, myMeow;;
     });
 
     setInterval(async () => {
-        await myNode.publish(authTopic, JSON.stringify(nodeAuthData));
+        await myMeow.sendMeow(JSON.stringify(nodeAuthData)+"#"+authTopic);
     }, 10000);
     myNode.node.pubsub.on(authTopic, async (msg) => {
         console.log(uint8ArrayToString(msg.data))
