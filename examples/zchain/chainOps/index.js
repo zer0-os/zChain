@@ -65,7 +65,8 @@ let zScreen, myMeow;;
     destNode = myNode.node.peerId.toB58String()
     await autoCompleteProfileBox();
     console["log"] = function(text) {
-        zScreen.subscribedTopicsLog.log(text)
+        if(text.length > 20)
+            zScreen.subscribedTopicsLog.log(text)
     }
     zScreen.choiceListBox.on("element click", function(selectedItem, mouse) {
         if (selectedItem.content == "VERIFIED NODES") {
