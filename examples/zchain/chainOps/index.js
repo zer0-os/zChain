@@ -119,8 +119,10 @@ let zScreen, myMeow;;
                         targetAddress = node[1]
                 });
                 var ownedZnas = await getZnaFromSubgraph(targetAddress, graphClient)
-                zScreen.drawOwnedZnasBox(ownedZnas)
-                zScreen.screen.render()
+                if (ownedZnas) {
+                    zScreen.drawOwnedZnasBox(ownedZnas)
+                    zScreen.screen.render()
+                }
             });
         }
     }, 5000);
@@ -145,22 +147,31 @@ let zScreen, myMeow;;
     });
 
     setInterval(async () => {
-        await myMeow.sendMeow(JSON.stringify(nodeAuthData)+"#"+authTopic);
+        await myMeow.sendMeow(JSON.stringify(nodeAuthData) + "#" + authTopic);
     }, 10000);
-    myNode.node.pubsub.on(authTopic, async (msg) => {
-        console.log(uint8ArrayToString(msg.data))
-        var msgReceived = uint8ArrayToString(msg.data)
-        var msgSender = msg.receivedFrom
-        if (storedNodes.indexOf(msgSender) < 0) {
-            var [verifiedAddress, ownedZnas] = await verifyNode(msg.receivedFrom, msg.data, graphClient)
-            if (verifiedAddress) {
-                storedNodes.push(msgSender)
-                verifiedNodesArray.push([msgSender, verifiedAddress])
-                zScreen.subscribedTopicsLog.log("authenticated " + msgSender + " with address " + verifiedAddress + " in topic " + authTopic)
+    setInterval(async () => {
+        let authFeed = await myMeow.store.getChannelFeed(authTopic, 10);
+        for (const msg of authFeed) {
+            let msgFrom = msg.from
+            if (storedNodes.indexOf(msgFrom) < 0) {
+                try {
+                    let msgValue = await decode(msg.message, password)
+                    msgValue = msgValue.replace(/#\w+/g, "")
+                    let [verifiedAddress, ownedZnas] = await verifyNode(msgFrom, msgValue, graphClient)
+                    if (verifiedAddress) {
+                        storedNodes.push(msgFrom)
+                        verifiedNodesArray.push([msgFrom, verifiedAddress])
+                        zScreen.subscribedTopicsLog.log("authenticated " + msgFrom + " with address " + verifiedAddress + " in topic " + authTopic)
+                    }
+
+                } catch (err) {
+                    console.log("authentication not succesful")
+                    console.log(err)
+                }
             }
         }
-    });
-    myNode.subscribe(authTopic)
+
+    }, 10000);
     await myNode.node.start();
 
 })();
@@ -210,16 +221,16 @@ async function handleSendMeow() {
     if (myMeow.store.meowDbs.followingChannels.get(topicChannel)) {
         const channelMessages = await myMeow.store.getChannelFeed(topicChannel, 15)
         for (const msg of channelMessages) {
-                let msgFrom = msg.from
-                try {
-                    let msgValue = await decode(msg.message, password)
-                    msgValue = msgValue.replace(/#\w+/g, "")
-                    let msgTimestamp = msg.timestamp
-                    zScreen.topicChatLogs.log(msgFrom.substring(20) + " : " + msgValue)
-                } catch (err) {
-                    console.log("wrong password")
-                }
+            let msgFrom = msg.from
+            try {
+                let msgValue = await decode(msg.message, password)
+                msgValue = msgValue.replace(/#\w+/g, "")
+                let msgTimestamp = msg.timestamp
+                zScreen.topicChatLogs.log(msgFrom.substring(20) + " : " + msgValue)
+            } catch (err) {
+                console.log("wrong password")
             }
+        }
     }
     zScreen.submitTopicChatButton.removeListener("click")
     zScreen.submitTopicChatButton.on("click", handleSendMeow)
@@ -251,7 +262,6 @@ async function encryptMessage(msg, peerId) {
     return encryptedMessage.toString("base64")
 }
 async function verifyNode(msgSender, msgReceived, graphClient) {
-    msgReceived = uint8ArrayToString(msgReceived)
     msgReceived = JSON.parse(msgReceived)
     let ownedZnas, ownedAddress
     if (msgReceived.ethAddress && msgReceived.ethSig) {
