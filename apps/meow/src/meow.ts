@@ -1,6 +1,6 @@
 import { RELAY_ADDRS, ZCHAIN } from "zchain-core";
 
-import { APP_KEY, APP_SECRET, DB_ADDRESS_PROTOCOL, EVERYTHING_TOPIC, MAX_MESSAGE_LEN, password } from "./lib/constants";
+import { APP_KEY, APP_SECRET, DB_ADDRESS_PROTOCOL, EVERYTHING_TOPIC, MAX_MESSAGE_LEN, password, ZERO_TOPIC } from "./lib/constants";
 import { pipe } from 'it-pipe';
 import { Multiaddr } from 'multiaddr';
 import { MStore } from "./lib/storage";
@@ -97,8 +97,8 @@ export class MEOW {
     await this.store.init();
 
     const twitterConfig = this._getTwitterConfig();
-    if (twitterConfig && twitterConfig["enabled"] === 'true') {
-      this.twitter = new Twitter(this.zchain, this.store);
+    if (twitterConfig) {
+      this.twitter = new Twitter(this.zchain, this.store, twitterConfig);
     }
 
     /**
@@ -181,8 +181,11 @@ export class MEOW {
     await this.store.init();
   }
 
-  async sendMeow (msg: string): Promise<void> {
+  async sendMeow (msg: string, publishOnTwitter: boolean = true): Promise<void> {
     this.zchain = this.assertZChainInitialized();
+
+    // only publish (to twitter) if twitter-config is enabled AND flag is true
+    const publishToTwitter = this.twitter && publishOnTwitter === true;
 
     if (msg.length > MAX_MESSAGE_LEN) {
       throw new Error(`Length of a message exceeds maximum length of ${MAX_MESSAGE_LEN}`);
@@ -194,13 +197,27 @@ export class MEOW {
     // publish message on each channel
     // messages published to "#everything" will be listened by only "super node"
     const channels = [ EVERYTHING_TOPIC, ...hashtags];
+    if (publishToTwitter === true && !channels.includes(ZERO_TOPIC)) {
+      channels.push(ZERO_TOPIC);
+    }
+
+    // publish on zchain
     for (const hashtag of channels) {
       await this.zchain.publish(hashtag, msg, channels);
       await this.store.publishMessageOnChannel(hashtag, msg, channels);
     }
 
-    if (this.twitter) { await this.twitter.tweet(msg); }
-    console.log(chalk.green('Sent!'));
+    console.log(chalk.green('Sent on zchain!'));
+
+    // publish on twitter
+    if (publishToTwitter === true) {
+      // add #zero hashtag!
+      if (!hashtags.includes(ZERO_TOPIC)) {
+        msg = msg.concat(` ${ZERO_TOPIC}`);
+      }
+
+      await this.twitter.tweet(msg);
+    }
   }
 
   async followZId(peerIdOrName: string) {
@@ -307,8 +324,7 @@ Please enter the pin after authorizing meow-app to access your twitter account.`
         "appKey": APP_KEY,
         "appSecret": APP_SECRET,
         "accessToken": accessToken,
-        "accessSecret": accessSecret,
-        "enabled": "true"
+        "accessSecret": accessSecret
       }
 
       fs.writeFileSync(
@@ -316,30 +332,22 @@ Please enter the pin after authorizing meow-app to access your twitter account.`
         JSON.stringify(config, null, 2)
       );
 
-      this.twitter = new Twitter(this.zchain, this.store);
+      this.twitter = new Twitter(this.zchain, this.store, config);
       console.log(chalk.green('Successfully set twitter config and initialized client'));
       return;
     } else {
-
-      twitterConfig["enabled"] = "true";
-      fs.writeFileSync(
-        path.join(os.homedir(), '/.jsipfs', 'twitter-config.json'),
-        JSON.stringify(twitterConfig, null, 2)
-      );
-      console.log(chalk.green(`Successfully enabled twitter.\n`));
+      console.log(chalk.yellow(`Twitter is already enabled. Exiting..\n`));
     }
   }
 
   /**
-   * Disables twitter (saves config at ~/.jsipfs/twitter.json with "enabled": false)
+   * Disables twitter (removes config at ~/.jsipfs/twitter-config.json)
    */
   async disableTwitter() {
     const twitterConfig = this._getTwitterConfig();
     if (twitterConfig) {
-      twitterConfig["enabled"] = "false";
-      fs.writeFileSync(
+      fs.rmSync(
         path.join(os.homedir(), '/.jsipfs', 'twitter-config.json'),
-        JSON.stringify(twitterConfig, null, 2)
       );
       this.twitter = undefined;
       console.log(chalk.green('Disabled Twitter'));

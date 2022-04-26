@@ -7,3 +7,10 @@ export interface MeowDBs {
   followingZIds: KeyValueStore<unknown>
   followingChannels: KeyValueStore<unknown>
 }
+
+export interface TwitterConfig {
+  appKey: string,
+  appSecret: string,
+  accessToken: string,
+  accessSecret: string
+}

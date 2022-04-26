@@ -1,4 +1,8 @@
 export const EVERYTHING_TOPIC = "#everything";
+
+// we append this topic to the message, if a meow is published on twitter as well
+export const ZERO_TOPIC = "#zero";
+
 export const MAX_MESSAGE_LEN = 280;
 
 // zchain-db password
