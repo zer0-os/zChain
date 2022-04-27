@@ -76,7 +76,7 @@ export class ZCHAIN {
 
       const ipfsOptions = {
         libp2p: options,
-        repo: `.jsipfs/${peerId.toB58String()}`,
+        repo: `${os.homedir()}/.jsipfs/${peerId.toB58String()}`,
         init: {
           privateKey: peerId
         },
@@ -117,7 +117,7 @@ export class ZCHAIN {
 
       this.ipfs = await IPFS.create({
         ...ipfsOptions,
-        repo: path.join(os.homedir(), '/.jsipfs'),
+        //repo: path.join(os.homedir(), '/.jsipfs'),
       });
 
       // need to go through type hacks here..
