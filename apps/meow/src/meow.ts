@@ -181,7 +181,7 @@ export class MEOW {
     await this.store.init();
   }
 
-  async sendMeow (msg: string, publishOnTwitter: boolean = true): Promise<void> {
+  async sendMeow (msg: string, publishOnTwitter: boolean = false): Promise<void> {
     this.zchain = this.assertZChainInitialized();
 
     // only publish (to twitter) if twitter-config is enabled AND flag is true
