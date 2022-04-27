@@ -76,7 +76,7 @@ export class ZCHAIN {
 
       const ipfsOptions = {
         libp2p: options,
-        repo: `.jsipfs/${peerId.toB58String()}`,
+        repo: `${os.homedir()}/.jsipfs/${peerId.toB58String()}`,
         init: {
           privateKey: peerId
         },
@@ -106,7 +106,7 @@ export class ZCHAIN {
      * @param fileName json present in /ids. Contains peer metadata
      * @returns libp2p node instance
      */
-    async initialize (fileNameOrPath: string, password: string, listenAddrs?: string[]): Promise<Libp2p> {
+    async initialize (fileNameOrPath?: string | undefined, listenAddrs?: string[]): Promise<Libp2p> {
       if (!fs.existsSync(path.join(os.homedir(), '/.jsipfs'))) {
         fs.mkdirSync(path.join(os.homedir(), '/.jsipfs'));
       }
@@ -117,7 +117,7 @@ export class ZCHAIN {
 
       this.ipfs = await IPFS.create({
         ...ipfsOptions,
-        repo: path.join(os.homedir(), '/.jsipfs'),
+        //repo: path.join(os.homedir(), '/.jsipfs'),
       });
 
       // need to go through type hacks here..

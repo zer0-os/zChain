@@ -60,7 +60,7 @@ export class ZStore {
     this.orbitdb = await OrbitDB.createInstance(
       this.ipfs as any,
       {
-        directory: path.join(os.homedir(), '/.zchain-db'),
+        directory: path.join(os.homedir(), `/.zchain-db/${peerId}`),
         peerId: peerId as string
       }
     );
@@ -78,29 +78,6 @@ export class ZStore {
     this.dbs.discovery = await this.getKeyValueOrbitDB(this.paths.discovery);
     this.dbs.addressBook = await this.getKeyValueOrbitDB(this.paths.addressBook);
   }
-
-  // we may use it later, commenting for now
-  // /**
-  //  * Get public orbitdb address from a channel
-  //  * @param channel channel to extract db address of
-  //  */
-  // protected async getGlobalAddressBookDB(): Promise<KeyValueStore<unknown>> {
-  //   const options = {
-  //     // Give write access to ourselves
-  //     accessController: {
-  //       write: ['*']
-  //     },
-  //     meta: { channel: '#addressbook' } // this is what makes the db for each channel "unique" from one another
-  //   }
-  //   const address = await this.orbitdb.determineAddress(
-  //     this.paths.addressBook, 'keyvalue', options
-  //   );
-
-  //   const db = await this.orbitdb.open(address.toString());
-  //   await db.load();
-  //   // i wonder why.. It returns a type "Store", but we know it's a KeyValueStore
-  //   return db as any;
-  // }
 
   /**
    * @returns orbitdb database of the node's feed (list of messages posted by node)
@@ -166,46 +143,9 @@ export class ZStore {
       channel: channels,
       message: await encode(message, this.password),
       // timestamp: Math.round(+new Date() / 1000),
-
-      // these keys are in the pubsub message, but maybe we could create our own?
-      // signature: message.signature,
-      // seqno: message.seqno,
-      // key: message.key
     }
 
     await feedStore.add(zChainMessage);
-  }
-
-  /**
-   * Appends message to channel feeds
-   * @param message libp2p pubsub message
-   */
-  async appendMessageToChannelsFeed(channel: string, message: PubSubMessage): Promise<void> {
-    // if (this.dbs.channels[channel] === undefined) {
-    //   this.dbs.channels[channel] = await this.getHypercore(
-    //     path.join(this.paths.channels, channel)
-    //   );
-    // }
-
-    // await this.appendZChainMessageToFeed(this.dbs.channels[channel], channel, message);
-  }
-
-  /**
-   * Appends message to feeds (user's feeds + channel feeds)
-   * @param channel channel accross which message was published
-   * @param message libp2p pubsub message
-   */
-  async handleListen(channel: string, message: PubSubMessage): Promise<void> {
-    // only append to "channels" cores if we received the message from someone else
-    // self messaging feeds are handled in "publish"
-    if (message.from === this.libp2p.peerId.toB58String()) { return; }
-
-    // const feed = this.dbs.feeds[this.libp2p.peerId.toB58String()];
-    // await this.appendZChainMessageToFeed(feed, channel, message);
-
-    // for (const channel of message.channelIDs) {
-    //   this.appendMessageToChannelsFeed(channel, message);
-    // }
   }
 
   /**
@@ -260,6 +200,7 @@ export class ZStore {
       limit: n, reverse: true
     }).collect();
 
+    console.log("messages :: ", messages);
     console.log(chalk.cyanBright(`Last ${n} messages published by ${peerIdStr}`));
     for (const m of messages) {
       const msg = m.payload.value as ZChainMessage;

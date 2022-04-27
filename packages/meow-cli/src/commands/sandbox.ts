@@ -52,7 +52,7 @@ async function evaluate(
 	}
 }
 
-async function startConsole(fileNameOrPath: string): Promise<void> {
+async function startConsole(fileNameOrPath?: string): Promise<void> {
 	await new Promise<void>(async (resolve, reject) => {
 
     // // log to a ~/zchain.log file, instead of console
@@ -125,6 +125,6 @@ export default {
       fs.rmSync(path.join(os.homedir(), '/.zchain-db'), {force: true, recursive: true});
     }
 
-    await startConsole(argv.zid ?? path.join(os.homedir(), '/.jsipfs', 'peer.json'));
+    await startConsole(argv.zid);
   }
 }

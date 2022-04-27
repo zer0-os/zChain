@@ -18,10 +18,10 @@ const bootstrappers = [
  */
 ;(async () => {
     let node_a = new ZCHAIN();
-    await node_a.initialize('node-1.json', password); // present in /ids, so peer id will be loaded
+    await node_a.initialize('node-1.json'); // present in /ids, so peer id will be loaded
 
     let node_b = new ZCHAIN();
-    await node_b.initialize('node-2.json', password); // not present, a new peer id will be generated & saved
+    await node_b.initialize('node-2.json'); // not present, a new peer id will be generated & saved
 
     // configure bootstrap nodes for A, enable connect, discover handlers.
     node_a.peerDiscovery.addBootstrapNodes(bootstrappers);

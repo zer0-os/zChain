@@ -8,7 +8,7 @@ const password = 'jindalratik@1234';
  */
 ;(async () => {
   let node_a = new ZCHAIN();
-  await node_a.initialize('node-1.json', password); // present in /ids, so peer id will be loaded
+  await node_a.initialize('node-1.json'); // present in /ids, so peer id will be loaded
 
   // const orbitdb = await OrbitDB.createInstance(node_a.node, { id: node_a.node.peerId.toB58String() });
   // const db = await orbitdb.eventlog('site.visitors')

@@ -1,6 +1,7 @@
 import chalk from "chalk";
 import fs from "fs";
 import path from "path";
+import os from "os";
 import PeerId from "peer-id";
 
 import { getPathFromDirRecursive } from "./files";
@@ -24,12 +25,30 @@ export class ZID {
   public name: string | undefined; // maybe we can use a name associated with peer id?
   public peerId: PeerId | undefined;
 
+  async createNew (): Promise<void> {
+    this.peerId = await PeerId.create();
+    const peerIDPath = path.join(os.homedir(), '/.jsipfs', this.peerId.toB58String(), 'peer.json');
+    console.info(`Generating new peer id at ${peerIDPath}`);
+
+    // save to file
+    fs.mkdirSync(path.join(os.homedir(), '/.jsipfs', this.peerId.toB58String()), { recursive: true });
+    this.writeFile(
+      path.join(os.homedir(), '/.jsipfs', this.peerId.toB58String(), 'peer.json'),
+      JSON.stringify(this.peerId.toJSON(), null, 2)
+    );
+  }
+
   /**
    * Creates a new peerid. Loads existing peerID from ids/*.json.
    * If file does not exist, creates a new peerid and save it to the json.
-   * @param fileName name of .json file containing peer id
+   * @param fileNameOrPath name of .json file containing peer id
    */
-  async create (fileNameOrPath: string): Promise<void> {
+  async create (fileNameOrPath: string | undefined): Promise<void> {
+    if (fileNameOrPath === undefined) {
+      await this.createNew();
+      return;
+    }
+
     let fileName = path.basename(fileNameOrPath);
     if (path.extname(fileName) !== jsonExt) {
       throw new Error(`File ${fileName} is not a json`);
