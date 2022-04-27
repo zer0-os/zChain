@@ -106,7 +106,7 @@ export class ZCHAIN {
      * @param fileName json present in /ids. Contains peer metadata
      * @returns libp2p node instance
      */
-    async initialize (fileNameOrPath: string, password: string, listenAddrs?: string[]): Promise<Libp2p> {
+    async initialize (fileNameOrPath?: string | undefined, listenAddrs?: string[]): Promise<Libp2p> {
       if (!fs.existsSync(path.join(os.homedir(), '/.jsipfs'))) {
         fs.mkdirSync(path.join(os.homedir(), '/.jsipfs'));
       }

@@ -87,11 +87,11 @@ export class MEOW {
    * @param fileName json present in /ids. Contains peer metadata
    * @returns libp2p node instance
    */
-  async init (fileNameOrPath: string, listenAddrs?: string[]): Promise<void> {
+  async init (fileNameOrPath?: string, listenAddrs?: string[]): Promise<void> {
     if (this.zchain !== undefined) { throw new Error('zchain already associated'); }
 
     this.zchain = new ZCHAIN();
-    await this.zchain.initialize(fileNameOrPath, password, listenAddrs);
+    await this.zchain.initialize(fileNameOrPath, listenAddrs);
 
     this.store = new MStore(this.zchain);
     await this.store.init();
@@ -274,7 +274,7 @@ export class MEOW {
   }
 
   private _getTwitterConfig() {
-    const jsipfsPath = path.join(os.homedir(), '/.jsipfs');
+    const jsipfsPath = path.join(os.homedir(), '/.jsipfs', this.zchain.zId.peerId.toB58String());
     const twitterConfigPath = path.join(jsipfsPath, 'twitter-config.json');
     if (!fs.existsSync(jsipfsPath)) {
       throw new Error(chalk.red(`No ipfs repo found at ~/.jsipfs. Initialize node first.`));
@@ -328,7 +328,7 @@ Please enter the pin after authorizing meow-app to access your twitter account.`
       }
 
       fs.writeFileSync(
-        path.join(os.homedir(), '/.jsipfs', 'twitter-config.json'),
+        path.join(os.homedir(), '/.jsipfs', this.zchain.zId.peerId.toB58String(), 'twitter-config.json'),
         JSON.stringify(config, null, 2)
       );
 
@@ -347,10 +347,12 @@ Please enter the pin after authorizing meow-app to access your twitter account.`
     const twitterConfig = this._getTwitterConfig();
     if (twitterConfig) {
       fs.rmSync(
-        path.join(os.homedir(), '/.jsipfs', 'twitter-config.json'),
+        path.join(os.homedir(), '/.jsipfs', this.zchain.zId.peerId.toB58String(), 'twitter-config.json'),
       );
       this.twitter = undefined;
       console.log(chalk.green('Disabled Twitter'));
+    } else {
+      console.log(chalk.yellow('Twitter is already disabled'));
     }
   }
 
