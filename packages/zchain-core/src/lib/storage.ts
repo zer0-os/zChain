@@ -55,6 +55,7 @@ export class ZStore extends EventEmitter {
          * @param libp2p libp2p node
          */
         constructor(ipfs: IIPFS, libp2p: Libp2p, password: string) {
+            super()
             this.ipfs = ipfs;
             this.libp2p = libp2p;
 
@@ -209,12 +210,11 @@ export class ZStore extends EventEmitter {
     /**
      * Lists last "n" messages published by a node
      */
-    async getMessagesOnFeed(peerIdStr: string, n: number): Promise < types.ZChainMessage[] > {
+    async getMessagesOnFeed(peerIdStr: string, n: number): Promise < ZChainMessage[] > {
         let feedMessages = []
         const feedStore = this.dbs.feeds[peerIdStr];
         if (feedStore === undefined) {
-            console.error("feed store not found for peer ", peerIdStr);
-            return (["Feed store not found"]);
+            return ([]);
         }
         await feedStore.load(n)
         const messages = feedStore.iterator({
@@ -222,18 +222,18 @@ export class ZStore extends EventEmitter {
             reverse: true
         }).collect();
         for (const m of messages) {
-            feedMessages.push(m.payload.value as types.ZChainMessage)
+            feedMessages.push(m.payload.value as ZChainMessage)
         }
         return feedMessages;
     }
     async listMessagesOnFeed(peerIdStr: string, n: number): Promise < void > {
-        const messages = await getMessagesOnFeed(peerIdStr, n);
+        const messages = await this.getMessagesOnFeed(peerIdStr, n);
         console.log("messages :: ", messages);
         console.log(chalk.cyanBright(`Last ${n} messages published by ${peerIdStr}`));
         for (const m of messages) {
             console.log(`${chalk.green('>')} `, {
-                ...msg,
-                message: await decode(msg.message, this.password)
+                ...m,
+                message: await decode(m.message, this.password)
             });
         }
     }
