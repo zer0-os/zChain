@@ -165,7 +165,7 @@ export class ZCHAIN extends EventEmitter {
         this.node = node;
 
         // intialize zstore
-        this.zStore = new ZStore(this.ipfs, this.node, password);
+        this.zStore = new ZStore(this.ipfs, this.node, this.password);
         await this.zStore.init();
 
         // initialize discovery class
@@ -220,7 +220,7 @@ export class ZCHAIN extends EventEmitter {
         this.node = node;
 
         // intialize zstore
-        this.zStore = new ZStore(this.ipfs, this.node, password);
+        this.zStore = new ZStore(this.ipfs, this.node, this.password);
 
         // initialize discovery class
         this.peerDiscovery = new PeerDiscovery(this.zStore, this.node);
@@ -248,7 +248,7 @@ export class ZCHAIN extends EventEmitter {
         this.node = node;
 
         // intialize zstore (note we're initializing both in meow app)
-        this.zStore = new ZStore(this.ipfs, this.node, password);
+        this.zStore = new ZStore(this.ipfs, this.node, this.password);
         await this.zStore.init();
 
         // initialize discovery class
