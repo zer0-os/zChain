@@ -58,5 +58,5 @@ The repo has mainly been divided into 3 packages
 ## API
 
 For a more technical overview of zChain and meow functionality, checkout API docs.
-+ [zChain API]()
-+ [meow API]()
++ [zChain API](./packages/zchain-core/API.md)
++ [meow API](./apps/meow/API.md)
