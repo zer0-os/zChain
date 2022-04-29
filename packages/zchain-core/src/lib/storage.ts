@@ -13,6 +13,7 @@ import KeyValueStore from "orbit-db-kvstore";
 import chalk from "chalk";
 import os from 'os'
 import Store from "orbit-db-store";
+import {EventEmitter} from "events";
 
 // maybe we should change this to ~/.zchain-db ?
 const ZCHAIN_DEFAULT_STORAGE_DIR = "./zchain-db";
@@ -24,7 +25,7 @@ const SYSPATH = 'sys';
  * Class to handle data of libp2p libp2p (persisting data through hypercore append only logs)
  * + Store(append) newly discovered peers to logs
  */
-export class ZStore {
+export class ZStore extends EventEmitter{
   protected libp2p: Libp2p;
   protected ipfs: IIPFS;
   orbitdb: OrbitDB;
@@ -38,6 +39,7 @@ export class ZStore {
    * @param libp2p libp2p node
    */
   constructor (ipfs: IIPFS, libp2p: Libp2p, password: string) {
+    super()
     this.ipfs = ipfs;
     this.libp2p = libp2p;
 
@@ -181,32 +183,36 @@ export class ZStore {
     const all = this.dbs.discovery.all;
     for (const key in all) {
       const decodedData = await decode(key, this.password);
-      console.log(`Discovered: ${decodedData}`)
+	this.emit("peerDiscovered",decodedData)
     }
   }
 
   /**
    * Lists last "n" messages published by a node
    */
-  async listMessagesOnFeed(peerIdStr: string, n: number): Promise<void> {
-    const feedStore = this.dbs.feeds[peerIdStr];
-    if (feedStore === undefined) {
-      console.error("feed store not found for peer ", peerIdStr);
-      return;
+  async getMessagesOnFeed(peerIdStr: string,n: number): Promise<ZChainMessage[]>{
+   let feedMessages =[]
+   const feedStore = this.dbs.feeds[peerIdStr];
+   if (feedStore === undefined) {
+      return([]);
     }
-
-    await feedStore.load(n); // load last "n" messages to memory
+    await feedStore.load(n)
     const messages = feedStore.iterator({
       limit: n, reverse: true
     }).collect();
-
+    for(const m of messages){
+     feedMessages.push(m.payload.value as ZChainMessage)
+    }
+    return feedMessages;
+  }
+  async listMessagesOnFeed(peerIdStr: string, n: number): Promise<void> {
+    const messages = await this.getMessagesOnFeed(peerIdStr,n);
     console.log("messages :: ", messages);
     console.log(chalk.cyanBright(`Last ${n} messages published by ${peerIdStr}`));
     for (const m of messages) {
-      const msg = m.payload.value as ZChainMessage;
       console.log(`${chalk.green('>')} `, {
-        ...msg,
-        message: await decode(msg.message, this.password)
+        ...m,
+        message: await decode(m.message, this.password)
       });
     }
   }
