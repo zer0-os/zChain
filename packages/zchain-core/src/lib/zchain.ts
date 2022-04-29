@@ -24,16 +24,17 @@ import os from 'os'
 import path from 'path'
 import fs from "fs";
 import { getIpfs, isDaemonOn } from './utils';
-import WebSocket from 'libp2p-websockets'
+import WebSocket from 'libp2p-websockets';
+import {EventEmitter} from 'events';
 
-export const password = "ratikjindal@3445"
 
-export class ZCHAIN {
+export class ZCHAIN extends EventEmitter{
     ipfs: IIPFS | undefined;
     node: Libp2p | undefined;
     zId: ZID | undefined;
     peerDiscovery: PeerDiscovery | undefined;
     zStore: ZStore;
+    password: string | undefined;
 
     async _getIPFSOptions(listenAddrs?: string[]) {
       const peerId = this.zId.peerId;
@@ -106,11 +107,11 @@ export class ZCHAIN {
      * @param fileName json present in /ids. Contains peer metadata
      * @returns libp2p node instance
      */
-    async initialize (fileNameOrPath?: string | undefined, listenAddrs?: string[]): Promise<Libp2p> {
+    async initialize (fileNameOrPath?: string | undefined, listenAddrs?: string[], password?: string): Promise<Libp2p> {
       if (!fs.existsSync(path.join(os.homedir(), '/.jsipfs'))) {
         fs.mkdirSync(path.join(os.homedir(), '/.jsipfs'));
       }
-
+	this.password = password;
       this.zId = new ZID();
       await this.zId.create(fileNameOrPath); // get existing/create new peer id
       const ipfsOptions = await this._getIPFSOptions(listenAddrs);
@@ -122,11 +123,11 @@ export class ZCHAIN {
 
       // need to go through type hacks here..
       const node = (this.ipfs as any).libp2p as Libp2p;
-      console.log("\n★ ", chalk.cyan('zChain Node Activated: ' + node.peerId.toB58String()) + " ★\n");
+	this.emit("activated",node.peerId.toB58String())
       this.node = node;
 
       // intialize zstore
-      this.zStore = new ZStore(this.ipfs, this.node, password);
+      this.zStore = new ZStore(this.ipfs, this.node, this.password);
       await this.zStore.init();
 
       // initialize discovery class
@@ -177,11 +178,11 @@ export class ZCHAIN {
       // need to go through type hacks here :(
       const node = (this.ipfs as any).libp2p as Libp2p;
 
-      console.log("\n★", chalk.cyan('zChain Daemon Activated: ' + node.peerId.toB58String()) + " ★\n");
+	this.emit("initialized",node.peerId.toB58String())
       this.node = node;
 
       // intialize zstore
-      this.zStore = new ZStore(this.ipfs, this.node, password);
+      this.zStore = new ZStore(this.ipfs, this.node, this.password);
 
       // initialize discovery class
       this.peerDiscovery = new PeerDiscovery(this.zStore, this.node);
@@ -209,7 +210,7 @@ export class ZCHAIN {
       this.node = node;
 
       // intialize zstore (note we're initializing both in meow app)
-      this.zStore = new ZStore(this.ipfs, this.node, password);
+      this.zStore = new ZStore(this.ipfs, this.node, this.password);
       await this.zStore.init();
 
       // initialize discovery class
@@ -222,10 +223,9 @@ export class ZCHAIN {
       }
 
       this.ipfs.pubsub.subscribe(channel, async (msg: PubSubMessage) => {
-        console.log(`Received from ${msg.from}: ${uint8ArrayToString(msg.data)}`);
+	this.emit("channelReceive",msg)
       });
-
-      console.log(this.zId.peerId.toB58String() + " has subscribed to: " + channel);
+	this.emit("channelSubscribe",channel)
     }
 
     unsubscribe (channel: string): void {
@@ -234,7 +234,7 @@ export class ZCHAIN {
       }
 
       this.ipfs.pubsub.unsubscribe(channel);
-      console.log(this.zId.peerId.toB58String() + " has unsubscribed from: " + channel);
+	this.emit("channelUnsubscribe",channel)
     }
 
     async publish (channel: string, msg: string, channels: string[]): Promise<void> {
