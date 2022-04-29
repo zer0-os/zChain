@@ -58,7 +58,6 @@ export class PeerDiscovery {
 
   /**
    * On Discover handler.
-   * using vmware, arch/linux
    * @param handler callback after new peer is discovered
    */
   onDiscover (handler: (peerId: PeerId) => void): void {
@@ -67,9 +66,6 @@ export class PeerDiscovery {
     this.node.on('peer:discovery', async (peerId: PeerId) => {
       // handler passed by user
       handler(peerId);
-
-      // add newly discovered peerId to log
-      await this.zStore.appendDiscoveryLog(peerId.toB58String());
     });
   }
 

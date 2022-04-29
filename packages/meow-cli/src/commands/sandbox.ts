@@ -103,7 +103,7 @@ export default {
   builder (yargs) {
     return yargs
       .epilog(ipfsPathHelp)
-      .option('zid', {
+      .option('zId', {
         type: 'string',
         desc: 'Path to zId configuration file (contains peer metadata)',
       })
@@ -125,6 +125,6 @@ export default {
       fs.rmSync(path.join(os.homedir(), '/.zchain-db'), {force: true, recursive: true});
     }
 
-    await startConsole(argv.zid);
+    await startConsole(argv.zId);
   }
 }

@@ -24,7 +24,6 @@ export interface ZChainMessage {
 
 export interface LogPaths {
   default: string
-  discovery: string | undefined
   feeds: string
   topics: string
   addressBook: string
@@ -38,6 +37,5 @@ export interface DBs {
   // default: hypercore | undefined // not sure if we need a "default" feed
   feeds: FeedMap
   //topics: FeedMap
-  discovery: KeyValueStore<unknown>
   addressBook: KeyValueStore<unknown>
 }
