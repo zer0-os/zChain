@@ -55,6 +55,38 @@ The repo has mainly been divided into 3 packages
 + `packages/apps/meow`: A meow app (p2p twitter like) built on top of zChain.
 + `packages/meow-cli`: CLI for meow app.
 
+## Usage
+
+You can import `zChain` or `meow` as a library/class and directly use it. First, you'll need to link these packages in your application. First follow the setup:
+
+```sh
+# clone + setup
+git clone https://github.com/zer0-os/zChain.git
+sh install.sh
+```
+
+You can then link the `zchain-core` & `meow-app` into your project. This will create a symbolic link b/w your *node_modules* and the `zchain` & `meow` package:
+```sh
+cd myapp/
+yarn link `zchain-core`
+yarn link `meow-app`
+```
+
+After linking the packages, you can simply import these classes:
+```js
+// using zChain
+import { ZCHAIN } from "zchain-core";
+let node_a = new ZCHAIN();
+await node_a.initialize('node-1.json');
+await node_a.publish('#meow', 'Bird bird bird, bird is the word!');
+
+// using meow
+import { MEOW } from "meow-app";
+const meow = new MEOW();
+await meow.init('n3o.json');
+await meow.sendMeow("Hello");
+```
+
 ## API
 
 For a more technical overview of zChain and meow functionality, checkout API docs.
