@@ -1,31 +1,31 @@
 # Meow API Documentation
 
-Meow is a twitter like (but peer to peer) application built on top of `meow`.
+API documentation for meow. Meow is a twitter like (but peer to peer) application built on top of `zChain`. This means that the application "extends" upon the zChain core functionality in terms of message passing and persistance accross nodes.
 
 
 ## Table of Contents
 
 <!-- toc -->
 
-- [Initialize a meow](#initialize-a-meow-node)
-  * [init(fileNameOrPath?, listenAddrs?)](#initializefileNameOrPath-listenAddrs)
+- [Initialize a meow](#initialize-a-meow)
+  * [init(fileNameOrPath?, listenAddrs?)](#initfilenameorpath-listenaddrs)
 - [Public Instance Methods](#public-instance-methods)
-  * [meow.startDaemon(fileNameOrPath?, listenAddrs?)](#orbitdbcreatename-type-options)
-  * [meow.load()](#orbitdbdetermineaddressname-type-options)
-  * [meow.sendMeow(message, publishOnTwitter = false)](#orbitdbdetermineaddressname-type-options)
-  * [meow.set(peerId, name)](#orbitdbdetermineaddressname-type-options)
-  * [meow.followZId(peerIdOrName)](#orbitdbdetermineaddressname-type-options)
-  * [meow.unfollowZId(peerIdOrName)](#orbitdbdetermineaddressname-type-options)
-  * [meow.displayFeed(peerIdOrName, n)](#orbitdbdetermineaddressname-type-options)
-  * [meow.listFollowedPeers()](#orbitdbdetermineaddressname-type-options)
-  * [meow.followChannel(channel)](#orbitdbdetermineaddressname-type-options)
-  * [meow.unFollowChannel(channel)](#orbitdbdetermineaddressname-type-options)
-  * [meow.listFollowedChannels()](#orbitdbdetermineaddressname-type-options)
-  * [meow.displayChannelFeed(channel, n)](#orbitdbdetermineaddressname-type-options)
-  * [meow.listDBs()](#orbitdbdetermineaddressname-type-options)
-  * [meow.enableTwitter(force)](#orbitdbdetermineaddressname-type-options)
-  * [meow.disableTwitter()](#orbitdbdetermineaddressname-type-options)
-  * [meow.help()](#orbitdbdetermineaddressname-type-options)
+  * [meow.startDaemon(fileNameOrPath?, listenAddrs?)](#meowstartdaemonfilenameorpath-listenaddrs)
+  * [meow.load()](#meowload)
+  * [meow.sendMeow(message, publishOnTwitter = false)](#meowsendmeowmessage-publishontwitter--false)
+  * [meow.set(peerId, name)](#meowsetpeerid-name)
+  * [meow.followZId(peerIdOrName)](#meowfollowzidpeeridorname)
+  * [meow.unfollowZId(peerIdOrName)](#meowunfollowzidpeeridorname)
+  * [meow.displayFeed(peerIdOrName, n)](#meowdisplayfeedpeeridorname-n)
+  * [meow.listFollowedPeers()](#meowlistfollowedpeers)
+  * [meow.followChannel(channel)](#meowfollowchannelchannel)
+  * [meow.unFollowChannel(channel)](#meowunfollowchannelchannel)
+  * [meow.listFollowedChannels()](#meowlistfollowedchannels)
+  * [meow.displayChannelFeed(channel, n)](#meowdisplaychannelfeedchannel-n)
+  * [meow.listDBs()](#meowlistdbs)
+  * [meow.enableTwitter(force)](#meowenabletwitterforce)
+  * [meow.disableTwitter()](#meowdisabletwitter)
+  * [meow.help()](#meowhelp)
 
 
 <!-- tocstop -->
@@ -236,6 +236,6 @@ Disables twitter. Simply removes config at `~/.jsipfs/<peerID>/twitter-config.js
   await meow.disableTwitter();
 ```
 
-### help()
+### meow.help()
 
 Displays a list of available functions withing the meow API.

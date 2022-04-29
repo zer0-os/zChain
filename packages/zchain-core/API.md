@@ -1,6 +1,6 @@
 # zChain API Documentation
 
-Read the **[Quick Start](https://github.com/orbitdb/orbit-db/blob/master/GUIDE.md)** to get things up and running quickly.
+API documentation for the `zChain` class.
 
 ## Table of Contents
 
@@ -9,26 +9,26 @@ Read the **[Quick Start](https://github.com/orbitdb/orbit-db/blob/master/GUIDE.m
 - [Initialize a zChain node](#initialize-a-zChain-node)
   * [initialize (fileNameOrPath?, listenAddrs?)](#initializefileNameOrPath-listenAddrs)
 - [Public Instance Methods](#public-instance-methods)
-  * [zchain.startDaemon(fileNameOrPath?, listenAddrs?)](#orbitdbcreatename-type-options)
-  * [zchain.load()](#orbitdbdetermineaddressname-type-options)
-  * [zchain.subscribe(channel)](#orbitdbdetermineaddressname-type-options)
-  * [zchain.unsubscribe(channel)](#orbitdbdetermineaddressname-type-options)
-  * [zchain.publish(channel, message, channels)](#orbitdbdetermineaddressname-type-options)
-- [zChain properties](#public-instance-methods)
-  * [zchain.ipfs](#orbitdbcreatename-type-options)
-  * [zchain.node](#orbitdbcreatename-type-options)
-  * [zchain.zId](#orbitdbcreatename-type-options)
-    + [`zId.createNew()`](#replicateprogress)
-    + [`zId.create(fileNameOrPath?)`](#replicateprogress)
-  * [zchain.peerDiscovery](#orbitdbcreatename-type-options)
-    + [`peerDiscovery.addBootstrapNodes(nodes[])`](#replicateprogress)
-    + [`peerDiscovery.onConnect(handler: () => {}))`](#replicateprogress)
-    + [`peerDiscovery.onDiscover(handler: () => {}))`](#replicateprogress)
-    + [`peerDiscovery.handleProtocol(protocol, handler: () => {})`](#replicateprogress)
-  * [zchain.zStore](#orbitdbcreatename-type-options)
-    + [`zStore.init()`](#replicateprogress)
-    + [`zStore.appendZChainMessageToFeed(feedStore, message, channels)`](#replicateprogress)
-    + [`zStore.listMessagesOnFeed(peerIdStr, n)`]
+  * [zchain.startDaemon(fileNameOrPath?, listenAddrs?)](#zchainstartdaemonfilenameorpath-listenaddrs)
+  * [zchain.load()](#zchainload)
+  * [zchain.subscribe(channel)](#zchainsubscribechannel)
+  * [zchain.unsubscribe(channel)](#zchainunsubscribechannel)
+  * [zchain.publish(channel, message, channels)](#zchainpublishchannel-message-channels)
+- [zChain properties](#zchain-properties)
+  * [zchain.ipfs](#ipfs)
+  * [zchain.node](#node)
+  * [zchain.zId](#zid)
+    + [`zId.createNew()`](#zidcreatenew)
+    + [`zId.create(fileNameOrPath?)`](#zchaincreatefilenameorpath)
+  * [zchain.peerDiscovery](#peerdiscovery)
+    + [`peerDiscovery.addBootstrapNodes(nodes[])`](#peerdiscoveryaddbootstrapnodesnodes)
+    + [`peerDiscovery.onConnect(handler: () => {}))`](#peerdiscoveryonconnect-handler)
+    + [`peerDiscovery.onDiscover(handler: () => {}))`](#peerdiscoveryondiscover-handler)
+    + [`peerDiscovery.handleProtocol(protocol, handler: () => {})`](#peerdiscoveryhandleprotocolprotocol-handler-props-libp2phandlerprops--void)
+  * [zchain.zStore](#zstore)
+    + [`zStore.init()`](#zstoreinit)
+    + [`zStore.appendZChainMessageToFeed(feedStore, message, channels)`](#zstoreappendzchainmessagetofeedfeedstore-message-channels)
+    + [`zStore.listMessagesOnFeed(peerIdStr, n)`](#zstorelistmessagesonfeedpeeridstr-n)
 
 <!-- tocstop -->
 
