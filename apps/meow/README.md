@@ -6,5 +6,11 @@ Meow is a twitter like (but peer to peer) application built on top of `zchain`.
 
 To run the application follow these steps:
 
-1. Go to root, run `yarn install && yarn build`
-2. Now you can execute the application using `npm run dev`, this will run `app.ts` using `ts-node`.
+1. Go to root, run `sh install.sh`
+2. Now you can execute the application using `npm run dev:ratik`, this will run `test-scripts/ratik.ts` using `ts-node`.
+
+
+## API
+
+Checkout [API docs](./API.md)
+

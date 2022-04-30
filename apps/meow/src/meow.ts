@@ -17,11 +17,10 @@ var promptSync = require('prompt-sync')();
 
 export class MEOW {
   zchain: ZCHAIN | undefined;
-  private readonly channels: string[];
   store: MStore | undefined;
   twitter: Twitter | undefined;
 
-  constructor () { this.channels = [EVERYTHING_TOPIC]; }
+  constructor () {}
 
   assertZChainInitialized (): ZCHAIN {
     if (this.zchain === undefined) {
@@ -291,7 +290,7 @@ export class MEOW {
   }
 
   /**
-   * Enables twitter (saves config at ~/.jsipfs/twitter.json)
+   * Enables twitter (saves config at ~/.jsipfs/<peerID>/twitter-config.json)
    */
   async enableTwitter(force: Boolean = false) {
     const twitterConfig = this._getTwitterConfig();
@@ -341,9 +340,9 @@ Please enter the pin after authorizing meow-app to access your twitter account.`
   }
 
   /**
-   * Disables twitter (removes config at ~/.jsipfs/twitter-config.json)
+   * Disables twitter (removes config at ~/.jsipfs/<peerID>/twitter-config.json)
    */
-  async disableTwitter() {
+  disableTwitter() {
     const twitterConfig = this._getTwitterConfig();
     if (twitterConfig) {
       fs.rmSync(
@@ -363,6 +362,8 @@ Avalilable functions:
 	meow.listDBs()				Lists all databases and entries
 	meow.sendMeow(msg)			Sends a message accross all #hastags (channels)
 	meow.set(peerID, name)			Sets a display name for a peerID. Saved in local address book.
+	meow.enableTwitter(force)		Enable twitter (asks for a PIN after authorization)
+	meow.disableTwitter()			Disables twitter. Simply removes config at ~/.jsipfs/<peerID>/twitter-config.json
 
 	meow.followZId(peerIdOrName)		Follow a peer (by ID or display name)
 	meow.unfollowZId(peerIdOrName)  	Unfollow a peer (by ID or display name)

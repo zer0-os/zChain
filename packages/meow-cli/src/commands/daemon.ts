@@ -15,7 +15,7 @@ export default {
   builder (yargs) {
     return yargs
       .epilog(ipfsPathHelp)
-      .option('zid', {
+      .option('zId', {
         type: 'string',
         desc: 'Path to zId configuration file (contains peer metadata)',
       })
@@ -34,7 +34,7 @@ export default {
   /**
    * @param {object} argv
    * @param {import('../types').Context} argv.ctx
-   * @param {string} [argv.zid]
+   * @param {string} [argv.zId]
    * @param {boolean} argv.silent
    * @param {boolean} argv.force
    */
@@ -52,7 +52,7 @@ export default {
 
     try {
       const meow = new MEOW();
-      const daemon = await meow.startDaemon(argv.zid ?? path.join(os.homedir(), '/.jsipfs', 'peer.json'));
+      const daemon = await meow.startDaemon(argv.zId ?? path.join(os.homedir(), '/.jsipfs', 'peer.json'));
 
       const version = await daemon._ipfs.version()
       print(`meow-cli ipfs node version: ${version.version}`)

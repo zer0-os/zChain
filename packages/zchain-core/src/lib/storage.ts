@@ -67,7 +67,6 @@ export class ZStore {
 
     // eg. ./zchain-db/{peerId}/sys/<log>
     this.paths.default = this.libp2p.peerId.toB58String() + "." + SYSPATH;
-    this.paths.discovery = this.paths.default + '.discovery';
     this.paths.feeds = this.paths.default + '.feed';
     this.paths.addressBook = this.paths.default + '.addressBook';
     //this.paths.channels = path.join(this.paths.default, 'channels');
@@ -75,7 +74,6 @@ export class ZStore {
     this.dbs.feeds[this.libp2p.peerId.toB58String()] = await this.getFeedsOrbitDB(
       this.paths.feeds
     );
-    this.dbs.discovery = await this.getKeyValueOrbitDB(this.paths.discovery);
     this.dbs.addressBook = await this.getKeyValueOrbitDB(this.paths.addressBook);
   }
 
@@ -104,20 +102,6 @@ export class ZStore {
     const db = await this.orbitdb.feed(dbName);
     await db.load();
     return db;
-  }
-
-  /**
-   * Appends {hash(peerId): 1} to the B-Tree, if not already present
-   * @param peerId peerId in string
-   */
-  async appendDiscoveryLog(peerId: string): Promise<void> {
-    const encodedData = await encode(peerId, this.password);
-
-    const data = await this.dbs.discovery.get(encodedData);
-
-    if (data === undefined) {
-      await this.dbs.discovery.put(encodedData, 1);
-    }
   }
 
   async appendZChainMessageToFeed(
@@ -171,17 +155,6 @@ export class ZStore {
       const feedCore = this.dbs.feeds[this.libp2p.peerId.toB58String()];
       await this.appendZChainMessageToFeed(feedCore, message, channels);
       this.feedMap.set(message + currTs.toString(), 1);
-    }
-  }
-
-  /**
-   * Lists discovered peers from the orbitdb keyvalue store
-   */
-  async listDiscoveredPeers(): Promise<void> {
-    const all = this.dbs.discovery.all;
-    for (const key in all) {
-      const decodedData = await decode(key, this.password);
-      console.log(`Discovered: ${decodedData}`)
     }
   }
 

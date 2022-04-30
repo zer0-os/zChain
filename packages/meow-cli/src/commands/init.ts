@@ -16,7 +16,7 @@ export default {
   builder (yargs) {
     return yargs
       .epilog(ipfsPathHelp)
-      .option('zid', {
+      .option('zId', {
         type: 'string',
         desc: 'Path to zId configuration file (contains peer metadata)',
       })
@@ -25,13 +25,13 @@ export default {
         desc: 'If true, removes any previos config present at ~/.jsipfs & ~/.zchain-db',
         default: false
       })
-      .demandOption('zid')
+      .demandOption('zId')
   },
 
   /**
    * @param {object} argv
    * @param {import('../types').Context} argv.ctx
-   * @param {string} [argv.zid]
+   * @param {string} [argv.zId]
    * @param {boolean} argv.silent
    * @param {boolean} argv.force
    */
@@ -52,12 +52,12 @@ export default {
         console.warn(chalk.yellow(`zChain node config already present at ~/.jsipfs. Use --force to override`));
       } else {
         const meow = new MEOW();
-        //await meow.initCLI(argv.zid);
+        //await meow.initCLI(argv.zId);
 
         // save peer json path
         fs.writeFileSync(
           path.join(os.homedir(), '/.jsipfs', 'zId'),
-          argv.zid
+          argv.zId
         );
       }
 
