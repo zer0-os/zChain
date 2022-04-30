@@ -61,6 +61,9 @@ Parameters:
 ### zchain.startDaemon(fileNameOrPath?, listenAddrs?)
 
 Similar to `initialize()`, but it starts a new ipfs daemon, which other terminal/processes can connect to using an http endpoint. Note that this won't open/load the databases. This function is meant to run the ipfs node only (as daemon).
+```js
+const daemon = await this.zchain.startDaemon(path.join(os.homedir(), '/.jsipfs', 'peer.json'));
+```
 
 ### zchain.load()
 
@@ -74,6 +77,9 @@ Subscribe to a particular channel (topic in pubsub messaging system). After subs
 Parameters:
 - `channel` (string): Name of the channel to subscribe/follow.
 
+```js
+node.subscribe('#meow');
+```
 
 ### zchain.unsubscribe(channel)
 
@@ -82,6 +88,9 @@ Unsubscribe from a particular channel (topic in pubsub messaging system). After 
 Parameters:
 - `channel` (string): Name of the channel to unsubscribe.
 
+```js
+node.unsubscribe('#meow');
+```
 
 ### zchain.publish(channel, message, channels)
 
@@ -92,6 +101,10 @@ Parameters:
 - `message` (string): The message.
 - `channels` (string[]): Array of channels (if same message is published on multiple channels, this should be passed).
 
+```js
+// publish message on channel #meow (& pass the other channels the message is being published to)
+await node.publish('#meow', "bird bird bird!", [ '#meow', '#everything', '#zero' ]);
+```
 
 ## zChain properties
 
