@@ -116,7 +116,7 @@ The ipfs node. Repo located at `~/.jsipfs/<peer-id>`. Read more about the ipfs A
 
 ### node
 
-Libp2p node. Libp2p (opens new window)is a modular system of protocols, specifications, and libraries that enable the development of peer-to-peer network applications. As the network layer for IPFS, Libp2p provides flexible solutions for essential peer-to-peer elements like transport, security, peer routing, and content discovery. Libp2p node is derived from `ipfs.libp2p`.
+Libp2p node. [Libp2p](https://docs.ipfs.io/concepts/libp2p/) is a modular system of protocols, specifications, and libraries that enable the development of peer-to-peer network applications. As the network layer for IPFS, Libp2p provides flexible solutions for essential peer-to-peer elements like transport, security, peer routing, and content discovery. Libp2p node is derived from `ipfs.libp2p`.
 
 ### zId
 
