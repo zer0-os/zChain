@@ -359,21 +359,21 @@ Please enter the pin after authorizing meow-app to access your twitter account.`
   help() {
     console.log(`
 Avalilable functions:
-	meow.listDBs()				Lists all databases and entries
-	meow.sendMeow(msg)			Sends a message accross all #hastags (channels)
-	meow.set(peerID, name)			Sets a display name for a peerID. Saved in local address book.
-	meow.enableTwitter(force)		Enable twitter (asks for a PIN after authorization)
-	meow.disableTwitter()			Disables twitter. Simply removes config at ~/.jsipfs/<peerID>/twitter-config.json
+	meow.listDBs()					Lists all databases and entries
+	meow.sendMeow("<msg>")				Sends a message accross all #hastags (channels)
+	meow.set("<peerID>", "<name>")			Sets a display name for a peerID. Saved in local address book.
+	meow.enableTwitter("<force: boolean>")		Enable twitter (asks for a PIN after authorization)
+	meow.disableTwitter()				Disables twitter. Simply removes config at ~/.jsipfs/<peerID>/twitter-config.json
 
-	meow.followZId(peerIdOrName)		Follow a peer (by ID or display name)
-	meow.unfollowZId(peerIdOrName)  	Unfollow a peer (by ID or display name)
-	meow.listFollowedPeers()        	Lists all peers followed by this node
-	meow.displayFeed(peerIdOrName, n) 	Display last "n" messages published by this peer
+	meow.followZId("<peerIdOrName>")		Follow a peer (by ID or display name)
+	meow.unfollowZId("<peerIdOrName>")  		Unfollow a peer (by ID or display name)
+	meow.listFollowedPeers()        		Lists all peers followed by this node
+	meow.displayFeed("<peerIdOrName>", n) 		Display last "n" messages published by this peer
 
-	meow.followChannel(channel)         	Follow a channel (#hashtag)
-	meow.unFollowChannel(channel)       	Unfollow a channel (#hashtag)
-	meow.listFollowedChannels()       	Lists all channels followed by this node
-	meow.displayChannelFeed(channel, n) 	Display last "n" messages published on a channel
+	meow.followChannel("<channel>")         	Follow a channel (#hashtag)
+	meow.unFollowChannel("<channel>")       	Unfollow a channel (#hashtag)
+	meow.listFollowedChannels()       		Lists all channels followed by this node
+	meow.displayChannelFeed("<channel>", n) 	Display last "n" messages published on a channel
 `);
   }
 }

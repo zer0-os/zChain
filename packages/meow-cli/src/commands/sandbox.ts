@@ -73,7 +73,8 @@ async function startConsole(fileNameOrPath?: string): Promise<void> {
 		console.log("★", chalk.cyan(" Welcome to meow console "), "★");
 		meow.help();
 
-		console.log(chalk.green(`Try typing: meow.sendmeow("Hello World")\n`));
+		console.log(chalk.green(`Try typing: meow.sendMeow("Hello World")`));
+		console.log(chalk.green(`Use meow.help() to see a list of all available functions\n`));
 
 		await delay(6 * 1000);
 		const server = repl.start({
