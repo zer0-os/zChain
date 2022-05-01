@@ -38,7 +38,7 @@ const meow = new MEOW();
 await meow.init('node-a.json', [ '/ip4/0.0.0.0/tcp/0', .. ]);
 ```
 
-Under the hood it's using the `zchain.initialize(..)` method to initialize an ipfs node and the databases. Check `zChain.initialize()` method in zchain API documentation for more details. After initializing zChain, we:
+Under the hood it's using the `zchain.initialize(..)` method to initialize an ipfs node and the databases. Check `zChain.initialize()` method in zchain API documentation for more details. Along with initializing zChain, we:
 + Intialize the meow storage (built/extended on top of zChain storage)
 + Intialize twitter client (if enabled)
 + Logic for new connections :: In every 10s (`setInterval`) try to find & connect with new peers (using a relay)
@@ -113,7 +113,7 @@ Parameters:
 
 ### meow.unfollowZId(peerIdOrName)
 
-Unfollow a zId (peerID). After you unfollow a peer, entry of the peer is removed from `followingzIds` database, and local feed database of the peer we have unfollowed is dropped.
+Unfollow a zId (peerID). After you unfollow a peer, entry of the peer is removed from `followingZIds` database, and local feed database of the peer we have unfollowed is dropped.
 
 Parameters:
 - `peerIdOrName` (string): The peerID (as base58 encoded string) or the display name from the local address book.

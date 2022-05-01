@@ -49,7 +49,7 @@ Creates and returns an instance of an initialized zChain node. During initializa
 
 Parameters:
 
-- `fileNameOrPath` (string, optional): Value could be either
+- `fileNameOrPath` (string, optional): Value could be either :-
   * `undefined`: In this case a new node is created automatically at `~/.jsipfs/<peer-id>`
   * `fileName` (must be `.json`): If a filename (having peer public & private keys) is provided (eg. `my-node.json`), then it'll look for this file in `ids/` folder. If found, the node will be initialized using this peer, otherwise zChain will create a new node, and save it's credentials in `ids/my-node.json` file.
   * `filePath`: You can provide a complete path to the peerID file (in `.json`). The file at this path will be used to initialize the node.
@@ -60,7 +60,7 @@ Parameters:
 
 ### zchain.startDaemon(fileNameOrPath?, listenAddrs?)
 
-Similar to `initialize()`, but it starts a new ipfs daemon, which other terminal/processes can connect to using an http endpoint. Note that this won't open/load the databases. This function is meant to run the ipfs node only (as daemon).
+Similar to `initialize()`, but it starts a new ipfs daemon, which other terminal/processes can connect to using an http endpoint. Note that this won't open/load the databases. This function is meant to run the ipfs node only (as a daemon).
 ```js
 const daemon = await this.zchain.startDaemon(path.join(os.homedir(), '/.jsipfs', 'peer.json'));
 ```
