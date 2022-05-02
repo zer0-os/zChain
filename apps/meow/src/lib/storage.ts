@@ -117,6 +117,13 @@ export class MStore extends ZStore {
     // similarly load db for each "channel" (#hashtag)
     const channelsList = this.meowDbs.followingChannels.all;
     for (const key in channelsList) {
+      // subscribe again if you're restarting the node
+      this.ipfs.pubsub.subscribe(key, async (msg: types.PubSubMessage) => {
+        const [_, __, displayStr] = this.getNameAndPeerID(msg.from);
+
+        console.log(`Received from ${displayStr}: ${uint8ArrayToString(msg.data)}`);
+      });
+
       const channelDB = this.meowDbs.channels[key];
       const remoteAddress = this.meowDbs.followingChannels.get(key);
       if (!channelDB && typeof remoteAddress === "string") {
@@ -306,7 +313,7 @@ export class MStore extends ZStore {
     this.ipfs.pubsub.subscribe(channel, async (msg: types.PubSubMessage) => {
       const [_, __, displayStr] = this.getNameAndPeerID(msg.from);
 
-      console.log(`Received from ${displayStr}: ${uint8ArrayToString(msg.data)}`);
+     console.log(`Received from ${displayStr}: ${uint8ArrayToString(msg.data)}`);
     });
 
     const data = this.meowDbs.followingChannels.get(channel);
