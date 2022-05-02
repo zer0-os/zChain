@@ -2,6 +2,11 @@
 
 A zChain is a chain of Messages. Each Message contains a hash as a reference to the prior Message in the chain, that can be used to reconstruct the chain back to the initial Message. A zChain node is essentially an [ipfs](https://github.com/ipfs/js-ipfs) node (at `~/.jsipfs/<peer-id>`), where messaging relies on ipfs pubsub (gossipsub) system. But with persistence, i.e your local messages are stored on your system. We are using [orbit-db](https://github.com/orbitdb/orbit-db) (a serverless, distributed, peer-to-peer database) for storing data.
 
+## Requirements
+
++ Node 14+
++ Yarn `v1.2+`. Use `npm install -g yarn` to install `yarn`
+
 ## Setup
 
 After cloning the git repo, simply run:
