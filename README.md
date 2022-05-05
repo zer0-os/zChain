@@ -9,6 +9,7 @@ A zChain is a chain of Messages. Each Message contains a hash as a reference to 
 
 ## Setup
 
+### Linux
 After cloning the git repo, simply run:
 ```sh
 sh install.sh
@@ -27,6 +28,12 @@ To remove *node_modules* & all *build/* folders run
 ```sh
 sh clean.sh
 ```
+
+### Windows
+
+For installation on windows, check out this great infographic posted by [0://wilder.LΘΤΣΝΣ](https://twitter.com/_LOTENE), [here](https://twitter.com/_LOTENE/status/1520865654533988354).
+![diag](https://user-images.githubusercontent.com/33264364/166919430-dff1f68e-cea4-4ee7-aabe-63620f8f392c.jpeg)
+
 
 ## Quick Start
 
