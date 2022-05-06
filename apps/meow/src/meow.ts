@@ -13,7 +13,15 @@ import path from 'path';
 import os from 'os';
 import { Twitter } from "./lib/twitter";
 import { TwitterApi } from "twitter-api-v2";
-var promptSync = require('prompt-sync')();
+import express from "express";
+
+// server is ONLY used for twitter callback
+const app = express()
+const port = 3000
+
+app.listen(port, () => {
+  console.log(`Listening on port ${port}`)
+})
 
 export class MEOW {
   zchain: ZCHAIN | undefined;
@@ -298,41 +306,68 @@ export class MEOW {
     if (!twitterConfig || force === true) {
       console.log(chalk.yellow(`
 Twitter config not found.
-Please enter the pin after authorizing meow-app to access your twitter account.`
+Please authorize the meow application to access your twitter account.`
 ));
 
+      // callback route (after use authorizes your app)
+      const self = this;
+      app.get('/callback', async function (req, res) {
+        const basePath = path.join(os.homedir(), '/.jsipfs', self.zchain.zId.peerId.toB58String());
+
+        // Extract tokens from query string
+        const { oauth_token, oauth_verifier } = req.query;
+        const oauth_token_secret = fs.readFileSync(
+          path.join(basePath, 'oauth_token_secret'),
+          'utf-8'
+        );
+
+        if (!oauth_token || !oauth_verifier || !oauth_token_secret) {
+          return res.status(400).send('You denied the app or your session expired!');
+        }
+
+        // Obtain the persistent tokens
+        // Create a client from temporary tokens
+        const client = new (TwitterApi as any)({
+          appKey: APP_KEY,
+          appSecret: APP_SECRET,
+          accessToken: oauth_token,
+          accessSecret: oauth_token_secret,
+        });
+
+        const { client: loggedClient, accessToken, accessSecret } = await client.login(oauth_verifier as string);
+        const config = {
+          "appKey": APP_KEY,
+          "appSecret": APP_SECRET,
+          "accessToken": accessToken,
+          "accessSecret": accessSecret
+        }
+
+        // save persistant tokens in config
+        fs.writeFileSync(
+          path.join(basePath, 'twitter-config.json'),
+          JSON.stringify(config, null, 2)
+        );
+
+        self.twitter = new Twitter(self.zchain, self.store, config);
+        res.send('Twitter integration with zChain successful. You can close this window.');
+        return 0; // type hack
+      })
+
+      // generate authlink URL
       const authClient = new TwitterApi({
         appKey: APP_KEY,
         appSecret: APP_SECRET,
       });
-      const authLink = await authClient.generateAuthLink('oob', { linkMode: 'authorize' });
+      const authLink = await authClient.generateAuthLink('http://localhost:3000/callback', { linkMode: 'authorize' });
 
-      const client = new TwitterApi({
-        appKey: APP_KEY,
-        appSecret: APP_SECRET,
-        accessToken: authLink.oauth_token,
-        accessSecret: authLink.oauth_token_secret,
-      });
-
-      // open auth link now, and get the PIN
-      await open(authLink.url);
-
-      const pin = promptSync('Please enter PIN: ');
-      const { client: loggedClient, accessToken, accessSecret } = await client.login(String(pin));
-      const config = {
-        "appKey": APP_KEY,
-        "appSecret": APP_SECRET,
-        "accessToken": accessToken,
-        "accessSecret": accessSecret
-      }
-
+      // save `oauth_token_secret` locally (ideally it should be saved in req.session)
       fs.writeFileSync(
-        path.join(os.homedir(), '/.jsipfs', this.zchain.zId.peerId.toB58String(), 'twitter-config.json'),
-        JSON.stringify(config, null, 2)
+        path.join(os.homedir(), '/.jsipfs', this.zchain.zId.peerId.toB58String(), 'oauth_token_secret'),
+        authLink.oauth_token_secret
       );
 
-      this.twitter = new Twitter(this.zchain, this.store, config);
-      console.log(chalk.green('Successfully set twitter config and initialized client'));
+      // open auth link now, which falls back to the callback url
+      await open(authLink.url);
       return;
     } else {
       console.log(chalk.yellow(`Twitter is already enabled. Exiting..\n`));
