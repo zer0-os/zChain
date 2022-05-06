@@ -390,7 +390,7 @@ Please authorize the meow application to access your twitter account.`
     const twitterConfig = this._getTwitterConfig();
     if (twitterConfig) {
       fs.rmSync(
-        path.join(os.homedir(), '/.jsipfs', this.zchain.zId.peerId.toB58String(), 'twitter-config.json'),
+        path.join(os.homedir(), '/.jsipfs', 'twitter-config.json'),
       );
       this.twitter = undefined;
       console.log(chalk.green('Disabled Twitter'));
