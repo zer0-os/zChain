@@ -214,7 +214,7 @@ Lists all the databases in an object, with their respective orbit-db addresses a
 
 ### meow.enableTwitter(force)
 
-Enables twitter. A prompt is open first, where the user is asked to enter the PIN, after authorizing meow app to tweet of behalf of the user. After authorizing, the meow app has read & write permissions for tweets from your twitter account. The config for twitter account is saved at `~/.jsipfs/<peerID>/twitter-config.json`.
+Enables twitter. A window is open first on the browser, where the user is asked to authorize meow app to tweet of behalf of the user. After authorization by user, the meow app has read & write permissions for tweets from your twitter account. The config for twitter account is saved at `~/.jsipfs/twitter-config.json`.
 
 If you want to "tweet" from a `meow`, pass `true` with `sendMeow` function (eg below).
 
@@ -230,7 +230,7 @@ Parameters:
 
 ### meow.disableTwitter()
 
-Disables twitter. Simply removes config at `~/.jsipfs/<peerID>/twitter-config.json`
+Disables twitter. Simply removes config at `~/.jsipfs/twitter-config.json`
 
 ```js
   await meow.disableTwitter();
