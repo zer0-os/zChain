@@ -32,37 +32,7 @@ export class MEOW {
     return this.zchain;
   }
 
-  // todo: review and remove
-  // update: i think for sandbox we can use this logic
-  private async _initModules() {
-    this.zchain.peerDiscovery.onConnect(async (connection) => {
-      const [_, __, displayStr] = this.store.getNameAndPeerID(connection.remotePeer.toB58String())
 
-      console.log('Connection established to:', displayStr);
-      const listenerMa = new Multiaddr(`/dns4/vast-escarpment-62759.herokuapp.com/tcp/443/wss/p2p-webrtc-star/p2p/${connection.remotePeer.toB58String()}`)
-      try {
-        const { stream } = await this.zchain.node.dialProtocol(listenerMa, DB_ADDRESS_PROTOCOL);
-
-        // share db address on new connection
-        // TODO: use orbitdb.determineAddress(), not need to "load" db here
-        const db = this.zchain.zStore.getFeedDB();
-        pipe(
-          [ db.address.toString() ],
-          stream
-        );
-      } catch (error) {
-        // console.log("E ", error);
-        // could fail intially because of Mdns <-> webrtc-star
-      }
-    });
-
-    this.zchain.peerDiscovery.onDiscover((peerId) => {
-      const [_, __, displayStr] = this.store.getNameAndPeerID(peerId.toB58String())
-      console.log('Discovered:', displayStr);
-    });
-
-    await this.store.handleIncomingOrbitDbAddress(this.zchain);
-  }
 
   async connect(peerAddress: string) {
     //console.log("Trying to connect to :: ", peerAddress);
@@ -119,11 +89,6 @@ export class MEOW {
         }
       }
     }, 15 * 1000);
-
-    await this._initModules();
-
-    // listen and subscribe to the everything channel (aka "super" node)
-    //this.zchain.subscribe(EVERYTHING_TOPIC);
   }
 
   /**
@@ -235,7 +200,6 @@ export class MEOW {
   async followChannel(channel: string) {
     if (channel[0] !== `#`) { channel = '#' + channel; }
 
-    //this.zchain.subscribe(channel);
     await this.store.followChannel(channel);
   }
 

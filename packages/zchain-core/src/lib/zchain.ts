@@ -222,10 +222,10 @@ export class ZCHAIN {
       }
 
       this.ipfs.pubsub.subscribe(channel, async (msg: PubSubMessage) => {
-        console.log(`Received from ${msg.from}: ${uint8ArrayToString(msg.data)}`);
-      });
+        const [_, __, displayStr] = this.zStore.getNameAndPeerID(msg.from);
 
-      console.log(this.zId.peerId.toB58String() + " has subscribed to: " + channel);
+        console.log(`Received from ${displayStr} on channel ${channel}: ${uint8ArrayToString(msg.data)}`);
+      });
     }
 
     unsubscribe (channel: string): void {
