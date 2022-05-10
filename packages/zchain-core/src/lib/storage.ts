@@ -12,13 +12,24 @@ import FeedStore from "orbit-db-feedstore";
 import KeyValueStore from "orbit-db-kvstore";
 import chalk from "chalk";
 import os from 'os'
-import Store from "orbit-db-store";
+import { assertValidzId } from "./zid";
 
 // maybe we should change this to ~/.zchain-db ?
 const ZCHAIN_DEFAULT_STORAGE_DIR = "./zchain-db";
 
 // zchain operations are at the "system" level
 const SYSPATH = 'sys';
+
+function isValidzId(zId: string): Boolean {
+  let isValid = true;
+  try {
+    assertValidzId(zId);
+  } catch (error) {
+    isValid = false;
+  }
+
+  return isValid;
+}
 
 /**
  * Class to handle data of libp2p libp2p (persisting data through hypercore append only logs)
@@ -173,7 +184,6 @@ export class ZStore {
       limit: n, reverse: true
     }).collect();
 
-    console.log("messages :: ", messages);
     console.log(chalk.cyanBright(`Last ${n} messages published by ${peerIdStr}`));
     for (const m of messages) {
       const msg = m.payload.value as ZChainMessage;
@@ -181,6 +191,57 @@ export class ZStore {
         ...msg,
         message: await decode(msg.message, this.password)
       });
+    }
+  }
+
+  /**
+   * Determines {peerId, name, display string} for given peerId/name
+   */
+  getNameAndPeerID(peerIdOrName: string): [string, string | undefined, string] {
+    let peerId: string, name: string | undefined, str: string;
+    if (isValidzId(peerIdOrName)) {
+      peerId = peerIdOrName;
+      name = this.dbs.addressBook.get(peerId) as string | undefined;
+      str = name !== undefined ? `${peerId} (${name})` : `${peerId}`
+    } else {
+      name = peerIdOrName;
+
+      // if you get a name, peerID must be defined
+      if (this.dbs.addressBook.get(name) === undefined) {
+        throw new Error(chalk.red(`No peer id found for name ${name}`));
+      } else {
+        peerId = this.dbs.addressBook.get(name) as string;
+        str = `${peerId} (${name})`;
+      }
+    }
+
+    return [peerId, name, str];
+  }
+
+  /**
+   * Sets a name of the peerId in the local address book
+   * @param peerId peerID
+   * @param name name to set
+   */
+  async setNameInAddressBook(peerId: string, name: string): Promise<void> {
+    assertValidzId(peerId);
+
+    let db = this.dbs.addressBook;
+    if (!db) {
+      console.log("Internal error: address book db not defined in ctx");
+      return;
+    }
+
+    const peerName = await db.get(peerId);
+    const peerID = await db.get(name);
+    if (peerName !== undefined) {
+      console.warn(chalk.yellowBright(`Name for peer ${peerId} has already been set to ${peerName}`));
+    } else if (peerID !== undefined) {
+      console.warn(chalk.yellowBright(`A peerId has already been set against this name (${name}) to ${peerID}`));
+    } else {
+      db.set(peerId, name);
+      db.set(name, peerId);
+      console.info(chalk.green(`Successfully set name for ${peerId} to ${name} in local address book`));
     }
   }
 }

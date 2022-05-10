@@ -7,16 +7,7 @@ import { MeowDBs } from "../types";
 import { fromString } from "uint8arrays/from-string";
 import { toString as uint8ArrayToString } from "uint8arrays/to-string";
 
-function isValidzId(zId: string): Boolean {
-  let isValid = true;
-  try {
-    assertValidzId(zId);
-  } catch (error) {
-    isValid = false;
-  }
 
-  return isValid;
-}
 
 // meow operations are at the "application" level
 const APP_PATH = 'apps';
@@ -49,34 +40,24 @@ export class MStore extends ZStore {
 
   peerID() { return this.libp2p.peerId.toB58String(); }
 
-  /**
-   * Determines {peerId, name, display string} for given peerId/name
-   */
-  getNameAndPeerID(peerIdOrName: string): [string, string | undefined, string] {
-    let peerId: string, name: string | undefined, str: string;
-    if (isValidzId(peerIdOrName)) {
-      peerId = peerIdOrName;
-      name = this.dbs.addressBook.get(peerId) as string | undefined;
-      str = name !== undefined ? `${peerId} (${name})` : `${peerId}`
-    } else {
-      name = peerIdOrName;
+  // todo: review and remove
+  // update: i think for sandbox we can use this logic
+  private async _initModules() {
+    this.zChain.peerDiscovery.onConnect(async (connection) => {
+      const [_, __, displayStr] = this.getNameAndPeerID(connection.remotePeer.toB58String())
 
-      // if you get a name, peerID must be defined
-      if (this.dbs.addressBook.get(name) === undefined) {
-        throw new Error(chalk.red(`No peer id found for name ${name}`));
-      } else {
-        peerId = this.dbs.addressBook.get(name) as string;
-        str = `${peerId} (${name})`;
-      }
-    }
+      console.log('Connection established to:', displayStr);
+    });
 
-    return [peerId, name, str];
+    this.zChain.peerDiscovery.onDiscover((peerId) => {
+      const [_, __, displayStr] = this.getNameAndPeerID(peerId.toB58String())
+      console.log('Discovered:', displayStr);
+    });
   }
 
   private async _subscribeToFeed(peerId: string) {
     await this.ipfs.pubsub.subscribe(`${peerId}.sys.feed`, async (msg: types.PubSubMessage) => {
       const orbitDBAddress = uint8ArrayToString(msg.data);
-      //console.log(`Received from ${msg.from}: ${orbitDBAddress}`);
 
       // just a sanity check, it should be defined.
       if (this.meowDbs.followingZIds) {
@@ -102,11 +83,21 @@ export class MStore extends ZStore {
       basePath + '.channels'
     );
 
+    await this._initModules();
+
     // during initialization, load the remote databases
     // (if we're following that peer and we have the remote address of that peer's orbitdb)
+    // subscribe & listen to the events from peers we're following, & they broadcast their feed address
     const followerList = this.meowDbs.followingZIds.all;
     for (const key in followerList) {
       const feed = this.dbs.feeds[key];
+
+      // we're following this guy, but we don't have the addr yet
+      if (this.meowDbs.followingZIds.get(key) === 1) {
+        await this._subscribeToFeed(key);
+      }
+
+      // now open the databases as per usual
       const remoteAddress = this.meowDbs.followingZIds.get(key);
       if (!feed && typeof remoteAddress === "string") {
         this.dbs.feeds[key] = await this.orbitdb.open(remoteAddress) as FeedStore<unknown>;
@@ -118,11 +109,7 @@ export class MStore extends ZStore {
     const channelsList = this.meowDbs.followingChannels.all;
     for (const key in channelsList) {
       // subscribe again if you're restarting the node
-      this.ipfs.pubsub.subscribe(key, async (msg: types.PubSubMessage) => {
-        const [_, __, displayStr] = this.getNameAndPeerID(msg.from);
-
-        console.log(`Received from ${displayStr}: ${uint8ArrayToString(msg.data)}`);
-      });
+      this.zChain.subscribe(key);
 
       const channelDB = this.meowDbs.channels[key];
       const remoteAddress = this.meowDbs.followingChannels.get(key);
@@ -139,74 +126,16 @@ export class MStore extends ZStore {
         `${this.peerID()}.sys.feed`,
         fromString(feedDB.address.toString())
       );
-    }, 5 * 1000);
-
-    // subscribe & listen to the events from peers we're following, & they broadcast their feed address
-    for (const key in followerList) {
-      const feed = this.dbs.feeds[key];
-
-      // we're following this guy, but we don't have the addr yet
-      if (this.meowDbs.followingZIds.get(key) === 1) {
-        await this._subscribeToFeed(key);
-      }
-
-      // now open the databases as per usual
-      const remoteAddress = this.meowDbs.followingZIds.get(key);
-      if (!feed && typeof remoteAddress === "string") {
-        this.dbs.feeds[key] = await this.orbitdb.open(remoteAddress) as FeedStore<unknown>;
-        this.listenForReplicatedEvent(this.dbs.feeds[key]);
-      }
-    }
+    }, 10 * 1000);
   }
 
   // log replication ("sync" events accross all dbs)
   listenForReplicatedEvent(feed: FeedStore<unknown>): void {
     if (feed) {
       feed.events.on('replicated', (address) => {
-        console.log('\n* ' + chalk.green(`Successfully synced db: ${address}`) + ' *\n');
+        //console.log('\n* ' + chalk.green(`Successfully synced db: ${address}`) + ' *\n');
       })
     }
-  }
-
-  // listen to db address on new connections
-  async handleIncomingOrbitDbAddress (zChain: ZCHAIN): Promise<void> {
-    let self = this;
-
-    zChain.peerDiscovery.handleProtocol(DB_ADDRESS_PROTOCOL, async ({ stream, connection }) => {
-      pipe(
-        stream.source,
-        async function (source: any) {
-          for await (const msg of source) {
-            // if i follow this connection, and feed is not defined yet, load(replicate) it's db
-            const address = String(msg).toString().replace('\n', '');
-
-            // i don't think this is a good approach
-            self.meowDbs.followingZIds = await self.getKeyValueOrbitDB(
-              self.peerID() + "." + APP_PATH + '.followers'
-            );
-
-            if (
-              address.includes(`/orbitdb/`)
-              && self.meowDbs.followingZIds.get(connection.remotePeer.toB58String()) !== undefined
-            ) {
-              let feed = self.dbs.feeds[connection.remotePeer.toB58String()];
-
-              // save db address of the node we're follwing, in our "followers" keyValue store
-              self.meowDbs.followingZIds.put(connection.remotePeer.toB58String(), address);
-
-              // load the db if not loaded yet
-              // NOTE: commenting because we don't need to open a db during daemon run.
-              // we'll open it during load()
-              if (feed === undefined) {
-                feed = await self.orbitdb.open(address) as FeedStore<unknown>;
-                self.dbs.feeds[connection.remotePeer.toB58String()] = feed;
-                self.listenForReplicatedEvent(feed);
-              }
-            }
-          }
-        }
-      )
-    });
   }
 
   // append to the Followers database (keyvalue) store for the
@@ -310,14 +239,10 @@ export class MStore extends ZStore {
    * @param channel channel to follow
    */
   async followChannel(channel: string) {
-    this.ipfs.pubsub.subscribe(channel, async (msg: types.PubSubMessage) => {
-      const [_, __, displayStr] = this.getNameAndPeerID(msg.from);
-
-     console.log(`Received from ${displayStr}: ${uint8ArrayToString(msg.data)}`);
-    });
-
     const data = this.meowDbs.followingChannels.get(channel);
     if (data === undefined) {
+      this.zChain.subscribe(channel);
+
       // save {"channel": "channel-db-address"} to db
       const address = await this.getChannelPublicDBAddress(channel);
       await this.meowDbs.followingChannels.put(channel, address);
@@ -472,33 +397,6 @@ export class MStore extends ZStore {
     }
 
     console.log(dbs);
-  }
-
-  /**
-   * Sets a name of the peerId in the local address book
-   * @param peerId peerID
-   * @param name name to set
-   */
-  async setNameInAddressBook(peerId: string, name: string): Promise<void> {
-    assertValidzId(peerId);
-
-    let db = this.dbs.addressBook;
-    if (!db) {
-      console.log("Internal error: address book db not defined in ctx");
-      return;
-    }
-
-    const peerName = await db.get(peerId);
-    const peerID = await db.get(name);
-    if (peerName !== undefined) {
-      console.warn(chalk.yellowBright(`Name for peer ${peerId} has already been set to ${peerName}`));
-    } else if (peerID !== undefined) {
-      console.warn(chalk.yellowBright(`A peerId has already been set against this name (${name}) to ${peerID}`));
-    } else {
-      db.set(peerId, name);
-      db.set(name, peerId);
-      console.info(chalk.green(`Successfully set name for ${peerId} to ${name} in local address book`));
-    }
   }
 }
 
