@@ -14,6 +14,7 @@ import os from 'os';
 import { Twitter } from "./lib/twitter";
 import { TwitterApi } from "twitter-api-v2";
 import express from "express";
+import { shuffle } from "./lib/array";
 
 
 
@@ -33,15 +34,16 @@ export class MEOW {
   }
 
 
-
-  async connect(peerAddress: string) {
+  private async connect(peerAddress: string) {
     //console.log("Trying to connect to :: ", peerAddress);
     const connectedPeers = (await this.zchain.ipfs.swarm.peers()).map(p => p.peer);
     const relayAddresses = RELAY_ADDRS.map(addr => addr.split('/p2p/')[1]);
+
     if (!(relayAddresses.includes(peerAddress) && connectedPeers.includes(peerAddress))) {
       // try to connect via relay protocol (using all relays), if not connected & is not a relay
       let connected = false;
-      for (const relay of RELAY_ADDRS) {
+      const shuffledRelays = shuffle(RELAY_ADDRS);
+      for (const relay of shuffledRelays) {
         if (connected === true) { break; }
         const address = `${relay}/p2p-circuit/p2p/${peerAddress}`;
         try {
@@ -88,7 +90,7 @@ export class MEOW {
           await this.connect(discoveredPeer.id);
         }
       }
-    }, 15 * 1000);
+    }, 10 * 1000);
   }
 
   /**
