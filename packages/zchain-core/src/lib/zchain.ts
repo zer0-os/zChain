@@ -47,6 +47,7 @@ export class ZCHAIN {
             '/ip4/0.0.0.0/tcp/0/ws',
             // custom deployed webrtc-star signalling server
             '/dns4/vast-escarpment-62759.herokuapp.com/tcp/443/wss/p2p-webrtc-star/',
+            //'/dns4/vast-escarpment-62759.herokuapp.com/tcp/443/wss/',
             ...listenAddrs
           ]
         },
@@ -80,7 +81,6 @@ export class ZCHAIN {
         init: {
           privateKey: peerId
         },
-        relay:{ enabled: true, hop: { enabled: true, active: true } },
         config: {
           Addresses: {
             Swarm: [],
@@ -90,9 +90,10 @@ export class ZCHAIN {
           ],
           "Swarm": {
               "ConnMgr": {
-                  "LowWater": 50,
-                  "HighWater": 2000
+                  "LowWater": 80,
+                  "HighWater": 160
               },
+              "EnableAutoRelay": true,
               "DisableNatPortMap": false
           },
         }
