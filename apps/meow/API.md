@@ -16,12 +16,12 @@ API documentation for meow. Meow is a twitter like (but peer to peer) applicatio
   * [meow.set(peerId, name)](#meowsetpeerid-name)
   * [meow.followZId(peerIdOrName)](#meowfollowzidpeeridorname)
   * [meow.unfollowZId(peerIdOrName)](#meowunfollowzidpeeridorname)
-  * [meow.displayFeed(peerIdOrName, n)](#meowdisplayfeedpeeridorname-n)
-  * [meow.listFollowedPeers()](#meowlistfollowedpeers)
+  * [meow.getPeerFeed(peerIdOrName, n)](#meowgetPeerFeedpeeridorname-n)
+  * [meow.getFollowedPeers()](#meowgetFollowedPeers)
   * [meow.followChannel(channel)](#meowfollowchannelchannel)
   * [meow.unFollowChannel(channel)](#meowunfollowchannelchannel)
-  * [meow.listFollowedChannels()](#meowlistfollowedchannels)
-  * [meow.displayChannelFeed(channel, n)](#meowdisplaychannelfeedchannel-n)
+  * [meow.getFollowedChannels()](#meowgetFollowedChannels)
+  * [meow.getChannelFeed(channel, n)](#meowgetChannelFeedchannel-n)
   * [meow.listDBs()](#meowlistdbs)
   * [meow.enableTwitter(force)](#meowenabletwitterforce)
   * [meow.disableTwitter()](#meowdisabletwitter)
@@ -128,7 +128,7 @@ Parameters:
   await meow.unfollowZId("ratik");
 ```
 
-### meow.displayFeed(peerIdOrName, n)
+### meow.getPeerFeed(peerIdOrName, n)
 
 Displays last "n" messages published by a peer. Please **note** that you must be "following" the peer and established connection to it atleast once (so that you have that peer's feed unique database address).
 
@@ -141,16 +141,17 @@ Parameters:
   await meow.set(ratikId, "ratik"); // set in local address book
 
   // display last 5 messages followed by ratik
-  await meow.displayFeed("ratik", 5);
+  await meow.getPeerFeed("ratik", 5);
 ```
 
-### meow.listFollowedPeers()
+### meow.getFollowedPeers()
 
-Lists the peers(zId's) this node is following. If a display name is set for any peer, that will be shown as well.
+Returns the peers(zId's) this node is following. If a display name is set for any peer, that will be returned as well.
 
 ```js
-  // list follwing peers
-  meow.listFollowedPeers();
+  // list following peers
+  const peers = meow.getFollowedPeers();
+  console.log('peers: ', peers);
 ```
 
 ### meow.followChannel(channel)
@@ -177,18 +178,19 @@ Parameters:
   await meow.unFollowChannel('#fairtoplay');
 ```
 
-### meow.listFollowedChannels()
+### meow.getFollowedChannels()
 
-Lists the channels this node is following.
+Returns a list of the channels this node is following.
 
 ```js
   // list the channels this node is following
-  meow.listFollowedChannels();
+  const channels = meow.getFollowedChannels();
+  console.log('channels: ', channels);
 ```
 
-### meow.displayChannelFeed(channel, n)
+### meow.getChannelFeed(channel, n)
 
-Displays last "n" messages published by "on" a channel. Please **note** that you must be "following" the channel in order to view it's feed.
+Returns last "n" messages published "on" a channel. Please **note** that you must be "following" the channel in order to view it's feed.
 
 Parameters:
 - `channel` (string): Name of the channel to display feed of.
@@ -196,7 +198,8 @@ Parameters:
 
 ```js
   // display last 3 messages on channel #ucl
-  await meow.displayChannelFeed('#ucl', 3);
+  const feed = await meow.getChannelFeed('#ucl', 3);
+  console.log('Channel Feed: ', feed);
 ```
 
 ### meow.listDBs()

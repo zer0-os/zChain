@@ -8,6 +8,6 @@ export default {
    * @param {import('../../types').Context} argv.ctx
    */
   async handler ({ ctx: { meow } }) {
-    meow.listFollowedChannels();
+    meow.getFollowedChannels();
   }
 }

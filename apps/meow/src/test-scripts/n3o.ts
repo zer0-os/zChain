@@ -18,20 +18,20 @@ import { MEOW } from "../meow";
 
   // follow ratik
   await meow.followZId(ratikId);
-  meow.listFollowedPeers();
+  meow.getFollowedPeers();
 
   // display last 5 messages posted by ratik
   await delay(6 * 1000);
-  await meow.displayFeed(ratikId, 5);
+  await meow.getPeerFeed(ratikId, 5);
 
   /********    Following a channel    *********/
 
   await meow.followChannel('#fairtoplay');
 
-  meow.listFollowedChannels();
+  meow.getFollowedChannels();
 
   await delay(6 * 1000);
-  await meow.displayChannelFeed('#fairtoplay', 3); // display last 3 messages on channel #ucl
+  await meow.getChannelFeed('#fairtoplay', 3); // display last 3 messages on channel #ucl
 
   // setInterval(async () => {
   //   console.log("P: ", await meow.zchain.ipfs.swarm.peers());

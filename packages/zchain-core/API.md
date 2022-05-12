@@ -28,7 +28,7 @@ API documentation for the `zChain` class.
   * [zchain.zStore](#zstore)
     + [`zStore.init()`](#zstoreinit)
     + [`zStore.appendZChainMessageToFeed(feedStore, message, channels)`](#zstoreappendzchainmessagetofeedfeedstore-message-channels)
-    + [`zStore.listMessagesOnFeed(peerIdStr, n)`](#zstorelistmessagesonfeedpeeridstr-n)
+    + [`zStore.getMessagesOnFeed(peerIdStr, n)`](#zstoregetMessagesOnFeedpeeridstr-n)
 
 <!-- tocstop -->
 
@@ -185,9 +185,9 @@ Parameters:
 - `message` (string): The message.
 - `channels` (string[]): Array of channels (if same message is published on multiple channels, this should be passed).
 
-#### zStore.listMessagesOnFeed(peerIdStr, n)
+#### zStore.getMessagesOnFeed(peerIdStr, n)
 
-Lists last "n" messages published by a node. Loads last "n" entry from the local feed database, and logs them.
+Returns last "n" messages published by a node. Loads last "n" entry from the local feed database, and logs them.
 
 Parameters:
 - `peerIdStr` (string): Peer ID as base58-encoded string.

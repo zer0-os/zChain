@@ -170,13 +170,13 @@ export class ZStore {
   }
 
   /**
-   * Lists last "n" messages published by a node
+   * Returns last "n" messages published by a node
    */
-  async listMessagesOnFeed(peerIdStr: string, n: number): Promise<void> {
+  async getMessagesOnFeed(peerIdStr: string, n: number): Promise<Object[]> {
     const feedStore = this.dbs.feeds[peerIdStr];
     if (feedStore === undefined) {
       console.error("feed store not found for peer ", peerIdStr);
-      return;
+      return [];
     }
 
     await feedStore.load(n); // load last "n" messages to memory
@@ -184,14 +184,16 @@ export class ZStore {
       limit: n, reverse: true
     }).collect();
 
-    console.log(chalk.cyanBright(`Last ${n} messages published by ${peerIdStr}`));
+    const messagesOnFeed = [];
     for (const m of messages) {
       const msg = m.payload.value as ZChainMessage;
-      console.log(`${chalk.green('>')} `, {
+      messagesOnFeed.push({
         ...msg,
         message: await decode(msg.message, this.password)
       });
     }
+
+    return messagesOnFeed;
   }
 
   /**

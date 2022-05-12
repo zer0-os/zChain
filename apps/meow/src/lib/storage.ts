@@ -168,14 +168,14 @@ export class MStore extends ZStore {
     }
   }
 
-  async displayFeed(peerIdOrName: string, n: number): Promise<void> {
+  async getPeerFeed(peerIdOrName: string, n: number): Promise<Object[]> {
     const [peerId, _, displayStr] = this.getNameAndPeerID(peerIdOrName);
 
     if (peerId !== this.peerID() && this.meowDbs.followingZIds.get(peerId) === undefined) {
       console.error(
         chalk.red(`Cannot fetch feed (Invalid request): You're not following ${displayStr}`)
       );
-      return;
+      return [];
     }
 
     const feed = this.dbs.feeds[peerId];
@@ -183,33 +183,35 @@ export class MStore extends ZStore {
       console.error(
         chalk.red(`Error while loading feed for zId ${displayStr}: not found. The node is possibly offline and feeds are not synced yet.`)
       );
-      return;
+      return [];
     }
 
-    await this.listMessagesOnFeed(peerId, n);
+    return await this.getMessagesOnFeed(peerId, n);
   }
 
-  // list peers followed by "this" node
-  listFollowedPeers() {
+  // returns peers followed by "this" node
+  getFollowedPeers(): Object[] {
     const all = this.meowDbs.followingZIds.all;
     if (Object.entries(all).length === 0) {
       console.log(chalk.yellow(`Not following any peer`));
-      return;
+      return [];
     }
 
-    console.log(`\n${this.peerID()} is following peers:`);
+    const peers = [];
     for (const key in all) {
-      const [_, __, displayStr] = this.getNameAndPeerID(key);
-      console.log(`${chalk.green('>')} ${displayStr}`);
+      const [peerId, displayName, _] = this.getNameAndPeerID(key);
+      peers.push({
+        "peerId": peerId,
+        "displayName": displayName ?? null
+      });
     }
+    return peers;
   }
 
-  listFollowedChannels() {
+  // returns a list of channels "this" node is following
+  getFollowedChannels() {
     const all = this.meowDbs.followingChannels.all;
-    console.log(`\n${this.peerID()} is following channels:`);
-    for (const key in all) {
-      console.log(`${chalk.green('>')} ${key}`);
-    }
+    return Object.keys(all);
   }
 
   /**
@@ -308,12 +310,11 @@ export class MStore extends ZStore {
    */
   async getChannelFeed(channel: string, n:number): Promise<types.ZChainMessage[]> {
     if (channel[0] !== `#`) { channel = '#' + channel; }
-    let channelFeed =[]
     if (this.meowDbs.followingChannels.get(channel) === undefined) {
       console.error(
         chalk.red(`Cannot fetch feed (Invalid request): You're not following ${channel}`)
       );
-      return[];
+      return [];
     }
 
     const channelDB = this.meowDbs.channels[channel];
@@ -321,29 +322,25 @@ export class MStore extends ZStore {
       console.error(
         chalk.red(`Error while loading feed for ${channel}: NOT FOUND.`)
       );
-      return[];
+      return [];
     }
 
     await channelDB.load(n); // load last "n" messages to memory
     const messages = channelDB.iterator({
       limit: n, reverse: true
     }).collect();
-    for (const m of messages){
-       channelFeed.push(m.payload.value as types.ZChainMessage)
-    }
-    return channelFeed
-  }
-  async displayChannelFeed(channel: string, n: number): Promise<void> {
-    console.log(chalk.cyanBright(`Last ${n} messages published on ${channel}`));
-    const messages = await this.getChannelFeed(channel,n)
-    for (const m of messages) {
-      console.log(`${chalk.green('>')} `, {
-        ...m,
-        message: await decode(m.message, password)
-      });
-    }
-  }
 
+    const channelFeed =[]
+    for (const m of messages){
+      const msg = m.payload.value as types.ZChainMessage;
+      channelFeed.push({
+        ...msg,
+        message: await decode(msg.message, password)
+      })
+    }
+
+    return channelFeed;
+  }
 
   /**
    * Lists all db's with address & no. of entries

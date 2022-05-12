@@ -21,6 +21,6 @@ export default {
    * @param {number} argv.n
    */
   async handler ({ ctx: { meow }, peerIdOrName, n }) {
-    await meow.displayFeed(peerIdOrName, n);
+    await meow.getPeerFeed(peerIdOrName, n);
   }
 }

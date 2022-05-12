@@ -212,22 +212,22 @@ export class MEOW {
     await this.store.unFollowChannel(channel);
   }
 
-  listFollowedPeers() {
-    this.store.listFollowedPeers();
+  getFollowedPeers() {
+    return this.store.getFollowedPeers();
   }
 
-  listFollowedChannels() {
-    this.store.listFollowedChannels();
+  getFollowedChannels() {
+    return this.store.getFollowedChannels();
   }
 
-  async displayFeed(peerIdOrName: string, n: number) {
-    await this.store.displayFeed(peerIdOrName, n);
+  async getPeerFeed(peerIdOrName: string, n: number) {
+    return await this.store.getPeerFeed(peerIdOrName, n);
   }
 
-  async displayChannelFeed(channel: string, n: number) {
+  async getChannelFeed(channel: string, n: number) {
     if (channel[0] !== `#`) { channel = '#' + channel; }
 
-    await this.store.displayChannelFeed(channel, n);
+    return await this.store.getChannelFeed(channel, n);
   }
 
   async listDBs() {
@@ -377,13 +377,13 @@ Avalilable functions:
 
 	meow.followZId("<peerIdOrName>")		Follow a peer (by ID or display name)
 	meow.unfollowZId("<peerIdOrName>")  		Unfollow a peer (by ID or display name)
-	meow.listFollowedPeers()        		Lists all peers followed by this node
-	meow.displayFeed("<peerIdOrName>", n) 		Display last "n" messages published by this peer
+	meow.getFollowedPeers()        		Lists all peers followed by this node
+	meow.getPeerFeed("<peerIdOrName>", n) 		Display last "n" messages published by this peer
 
 	meow.followChannel("<channel>")         	Follow a channel (#hashtag)
 	meow.unFollowChannel("<channel>")       	Unfollow a channel (#hashtag)
-	meow.listFollowedChannels()       		Lists all channels followed by this node
-	meow.displayChannelFeed("<channel>", n) 	Display last "n" messages published on a channel
+	meow.getFollowedChannels()       		Lists all channels followed by this node
+	meow.getChannelFeed("<channel>", n) 	Display last "n" messages published on a channel
 `);
   }
 }

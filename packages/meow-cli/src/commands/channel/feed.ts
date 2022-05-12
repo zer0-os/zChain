@@ -21,6 +21,6 @@ export default {
    * @param {number} argv.n
    */
   async handler ({ ctx: { meow }, channel, n }) {
-    await meow.displayChannelFeed(channel, n);
+    await meow.getChannelFeed(channel, n);
   }
 }
