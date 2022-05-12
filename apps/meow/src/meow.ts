@@ -35,11 +35,16 @@ export class MEOW {
 
 
   private async connect(peerAddress: string) {
-    //console.log("Trying to connect to :: ", peerAddress);
     const connectedPeers = (await this.zchain.ipfs.swarm.peers()).map(p => p.peer);
     const relayAddresses = RELAY_ADDRS.map(addr => addr.split('/p2p/')[1]);
 
-    if (!(relayAddresses.includes(peerAddress) && connectedPeers.includes(peerAddress))) {
+
+    // console.log("relayAddresses ", relayAddresses);
+
+    if (
+      relayAddresses.includes(peerAddress) === false &&
+      connectedPeers.includes(peerAddress) === false
+    ) {
       // try to connect via relay protocol (using all relays), if not connected & is not a relay
       let connected = false;
       const shuffledRelays = shuffle(RELAY_ADDRS);
@@ -86,7 +91,7 @@ export class MEOW {
       const connectedPeers = (await this.zchain.ipfs.swarm.peers()).map(p => p.peer);
       const discoveredPeers = await this.zchain.ipfs.swarm.addrs();
       for (const discoveredPeer of discoveredPeers) {
-        if (!(relayAddresses.includes(discoveredPeer.id) && connectedPeers.includes(discoveredPeer.id))) {
+        if (relayAddresses.includes(discoveredPeer.id) === false && connectedPeers.includes(discoveredPeer.id) === false) {
           await this.connect(discoveredPeer.id);
         }
       }
