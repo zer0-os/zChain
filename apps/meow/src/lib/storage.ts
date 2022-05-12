@@ -45,7 +45,6 @@ export class MStore extends ZStore {
   private async _initModules() {
     this.zChain.peerDiscovery.onConnect(async (connection) => {
       const [_, __, displayStr] = this.getNameAndPeerID(connection.remotePeer.toB58String())
-
       console.log('Connection established to:', displayStr);
     });
 
