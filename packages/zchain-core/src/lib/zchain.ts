@@ -86,7 +86,7 @@ export class ZCHAIN {
             Swarm: [],
           },
           Bootstrap: [
-            ...RELAY_ADDRS
+            //...RELAY_ADDRS
           ],
           "Swarm": {
               "ConnMgr": {
@@ -126,9 +126,9 @@ export class ZCHAIN {
       console.log("\n★ ", chalk.cyan('zChain Node Activated: ' + node.peerId.toB58String()) + " ★\n");
       this.node = node;
 
-      // for (const r of RELAY_ADDRS) {
-      //   try { await this.ipfs.swarm.connect(r); } catch(e) {}
-      // }
+      for (const r of RELAY_ADDRS) {
+        try { await this.ipfs.swarm.connect(r); } catch(e) {}
+      }
 
       // intialize zstore
       this.zStore = new ZStore(this.ipfs, this.node, password);
