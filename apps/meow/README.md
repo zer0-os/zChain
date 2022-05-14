@@ -12,5 +12,5 @@ To run the application follow these steps:
 
 ## API
 
-Checkout [API docs](./API.md)
+Checkout [API docs](https://www.zero.study/zchain/api/meow)
 

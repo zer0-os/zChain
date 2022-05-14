@@ -101,6 +101,6 @@ await meow.sendMeow("Hello");
 
 ## API
 
-For a more technical overview of zChain and meow functionality, checkout API docs.
-+ [zChain API](./packages/zchain-core/API.md)
-+ [meow API](./apps/meow/API.md)
+For a more technical overview of zChain and meow functionality, checkout API docs hosted on gitbook.
++ [zChain API](https://www.zero.study/zchain/api/zchain)
++ [meow API](https://www.zero.study/zchain/api/meow)
