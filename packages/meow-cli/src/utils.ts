@@ -94,16 +94,16 @@ export const rightpad = (val, n) => {
 }
 
 export const ipfsPathHelp = 'meow-cli uses a repository in the local file system. By default, the repo is ' +
-  'located at ~/.jsipfs and database at ~/.zchain-db\n'
+  'located at ~/.zchain/ipfs and database at ~/.zchain/db\n'
 
 
-export async function loadMeow () {
-  if (!fs.existsSync(path.join(os.homedir(), '/.jsipfs'))) {
-    throw new Error(`No config found at ~/.jsipfs. Please run meow daemon <opts> first.`)
+export async function loadMeow (zIdName: string) {
+  if (!fs.existsSync(path.join(os.homedir(), '/.zchain'))) {
+    throw new Error(`No config found at ~/.zchain. Please run meow daemon <opts> first.`)
   }
 
   const meow = new MEOW();
-  await meow.load();
+  await meow.load(zIdName);
   const ipfs = meow.zchain.ipfs;
 
   // 2s delay

@@ -8,7 +8,7 @@ import { MEOW } from "meow-app";
 export default {
   command: 'init',
 
-  describe: 'Initializes a new zChain node at ~/.jsipfs',
+  describe: 'Initializes a new zChain node at ~/.zchain',
 
   /**
    * @param {import('yargs').Argv} yargs
@@ -16,13 +16,13 @@ export default {
   builder (yargs) {
     return yargs
       .epilog(ipfsPathHelp)
-      .option('zId', {
+      .option('name', {
         type: 'string',
         desc: 'Path to zId configuration file (contains peer metadata)',
       })
       .option('force', {
         type: 'boolean',
-        desc: 'If true, removes any previos config present at ~/.jsipfs & ~/.zchain-db',
+        desc: 'If true, removes any previos config present at ~/.zchain',
         default: false
       })
       .demandOption('zId')
@@ -43,22 +43,15 @@ export default {
 
     // remove existing config if --force is passed
     if (argv.force) {
-      fs.rmSync(path.join(os.homedir(), '/.jsipfs'), {force: true, recursive: true});
-      fs.rmSync(path.join(os.homedir(), '/.zchain-db'), {force: true, recursive: true});
+      fs.rmSync(path.join(os.homedir(), '/.zchain'), {force: true, recursive: true});
     }
 
     try {
-      if (fs.existsSync(path.join(os.homedir(), '/.jsipfs'))) {
-        console.warn(chalk.yellow(`zChain node config already present at ~/.jsipfs. Use --force to override`));
+      if (fs.existsSync(path.join(os.homedir(), '/.zchain'))) {
+        console.warn(chalk.yellow(`zChain node config already present at ~/.zchain. Use --force to override`));
       } else {
         const meow = new MEOW();
         //await meow.initCLI(argv.zId);
-
-        // save peer json path
-        fs.writeFileSync(
-          path.join(os.homedir(), '/.jsipfs', 'zId'),
-          argv.zId
-        );
       }
 
     } catch (/** @type {any} */ err) {

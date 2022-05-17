@@ -15,13 +15,13 @@ export default {
   builder (yargs) {
     return yargs
       .epilog(ipfsPathHelp)
-      .option('zId', {
+      .option('name', {
         type: 'string',
-        desc: 'Path to zId configuration file (contains peer metadata)',
+        desc: 'name of zId configuration file (contains peer metadata)',
       })
       .option('force', {
         type: 'boolean',
-        desc: 'If true, removes any previos config present at ~/.jsipfs & ~/.zchain-db',
+        desc: 'If true, removes any previos config present at ~/.zchain',
         default: false
       })
       // .option('offline', {
@@ -34,7 +34,7 @@ export default {
   /**
    * @param {object} argv
    * @param {import('../types').Context} argv.ctx
-   * @param {string} [argv.zId]
+   * @param {string} [argv.name]
    * @param {boolean} argv.silent
    * @param {boolean} argv.force
    */
@@ -46,13 +46,12 @@ export default {
 
     // remove existing config if --force is passed
     if (argv.force) {
-      fs.rmSync(path.join(os.homedir(), '/.jsipfs'), {force: true, recursive: true});
-      fs.rmSync(path.join(os.homedir(), '/.zchain-db'), {force: true, recursive: true});
+      fs.rmSync(path.join(os.homedir(), '/.zchain'), {force: true, recursive: true});
     }
 
     try {
       const meow = new MEOW();
-      const daemon = await meow.startDaemon(argv.zId ?? path.join(os.homedir(), '/.jsipfs', 'peer.json'));
+      const daemon = await meow.startDaemon(argv.name);
 
       const version = await daemon._ipfs.version()
       print(`meow-cli ipfs node version: ${version.version}`)

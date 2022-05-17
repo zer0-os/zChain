@@ -12,14 +12,14 @@ import sandbox from './sandbox';
 
 export const commandList = [
   //init,
-  sendmeow,
-  channel,
-  peer,
-  swarm,
-  set,
+  // sendmeow,
+  // channel,
+  // peer,
+  // swarm,
+  //set,
   sandbox,
-  db,
+  //db,
   commands,
-  daemon,
-  open
+  // daemon,
+  // open
 ]
