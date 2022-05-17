@@ -145,7 +145,6 @@ export default {
 			if (zIdNames.length === 0) {
 				name = await getNewName();
 			} else {
-
 				const choicePrompt = new (enquirer as any).Select({
 					name: "Choose",
 					message: "Existing node configuration found at ~/.zchain/zId",
@@ -161,14 +160,11 @@ export default {
 						message: "Pick a node to load",
 						choices: zIdNames,
 					});
-					console.log("DA ", zIdNames);
-
 					name = await namePrompt.run();
 				}
 			}
 		}
 
-		console.log("selected name ", name)
     await startConsole(name);
   }
 }
