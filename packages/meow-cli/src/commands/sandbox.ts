@@ -7,6 +7,7 @@ import os from 'os';
 import fs from 'fs';
 import path from 'path';
 import delay from 'delay';
+import enquirer from "enquirer";
 
 // handle top level await
 export function preprocess(input: string): string {
@@ -52,7 +53,7 @@ async function evaluate(
 	}
 }
 
-async function startConsole(fileNameOrPath?: string): Promise<void> {
+async function startConsole(zIdName: string): Promise<void> {
 	await new Promise<void>(async (resolve, reject) => {
 
     // // log to a ~/zchain.log file, instead of console
@@ -68,7 +69,7 @@ async function startConsole(fileNameOrPath?: string): Promise<void> {
     // };
 
     const meow = new MEOW();
-    await meow.init(fileNameOrPath);
+    await meow.init(zIdName);
 
 		console.log("★", chalk.cyan(" Welcome to meow console "), "★");
 		meow.help();
@@ -93,6 +94,16 @@ async function startConsole(fileNameOrPath?: string): Promise<void> {
 	});
 }
 
+async function getNewName() {
+	const response = await (enquirer as any).prompt({
+		type: 'input',
+		name: 'zIdName',
+		message: 'Please type a name for your node'
+	});
+
+	return (response as any).zIdName;
+}
+
 export default {
   command: 'sandbox',
 
@@ -104,13 +115,9 @@ export default {
   builder (yargs) {
     return yargs
       .epilog(ipfsPathHelp)
-      .option('zId', {
-        type: 'string',
-        desc: 'Path to zId configuration file (contains peer metadata)',
-      })
       .option('force', {
         type: 'boolean',
-        desc: 'If true, removes any previos config present at ~/.jsipfs & ~/.zchain-db',
+        desc: 'If true, REMOVES any previos config present at ~/.zchain',
         default: false
       })
   },
@@ -122,10 +129,46 @@ export default {
   async handler (argv) {
     // remove existing config if --force is passed
     if (argv.force) {
-      fs.rmSync(path.join(os.homedir(), '/.jsipfs'), {force: true, recursive: true});
-      fs.rmSync(path.join(os.homedir(), '/.zchain-db'), {force: true, recursive: true});
+      fs.rmSync(path.join(os.homedir(), '/.zchain'), {force: true, recursive: true});
     }
 
-    await startConsole(argv.zId);
+		let name: string;
+		const basePath = path.join(os.homedir(), '.zchain', 'zId');
+		if (!fs.existsSync(basePath)) {
+			name = await getNewName();
+		} else {
+			const zIdNames = fs
+				.readdirSync(basePath, { withFileTypes: true })
+				.filter((dirent) => (!dirent.isDirectory() && dirent.name.endsWith('.json')))
+				.map((dirent) => dirent.name.split('.json')[0]);
+
+			if (zIdNames.length === 0) {
+				name = await getNewName();
+			} else {
+
+				const choicePrompt = new (enquirer as any).Select({
+					name: "Choose",
+					message: "Existing node configuration found at ~/.zchain/zId",
+					choices: ["Load from an existing node", "Initialize a new node"],
+				});
+
+				const selectedChoice = await choicePrompt.run();
+				if (String(selectedChoice).startsWith('Initialize')) {
+					name = await getNewName();
+				} else {
+					const namePrompt = new (enquirer as any).Select({
+						name: "Nodes",
+						message: "Pick a node to load",
+						choices: zIdNames,
+					});
+					console.log("DA ", zIdNames);
+
+					name = await namePrompt.run();
+				}
+			}
+		}
+
+		console.log("selected name ", name)
+    await startConsole(name);
   }
 }
