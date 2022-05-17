@@ -17,7 +17,7 @@ import { ZStore } from './storage';
 import { addWebRTCStarAddrs } from "./transport";
 import { ZID } from "./zid";
 import chalk from 'chalk';
-import { RELAY_ADDRS } from './constants';
+import { DB_PATH, IPFS_PATH, RELAY_ADDRS, ZCHAIN_DIR, ZID_PATH } from './constants';
 
 import { Daemon } from 'ipfs-daemon'
 import os from 'os'
@@ -77,7 +77,7 @@ export class ZCHAIN {
 
       const ipfsOptions = {
         libp2p: options,
-        repo: `${os.homedir()}/.jsipfs/${peerId.toB58String()}`,
+        repo: path.join(IPFS_PATH, this.zId.name),
         init: {
           privateKey: peerId
         },
@@ -104,21 +104,20 @@ export class ZCHAIN {
 
     /**
      * Initializes a new (local) Zchain node
-     * @param fileName json present in /ids. Contains peer metadata
+     * @param name Name assinged to this node (by the user)
      * @returns libp2p node instance
      */
-    async initialize (fileNameOrPath?: string | undefined, listenAddrs?: string[]): Promise<Libp2p> {
-      if (!fs.existsSync(path.join(os.homedir(), '/.jsipfs'))) {
-        fs.mkdirSync(path.join(os.homedir(), '/.jsipfs'));
-      }
+    async initialize (name: string, listenAddrs?: string[]): Promise<Libp2p> {
+      fs.mkdirSync(ZID_PATH, { recursive: true });
+      fs.mkdirSync(IPFS_PATH, { recursive: true });
+      fs.mkdirSync(DB_PATH, { recursive: true });
 
       this.zId = new ZID();
-      await this.zId.create(fileNameOrPath); // get existing/create new peer id
+      await this.zId.createFromName(name); // get existing/create new peer id
       const ipfsOptions = await this._getIPFSOptions(listenAddrs);
 
       this.ipfs = await IPFS.create({
         ...ipfsOptions,
-        //repo: path.join(os.homedir(), '/.jsipfs'),
       });
 
       // need to go through type hacks here..
@@ -132,7 +131,7 @@ export class ZCHAIN {
 
       // intialize zstore
       this.zStore = new ZStore(this.ipfs, this.node, password);
-      await this.zStore.init();
+      await this.zStore.init(this.zId.name);
 
       // initialize discovery class
       this.peerDiscovery = new PeerDiscovery(this.zStore, this.node);
@@ -141,40 +140,24 @@ export class ZCHAIN {
 
     /**
      * Initializes an IPFS zChain (online) Daemon (or load an existing one)
-     * @param fileName json present in /ids. Contains peer metadata
+     * @param name Name assinged to this node (by the user)
      * @returns ipfs daemon instance
      * TODO: think about how to handle "password" (message encryption/decryption)
      */
-    async startDaemon (fileNameOrPath?: string, listenAddrs?: string[]): Promise<Daemon> {
-      if (!fs.existsSync(path.join(os.homedir(), '/.jsipfs'))) {
-        fs.mkdirSync(path.join(os.homedir(), '/.jsipfs'));
-      }
+    async startDaemon (name: string, listenAddrs?: string[]): Promise<Daemon> {
+      fs.mkdirSync(ZID_PATH, { recursive: true });
+      fs.mkdirSync(IPFS_PATH, { recursive: true });
+      fs.mkdirSync(DB_PATH, { recursive: true });
+
 
       // load zId
       this.zId = new ZID();
-      await this.zId.create(fileNameOrPath); // get existing/create new peer id
-
-      // handle case when trying to start daemon with another zId
-      if (fs.existsSync(path.join(os.homedir(), '/.jsipfs', 'config'))) {
-        const config = fs.readFileSync(path.join(os.homedir(), '/.jsipfs', 'config'), "utf-8");
-        const parsedConfig = JSON.parse(config);
-        const peerIdStr = parsedConfig['Identity']['PeerID'];
-        if (this.zId.peerId.toB58String() !== peerIdStr) {
-          throw new Error(chalk.red(`Config mismatch :: Trying to start a new daemon, but a config is already present at ~/.jsipfs for a different zId(${peerIdStr}). Pease use --force to override`));
-        }
-      }
-
-      // save (copy) the json to ~/.jsipfs/peer.json
-      fs.writeFileSync(
-        path.join(os.homedir(), '/.jsipfs', 'peer.json'),
-        JSON.stringify(this.zId.peerId.toJSON(), null, 2)
-      );
+      await this.zId.createFromName(name); // get existing/create new peer id
 
       // start daemon, initialize ipfs + libp2p
       const ipfsOptions = await this._getIPFSOptions(listenAddrs);
       const daemon = new Daemon({
-        ...ipfsOptions,
-        repo: path.join(os.homedir(), '/.jsipfs'),
+        ...ipfsOptions
       });
       await daemon.start();
       this.ipfs = daemon._ipfs;
@@ -194,17 +177,16 @@ export class ZCHAIN {
     }
 
     /**
-     * Initializes from an existing daemon http endpoint (located at ~/.jsipfs/api)
+     * Initializes from an existing daemon http endpoint (located at ~/.zchain/ipfs/<name>/api)
      */
-    async load(): Promise<void> {
+    async load(name: string): Promise<void> {
       if (!isDaemonOn()) {
-        throw new Error(chalk.red(`Daemon not initialized at ~/.jsipfs. Please run "meow daemon .."`));
+        throw new Error(chalk.red(`Daemon not initialized at ~/.zchain. Please run "meow daemon .."`));
       }
       this.ipfs = await getIpfs();
 
-      // create zId from saved json peer-id (at ~/.jsipfs/peer.json)
       this.zId = new ZID();
-      await this.zId.create(path.join(os.homedir(), '/.jsipfs', 'peer.json'));
+      await this.zId.createFromName(name);
 
       const ipfsOptions = await this._getIPFSOptions();
       const libp2p = new Libp2p(ipfsOptions.libp2p);
@@ -215,7 +197,7 @@ export class ZCHAIN {
 
       // intialize zstore (note we're initializing both in meow app)
       this.zStore = new ZStore(this.ipfs, this.node, password);
-      await this.zStore.init();
+      await this.zStore.init(this.zId.name);
 
       // initialize discovery class
       this.peerDiscovery = new PeerDiscovery(this.zStore, this.node);
