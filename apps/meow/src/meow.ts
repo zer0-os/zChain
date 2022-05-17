@@ -65,14 +65,14 @@ export class MEOW {
 
   /**
    * Initializes a new Zchain node
-   * @param fileName json present in /ids. Contains peer metadata
+   * @param name Name assinged to this node (by the user)
    * @returns libp2p node instance
    */
-  async init (fileNameOrPath?: string, listenAddrs?: string[]): Promise<void> {
+  async init (zIdName: string, listenAddrs?: string[]): Promise<void> {
     if (this.zchain !== undefined) { throw new Error('zchain already associated'); }
 
     this.zchain = new ZCHAIN();
-    await this.zchain.initialize(fileNameOrPath, listenAddrs);
+    await this.zchain.initialize(zIdName, listenAddrs);
 
     this.store = new MStore(this.zchain);
     await this.store.init();
@@ -100,13 +100,13 @@ export class MEOW {
 
   /**
    * Initializes a new Zchain Daemon (or load an already running one)
-   * @param fileName json present in /ids. Contains peer metadata
+   * @param name Name assinged to this node (by the user)
    * @returns daemon instance
    * // i think we should have initialized zStore here (to log replication/syncing)
    */
-  async startDaemon (fileNameOrPath?: string, listenAddrs?: string[]): Promise<Daemon> {
+  async startDaemon (zIdName: string, listenAddrs?: string[]): Promise<Daemon> {
     this.zchain = new ZCHAIN();
-    const daemon = await this.zchain.startDaemon(fileNameOrPath, listenAddrs);
+    const daemon = await this.zchain.startDaemon(zIdName, listenAddrs);
     this.zchain.node.on('peer:discovery', async (peerId) => {
       const peerAddress = peerId.toB58String();
       console.log('Discovered:', peerAddress);
@@ -149,9 +149,9 @@ export class MEOW {
     return daemon;
   }
 
-  async load (): Promise<void> {
+  async load (name: string): Promise<void> {
     this.zchain = new ZCHAIN();
-    await this.zchain.load();
+    await this.zchain.load(name);
 
     this.store = new MStore(this.zchain);
     await this.store.init();
@@ -249,10 +249,10 @@ export class MEOW {
   }
 
   private _getTwitterConfig() {
-    const jsipfsPath = path.join(os.homedir(), '/.jsipfs');
-    const twitterConfigPath = path.join(jsipfsPath, 'twitter-config.json');
-    if (!fs.existsSync(jsipfsPath)) {
-      throw new Error(chalk.red(`No ipfs repo found at ~/.jsipfs. Initialize a node first.`));
+    const zChainPath = path.join(os.homedir(), '/.zchain');
+    const twitterConfigPath = path.join(zChainPath, 'twitter-config.json');
+    if (!fs.existsSync(zChainPath)) {
+      throw new Error(chalk.red(`No zchain config found at ~/.zchain. Please initialize a node first.`));
     }
 
     if (fs.existsSync(twitterConfigPath)) {
@@ -266,7 +266,7 @@ export class MEOW {
   }
 
   /**
-   * Enables twitter (saves config at ~/.jsipfs/<peerID>/twitter-config.json)
+   * Enables twitter (saves config at ~/.zchain/twitter-config.json)
    */
   async enableTwitter(force: Boolean = false) {
     const twitterConfig = this._getTwitterConfig();
@@ -289,7 +289,7 @@ Please authorize the meow application to access your twitter account.`
         // callback route (after use authorizes your app)
         const self = this;
         app.get('/callback', async function (req, res) {
-          const basePath = path.join(os.homedir(), '/.jsipfs');
+          const basePath = path.join(os.homedir(), '/.zchain');
 
           // Extract tokens from query string
           const { oauth_token, oauth_verifier } = req.query;
@@ -342,7 +342,7 @@ Please authorize the meow application to access your twitter account.`
 
       // save `oauth_token_secret` locally (ideally it should be saved in req.session)
       fs.writeFileSync(
-        path.join(os.homedir(), '/.jsipfs', 'oauth_token_secret'),
+        path.join(os.homedir(), '/.zchain', 'oauth_token_secret'),
         authLink.oauth_token_secret
       );
 
@@ -355,13 +355,13 @@ Please authorize the meow application to access your twitter account.`
   }
 
   /**
-   * Disables twitter (removes config at ~/.jsipfs/<peerID>/twitter-config.json)
+   * Disables twitter (removes config at ~/.zchain/twitter-config.json)
    */
   disableTwitter() {
     const twitterConfig = this._getTwitterConfig();
     if (twitterConfig) {
       fs.rmSync(
-        path.join(os.homedir(), '/.jsipfs', 'twitter-config.json'),
+        path.join(os.homedir(), '/.zchain', 'twitter-config.json'),
       );
       this.twitter = undefined;
       console.log(chalk.green('Disabled Twitter'));
@@ -378,7 +378,7 @@ Avalilable functions:
 	meow.sendMeow("<msg>")				Sends a message accross all #hastags (channels)
 	meow.set("<peerID>", "<name>")			Sets a display name for a peerID. Saved in local address book.
 	meow.enableTwitter("<force: boolean>")		Enable twitter (asks for a PIN after authorization)
-	meow.disableTwitter()				Disables twitter. Simply removes config at ~/.jsipfs/<peerID>/twitter-config.json
+	meow.disableTwitter()				Disables twitter. Simply removes config at ~/.zchain/twitter-config.json
 
 	meow.followZId("<peerIdOrName>")		Follow a peer (by ID or display name)
 	meow.unfollowZId("<peerIdOrName>")  		Unfollow a peer (by ID or display name)
