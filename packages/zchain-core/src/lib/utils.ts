@@ -6,7 +6,6 @@ import { create as httpClient, IPFSHTTPClient } from 'ipfs-http-client'
 
 export const getRepoPath = (): string => {
   return path.join(os.homedir(), '/.jsipfs');
-  //return process.env.IPFS_PATH || path.join(os.homedir(), '/.jsipfs')
 }
 
 export const isDaemonOn = (): boolean => {
