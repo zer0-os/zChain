@@ -1,3 +1,5 @@
+#!/usr/local/bin/node
+
 yarn install
 yarn build
 
