@@ -35,7 +35,7 @@ export class ZID {
     const peerIdPath = path.join(ZID_PATH, `${name}.json`);
     this.name = name;
     if (fs.existsSync(peerIdPath)) {
-      console.info(`Using existing peer id at ${peerIdPath}`);
+      console.info(`Using existing peer id at ${peerIdPath}\n`);
       const content = this.readFile(peerIdPath);
       this.peerId = await PeerId.createFromJSON(JSON.parse(content));
       return;

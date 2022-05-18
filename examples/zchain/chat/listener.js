@@ -7,7 +7,7 @@ const password = 'jindalratik@1234';
  */
 ;(async () => {
   let node_b = new ZCHAIN();
-  await node_b.initialize('node-2.json'); // not present, a new peer id will be generated & saved
+  await node_b.initialize('node-2'); // not present, a new peer id will be generated & saved
 
   node_b.peerDiscovery.onConnect((connection) => {
     console.log('Connection established to:', connection.remotePeer.toB58String());
