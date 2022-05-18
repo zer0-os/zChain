@@ -12,7 +12,7 @@ cd ../../
 
 cd packages/meow-cli
 yarn link
-npm link # this links the cli bin directory "globally"
+sudo npm link --force # this links the cli bin directory "globally"
 cd ../../
 
 # link packages/** to meow-app

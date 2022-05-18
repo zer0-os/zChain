@@ -19,7 +19,7 @@ export const commandList = [
   //set,
   sandbox,
   //db,
-  commands,
+  //commands,
   // daemon,
   // open
 ]
