@@ -13,6 +13,7 @@ import KeyValueStore from "orbit-db-kvstore";
 import chalk from "chalk";
 import os from 'os'
 import { assertValidzId } from "./zid";
+import { DB_PATH } from "./constants";
 
 // maybe we should change this to ~/.zchain-db ?
 const ZCHAIN_DEFAULT_STORAGE_DIR = "./zchain-db";
@@ -66,12 +67,12 @@ export class ZStore {
     }
   }
 
-  async init(): Promise<void> {
+  async init(zIdName: string): Promise<void> {
     const peerId = await this.ipfs.config.get('Identity.PeerID')
     this.orbitdb = await OrbitDB.createInstance(
       this.ipfs as any,
       {
-        directory: path.join(os.homedir(), `/.zchain-db/${peerId}`),
+        directory: path.join(DB_PATH, zIdName),
         peerId: peerId as string
       }
     );

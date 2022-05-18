@@ -5,6 +5,7 @@ import os from "os";
 import PeerId from "peer-id";
 
 import { getPathFromDirRecursive } from "./files";
+import { ZID_PATH } from "./constants";
 
 const PEER_ID_DIR = "ids";
 const jsonExt = ".json";
@@ -25,64 +26,27 @@ export class ZID {
   public name: string | undefined; // maybe we can use a name associated with peer id?
   public peerId: PeerId | undefined;
 
-  async createNew (): Promise<void> {
-    this.peerId = await PeerId.create();
-    const peerIDPath = path.join(os.homedir(), '/.jsipfs', this.peerId.toB58String(), 'peer.json');
-    console.info(`Generating new peer id at ${peerIDPath}`);
-
-    // save to file
-    fs.mkdirSync(path.join(os.homedir(), '/.jsipfs', this.peerId.toB58String()), { recursive: true });
-    this.writeFile(
-      path.join(os.homedir(), '/.jsipfs', this.peerId.toB58String(), 'peer.json'),
-      JSON.stringify(this.peerId.toJSON(), null, 2)
-    );
-  }
-
   /**
-   * Creates a new peerid. Loads existing peerID from ids/*.json.
+   * Creates a new peerid/load an exsiting peerID from a name.
    * If file does not exist, creates a new peerid and save it to the json.
-   * @param fileNameOrPath name of .json file containing peer id
+   * @param name name of a zchain node (assigned by user)
    */
-  async create (fileNameOrPath: string | undefined): Promise<void> {
-    if (fileNameOrPath === undefined) {
-      await this.createNew();
+  async createFromName (name: string): Promise<void> {
+    const peerIdPath = path.join(ZID_PATH, `${name}.json`);
+    this.name = name;
+    if (fs.existsSync(peerIdPath)) {
+      console.info(`Using existing peer id at ${peerIdPath}\n`);
+      const content = this.readFile(peerIdPath);
+      this.peerId = await PeerId.createFromJSON(JSON.parse(content));
       return;
     }
 
-    let fileName = path.basename(fileNameOrPath);
-    if (path.extname(fileName) !== jsonExt) {
-      throw new Error(`File ${fileName} is not a json`);
-    }
-
-    let filePath: string;
-    if (fileNameOrPath === fileName) {
-      // get path from /ids if not passed "explicitely"
-      filePath = getPathFromDirRecursive(PEER_ID_DIR, fileName);
-    } else {
-      filePath = fileNameOrPath;
-    }
-
-    if (filePath !== undefined) {
-      if (!fs.existsSync(filePath)) {
-        console.info(`Generating new peer id at ${filePath}`);
-
-        this.peerId = await PeerId.create();
-        this.writeFile(
-          filePath,
-          JSON.stringify(this.peerId.toJSON(), null, 2)
-        );
-      }
-      const content = this.readFile(filePath);
-      this.peerId = await PeerId.createFromJSON(JSON.parse(content));
-    } else {
-      console.info(`Json ${fileName} not found. Generating new peer id`);
-
-      this.peerId = await PeerId.create();
-      this.writeFile(
-        path.join(PEER_ID_DIR, fileName),
-        JSON.stringify(this.peerId.toJSON(), null, 2)
-      );
-    }
+    console.info(`PeerId not found. Generating new peer id at ${peerIdPath}`);
+    this.peerId = await PeerId.create();
+    this.writeFile(
+      peerIdPath,
+      JSON.stringify(this.peerId.toJSON(), null, 2)
+    );
   }
 
   createFromB58String (peerIdStr: string): void {

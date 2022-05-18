@@ -3,7 +3,7 @@ import { MEOW } from "../meow";
 
 ;(async () => {
   const meow = new MEOW();
-  await meow.init('n3o.json');// initializes local zchain
+  await meow.init('n3o');// initializes local zchain at ~/.zchain/ipfs/n3o
 
   // // 3s delay for discovery and connection of other peers
   // await delay(3 * 1000);
