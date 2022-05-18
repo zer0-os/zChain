@@ -15,9 +15,6 @@ import os from 'os'
 import { assertValidzId } from "./zid";
 import { DB_PATH } from "./constants";
 
-// maybe we should change this to ~/.zchain-db ?
-const ZCHAIN_DEFAULT_STORAGE_DIR = "./zchain-db";
-
 // zchain operations are at the "system" level
 const SYSPATH = 'sys';
 
