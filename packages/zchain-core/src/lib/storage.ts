@@ -244,4 +244,35 @@ export class ZStore {
       console.info(chalk.green(`Successfully set name for ${peerId} to ${name} in local address book`));
     }
   }
+
+  /**
+   * Updates a name of the peerId in the local address book
+   * @param peerId peerID
+   * @param name name to set
+   */
+  async updateNameInAddressBook(peerId: string, name: string): Promise<void> {
+    assertValidzId(peerId);
+
+    let db = this.dbs.addressBook;
+    if (!db) {
+      console.log("Internal error: address book db not defined in ctx");
+      return;
+    }
+
+    const peerName = await db.get(peerId);
+    const peerID = await db.get(name);
+    if (peerName === undefined && peerID === undefined) {
+      console.error(chalk.red(`Display Name for peer ${peerId} not found. Please use setDisplayName(..) to set a display name first`));
+      return;
+    } else {
+      // remove old names
+      if (peerName) db.del(peerName as string);
+      if (peerID) db.del(peerID as string);
+
+      // set new names
+      db.set(peerId, name);
+      db.set(name, peerId);
+      console.info(chalk.green(`Successfully *updated* name for ${peerId} to ${name} in local address book`));
+    }
+  }
 }
