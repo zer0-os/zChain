@@ -244,17 +244,8 @@ export class MEOW {
    * @param peerId peerID
    * @param name name to set
    */
-  async setDisplayName(peerId: string, name: string) {
-    await this.store.setNameInAddressBook(peerId, name);
-  }
-
-  /**
-   * Updates a name of the peerId in the local address book
-   * @param peerId peerID
-   * @param name name to set
-   */
-  async updateDisplayName(peerId: string, name: string) {
-    await this.store.updateNameInAddressBook(peerId, name);
+  async setDisplayName(peerId: string, name: string, force: boolean = false) {
+    await this.store.setNameInAddressBook(peerId, name, force);
   }
 
   private _getTwitterConfig() {

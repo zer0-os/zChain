@@ -223,7 +223,7 @@ export class ZStore {
    * @param peerId peerID
    * @param name name to set
    */
-  async setNameInAddressBook(peerId: string, name: string): Promise<void> {
+  async setNameInAddressBook(peerId: string, name: string, force: boolean = false): Promise<void> {
     assertValidzId(peerId);
 
     let db = this.dbs.addressBook;
@@ -234,37 +234,7 @@ export class ZStore {
 
     const peerName = await db.get(peerId);
     const peerID = await db.get(name);
-    if (peerName !== undefined) {
-      console.warn(chalk.yellowBright(`Name for peer ${peerId} has already been set to ${peerName}`));
-    } else if (peerID !== undefined) {
-      console.warn(chalk.yellowBright(`A peerId has already been set against this name (${name}) to ${peerID}`));
-    } else {
-      db.set(peerId, name);
-      db.set(name, peerId);
-      console.info(chalk.green(`Successfully set name for ${peerId} to ${name} in local address book`));
-    }
-  }
-
-  /**
-   * Updates a name of the peerId in the local address book
-   * @param peerId peerID
-   * @param name name to set
-   */
-  async updateNameInAddressBook(peerId: string, name: string): Promise<void> {
-    assertValidzId(peerId);
-
-    let db = this.dbs.addressBook;
-    if (!db) {
-      console.log("Internal error: address book db not defined in ctx");
-      return;
-    }
-
-    const peerName = await db.get(peerId);
-    const peerID = await db.get(name);
-    if (peerName === undefined && peerID === undefined) {
-      console.error(chalk.red(`Display Name for peer ${peerId} not found. Please use setDisplayName(..) to set a display name first`));
-      return;
-    } else {
+    if (force === true) {
       // remove old names
       if (peerName) db.del(peerName as string);
       if (peerID) db.del(peerID as string);
@@ -272,7 +242,19 @@ export class ZStore {
       // set new names
       db.set(peerId, name);
       db.set(name, peerId);
-      console.info(chalk.green(`Successfully *updated* name for ${peerId} to ${name} in local address book`));
+    } else {
+      if (peerName !== undefined) {
+        console.warn(chalk.yellowBright(`Name for peer ${peerId} has already been set to ${peerName}`));
+        return;
+      } else if (peerID !== undefined) {
+        console.warn(chalk.yellowBright(`A peerId has already been set against this name (${name}) to ${peerID}`));
+        return;
+      } else {
+        db.set(peerId, name);
+        db.set(name, peerId);
+      }
     }
+
+    console.info(chalk.green(`Successfully set name for ${peerId} to ${name} in local address book`));
   }
 }
