@@ -1,8 +1,5 @@
 import { RELAY_ADDRS, ZCHAIN } from "zchain-core";
-
-import { APP_KEY, APP_SECRET, DB_ADDRESS_PROTOCOL, EVERYTHING_TOPIC, MAX_MESSAGE_LEN, password, ZERO_TOPIC } from "./lib/constants";
-import { pipe } from 'it-pipe';
-import { Multiaddr } from 'multiaddr';
+import { APP_KEY, APP_SECRET, EVERYTHING_TOPIC, MAX_MESSAGE_LEN, ZERO_TOPIC } from "./lib/constants";
 import { MStore } from "./lib/storage";
 import { Daemon } from 'ipfs-daemon'
 import chalk from "chalk";
@@ -15,8 +12,6 @@ import { Twitter } from "./lib/twitter";
 import { TwitterApi } from "twitter-api-v2";
 import express from "express";
 import { shuffle } from "./lib/array";
-
-
 
 
 export class MEOW {
