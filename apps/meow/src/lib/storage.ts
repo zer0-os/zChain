@@ -1,12 +1,10 @@
 import FeedStore from "orbit-db-feedstore";
-import { ZCHAIN, ZStore, assertValidzId, types, decode } from "zchain-core";
-import { DB_ADDRESS_PROTOCOL, password } from "./constants";
-import { pipe } from 'it-pipe';
+import { ZCHAIN, ZStore, types, decode } from "zchain-core";
+import { password } from "./constants";
 import chalk from "chalk";
 import { MeowDBs } from "../types";
 import { fromString } from "uint8arrays/from-string";
 import { toString as uint8ArrayToString } from "uint8arrays/to-string";
-
 
 
 // meow operations are at the "application" level
