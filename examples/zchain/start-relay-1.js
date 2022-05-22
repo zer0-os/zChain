@@ -6,7 +6,10 @@ import { ZCHAIN } from "zchain-core";
  */
 ;(async () => {
     let node_a = new ZCHAIN();
-    await node_a.initialize('node-1');
+    await node_a.initialize('relay1', [
+        //'/ip4/0.0.0.0/tcp/0/ws',
+        '/dns4/vast-escarpment-62759.herokuapp.com/tcp/443/wss/p2p-webrtc-star/'
+    ]);
 
     // let node_b = new ZCHAIN();
     // await node_b.initialize('node-2');
