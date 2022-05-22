@@ -3,10 +3,9 @@ import path from 'path'
 
 export const RELAY_ADDRS = [
   // custom relay servers (on aws ec2)
-  '/ip4/35.166.99.232/tcp/15003/ws/p2p/QmVa4AaHxHU9VrMXJ4bVsBM3FyKJHKpCeNZXJH6ojbzfiE',
-  '/ip4/35.166.99.232/tcp/15002/ws/p2p/Qmbcqh29ANAFix37u6WLpuGq13SGWDBzDEuyEcMEbB91AQ',
-
-]
+  '/dns4/vast-escarpment-62759.herokuapp.com/tcp/443/wss/p2p-webrtc-star/p2p/QmVa4AaHxHU9VrMXJ4bVsBM3FyKJHKpCeNZXJH6ojbzfiE',
+  '/dns4/sheltered-mountain-08581.herokuapp.com/tcp/443/wss/p2p-webrtc-star/p2p/Qmbcqh29ANAFix37u6WLpuGq13SGWDBzDEuyEcMEbB91AQ',
+];
 
 export const password = "ratikjindal@3445";
 
