@@ -1,14 +1,9 @@
 import chalk from "chalk";
 import fs from "fs";
 import path from "path";
-import os from "os";
 import PeerId from "peer-id";
 
-import { getPathFromDirRecursive } from "./files";
 import { ZID_PATH } from "./constants";
-
-const PEER_ID_DIR = "ids";
-const jsonExt = ".json";
 
 export function assertValidzId(peerId: string) {
   try {

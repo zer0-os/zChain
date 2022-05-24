@@ -36,7 +36,7 @@ export class MStore extends ZStore {
     this.meowDbs.channels = {} as any;
   }
 
-  peerID() { return this.libp2p.peerId.toB58String(); }
+  peerID() { return this.libp2p.peerId.toString(); }
 
   // todo: review and remove
   // update: i think for sandbox we can use this logic

@@ -1,13 +1,17 @@
-import { NOISE } from '@chainsafe/libp2p-noise';
-import Libp2p, { Libp2pOptions } from "libp2p";
+import Libp2p, { Libp2p as ILibp2p, createLibp2p, Libp2pInit, Libp2pOptions } from "libp2p";
 import { IPFS as IIPFS } from 'ipfs';
 import * as IPFS from 'ipfs';
 
-import Gossipsub from "libp2p-gossipsub";
-import KadDHT from 'libp2p-kad-dht';
-import Mdns from "libp2p-mdns";
-import Mplex from "libp2p-mplex";
-import TCP from 'libp2p-tcp';
+import { TCP } from '@libp2p/tcp'
+import { Mplex } from '@libp2p/mplex'
+import { Noise } from '@chainsafe/libp2p-noise'
+import { GossipSub } from '@chainsafe/libp2p-gossipsub'
+import { KadDHT } from '@libp2p/kad-dht'
+import { Bootstrap } from '@libp2p/bootstrap'
+import { MulticastDNS } from '@libp2p/mdns'
+import { WebRTCStar } from "@libp2p/webrtc-star";
+import wrtc from "wrtc";
+
 import { fromString } from "uint8arrays/from-string";
 import { toString as uint8ArrayToString } from "uint8arrays/to-string";
 
@@ -24,13 +28,13 @@ import os from 'os'
 import path from 'path'
 import fs from "fs";
 import { getIpfs, isDaemonOn } from './utils';
-import WebSocket from 'libp2p-websockets'
+import { WebSockets } from '@libp2p/websockets'
 
 export const password = "ratikjindal@3445"
 
 export class ZCHAIN {
     ipfs: IIPFS | undefined;
-    node: Libp2p | undefined;
+    node: ILibp2p | undefined;
     zId: ZID | undefined;
     peerDiscovery: PeerDiscovery | undefined;
     zStore: ZStore;
@@ -50,14 +54,34 @@ export class ZCHAIN {
             ...listenAddrs
           ]
         },
-        modules: {
-          transport: [TCP, WebSocket],
-          streamMuxer: [Mplex],
-          connEncryption: [NOISE],
-          dht: KadDHT,
-          pubsub: Gossipsub,
-          peerDiscovery: [] // TODO: add Mdns, removed as tested on remote systems
+        addressManager: {
+          autoDial: true
         },
+        connectionManager: {
+          dialTimeout: 60000
+        },
+        transports: [
+          new TCP(), new WebSockets(), new WebRTCStar({ wrtc: wrtc })
+        ],
+        streamMuxers: [
+          new Mplex()
+        ],
+        connectionEncryption: [
+          new Noise()
+        ],
+        dht: new KadDHT(),
+        pubsub: new GossipSub(),
+        peerDiscovery: [
+          new Bootstrap({
+            list: [
+              ...RELAY_ADDRS
+            ],
+            interval: 2000
+          }),
+          new MulticastDNS({
+            interval: 1000
+          })
+        ],
         config: {
           dht: {
             enabled: false
@@ -70,9 +94,9 @@ export class ZCHAIN {
         }
       };
 
-      // add webrtc-transport if listen addresses has "p2p-webrtc-star"
-      const starAddresses = options.addresses.listen.filter(a => a.includes('p2p-webrtc-star'));
-      if (starAddresses.length) { addWebRTCStarAddrs(options); }
+      // // add webrtc-transport if listen addresses has "p2p-webrtc-star"
+      // const starAddresses = options.addresses.listen.filter(a => a.includes('p2p-webrtc-star'));
+      // if (starAddresses.length) { addWebRTCStarAddrs(options); }
 
       const ipfsOptions = {
         libp2p: options,
@@ -106,7 +130,7 @@ export class ZCHAIN {
      * @param name Name assinged to this node (by the user)
      * @returns libp2p node instance
      */
-    async initialize (name: string, listenAddrs?: string[]): Promise<Libp2p> {
+    async initialize (name: string, listenAddrs?: string[]): Promise<ILibp2p> {
       fs.mkdirSync(ZID_PATH, { recursive: true });
       fs.mkdirSync(IPFS_PATH, { recursive: true });
       fs.mkdirSync(DB_PATH, { recursive: true });
@@ -120,8 +144,8 @@ export class ZCHAIN {
       });
 
       // need to go through type hacks here..
-      const node = (this.ipfs as any).libp2p as Libp2p;
-      console.log("\n★ ", chalk.cyan('zChain Node Activated: ' + node.peerId.toB58String()) + " ★\n");
+      const node = (this.ipfs as any).libp2p as ILibp2p;
+      console.log("\n★ ", chalk.cyan('zChain Node Activated: ' + node.peerId.toString()) + " ★\n");
       this.node = node;
 
       // intialize zstore
@@ -152,15 +176,15 @@ export class ZCHAIN {
       // start daemon, initialize ipfs + libp2p
       const ipfsOptions = await this._getIPFSOptions(listenAddrs);
       const daemon = new Daemon({
-        ...ipfsOptions
+        ...(ipfsOptions as any)
       });
       await daemon.start();
       this.ipfs = daemon._ipfs;
 
       // need to go through type hacks here :(
-      const node = (this.ipfs as any).libp2p as Libp2p;
+      const node = (this.ipfs as any).libp2p as ILibp2p;
 
-      console.log("\n★", chalk.cyan('zChain Daemon Activated: ' + node.peerId.toB58String()) + " ★\n");
+      console.log("\n★", chalk.cyan('zChain Daemon Activated: ' + node.peerId.toString()) + " ★\n");
       this.node = node;
 
       // intialize zstore
@@ -184,10 +208,10 @@ export class ZCHAIN {
       await this.zId.createFromName(name);
 
       const ipfsOptions = await this._getIPFSOptions();
-      const libp2p = new Libp2p(ipfsOptions.libp2p);
+      const libp2p = await createLibp2p(ipfsOptions.libp2p as any);
       (this.ipfs as any).libp2p = libp2p;
 
-      const node = (this.ipfs as any).libp2p as Libp2p;
+      const node = (this.ipfs as any).libp2p as ILibp2p;
       this.node = node;
 
       // intialize zstore (note we're initializing both in meow app)

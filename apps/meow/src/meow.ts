@@ -102,17 +102,17 @@ export class MEOW {
   async startDaemon (zIdName: string, listenAddrs?: string[]): Promise<Daemon> {
     this.zchain = new ZCHAIN();
     const daemon = await this.zchain.startDaemon(zIdName, listenAddrs);
-    this.zchain.node.on('peer:discovery', async (peerId) => {
-      const peerAddress = peerId.toB58String();
-      console.log('Discovered:', peerAddress);
+    // this.zchain.node.on('peer:discovery', async (peerId) => {
+    //   const peerAddress = peerId.toB58String();
+    //   console.log('Discovered:', peerAddress);
 
-      await delay(3 * 1000); // add delay of 3s after discovery
-      await this.connect(peerAddress);
-    });
+    //   await delay(3 * 1000); // add delay of 3s after discovery
+    //   await this.connect(peerAddress);
+    // });
 
-    this.zchain.node.connectionManager.on('peer:connect', async (connection) => {
-      console.log(chalk.green(`Connection established to: ${connection.remotePeer.toB58String()}`));
-    });
+    // this.zchain.node.connectionManager.on('peer:connect', async (connection) => {
+    //   console.log(chalk.green(`Connection established to: ${connection.remotePeer.toB58String()}`));
+    // });
 
     /**
      * Logic: In every 10s check the diff b/w all known and connected address. Try to connect

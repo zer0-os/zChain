@@ -1,17 +1,13 @@
-import Libp2p from "libp2p";
-import fs from "fs";
+import { Libp2p as ILibp2p } from "libp2p";
 import path from "path";
-import { DBs, LogPaths, PubSubMessage, ZChainMessage } from "../types";
+import { DBs, LogPaths, ZChainMessage } from "../types";
 import { decode, encode } from "./encryption";
-import { toString as uint8ArrayToString } from "uint8arrays/to-string";
-import { fromString } from "uint8arrays/from-string";
 
 import { IPFS as IIPFS } from 'ipfs';
 import OrbitDB from "orbit-db";
 import FeedStore from "orbit-db-feedstore";
 import KeyValueStore from "orbit-db-kvstore";
 import chalk from "chalk";
-import os from 'os'
 import { assertValidzId } from "./zid";
 import { DB_PATH } from "./constants";
 
@@ -34,7 +30,7 @@ function isValidzId(zId: string): Boolean {
  * + Store(append) newly discovered peers to logs
  */
 export class ZStore {
-  protected libp2p: Libp2p;
+  protected libp2p: ILibp2p;
   protected ipfs: IIPFS;
   orbitdb: OrbitDB;
   private password: string;
@@ -46,7 +42,7 @@ export class ZStore {
    * Initializes zchain-db (hypercore append only log)
    * @param libp2p libp2p node
    */
-  constructor (ipfs: IIPFS, libp2p: Libp2p, password: string) {
+  constructor (ipfs: IIPFS, libp2p: ILibp2p, password: string) {
     this.ipfs = ipfs;
     this.libp2p = libp2p;
 
@@ -75,12 +71,12 @@ export class ZStore {
     );
 
     // eg. ./zchain-db/{peerId}/sys/<log>
-    this.paths.default = this.libp2p.peerId.toB58String() + "." + SYSPATH;
+    this.paths.default = this.libp2p.peerId.toString() + "." + SYSPATH;
     this.paths.feeds = this.paths.default + '.feed';
     this.paths.addressBook = this.paths.default + '.addressBook';
     //this.paths.channels = path.join(this.paths.default, 'channels');
 
-    this.dbs.feeds[this.libp2p.peerId.toB58String()] = await this.getFeedsOrbitDB(
+    this.dbs.feeds[this.libp2p.peerId.toString()] = await this.getFeedsOrbitDB(
       this.paths.feeds
     );
     this.dbs.addressBook = await this.getKeyValueOrbitDB(this.paths.addressBook);
@@ -90,7 +86,7 @@ export class ZStore {
    * @returns orbitdb database of the node's feed (list of messages posted by node)
    */
   getFeedDB(): FeedStore<unknown> {
-    return this.dbs.feeds[this.libp2p.peerId.toB58String()];
+    return this.dbs.feeds[this.libp2p.peerId.toString()];
   }
 
   /**
@@ -132,7 +128,7 @@ export class ZStore {
     // verify you cannot spoof a signature, like i can't just copy it & spam it
     const zChainMessage = {
       prev: prev,
-      from: this.libp2p.peerId.toB58String(),
+      from: this.libp2p.peerId.toString(),
       channel: channels,
       message: await encode(message, this.password),
       // timestamp: Math.round(+new Date() / 1000),
@@ -161,7 +157,7 @@ export class ZStore {
     // message accross multiple channels, we only want to append it to feed single time)
     const currTs = Math.round(+new Date() / 10000);
     if (this.feedMap.get(message + currTs.toString()) === undefined) {
-      const feedCore = this.dbs.feeds[this.libp2p.peerId.toB58String()];
+      const feedCore = this.dbs.feeds[this.libp2p.peerId.toString()];
       await this.appendZChainMessageToFeed(feedCore, message, channels);
       this.feedMap.set(message + currTs.toString(), 1);
     }

@@ -11,7 +11,7 @@
     "experimentalDecorators": true,
     "esModuleInterop": true,
     "allowJs": true,
-    "module": "CommonJS",
+    "module": "NodeNext",
     "moduleResolution": "Node",
     "resolveJsonModule": true,
     "noImplicitReturns": true,
