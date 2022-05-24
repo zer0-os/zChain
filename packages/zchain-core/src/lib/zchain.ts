@@ -1,4 +1,4 @@
-import Libp2p, { Libp2p as ILibp2p, createLibp2p, Libp2pInit, Libp2pOptions } from "libp2p";
+import { Libp2p as ILibp2p, createLibp2p, Libp2pInit, Libp2pOptions } from "libp2p";
 import { IPFS as IIPFS } from 'ipfs';
 import * as IPFS from 'ipfs';
 
@@ -15,19 +15,17 @@ import wrtc from "wrtc";
 import { fromString } from "uint8arrays/from-string";
 import { toString as uint8ArrayToString } from "uint8arrays/to-string";
 
-import { PubSubMessage, ZChainMessage } from "../types";
-import { PeerDiscovery } from "./peer-discovery";
-import { ZStore } from './storage';
-import { addWebRTCStarAddrs } from "./transport";
-import { ZID } from "./zid";
+import { PubSubMessage } from "../types.js";
+import { PeerDiscovery } from "./peer-discovery.js";
+import { ZStore } from './storage.js';
+import { ZID } from "./zid.js";
 import chalk from 'chalk';
-import { DB_PATH, IPFS_PATH, RELAY_ADDRS, ZCHAIN_DIR, ZID_PATH } from './constants';
+import { DB_PATH, IPFS_PATH, RELAY_ADDRS, ZCHAIN_DIR, ZID_PATH } from './constants.js';
 
 import { Daemon } from 'ipfs-daemon'
-import os from 'os'
 import path from 'path'
 import fs from "fs";
-import { getIpfs, isDaemonOn } from './utils';
+import { getIpfs, isDaemonOn } from './utils.js';
 import { WebSockets } from '@libp2p/websockets'
 
 export const password = "ratikjindal@3445"

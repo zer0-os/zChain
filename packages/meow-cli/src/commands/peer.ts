@@ -1,4 +1,4 @@
-import { commands } from './peer/index'
+import { commands } from './peer/index.js'
 
 export default {
   command: 'peer <command>',

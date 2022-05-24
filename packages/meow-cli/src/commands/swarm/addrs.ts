@@ -1,4 +1,4 @@
-import { commands } from './addrs/index'
+import { commands } from './addrs/index.js'
 import parseDuration from 'parse-duration'
 
 export default {

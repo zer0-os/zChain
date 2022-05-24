@@ -1,7 +1,7 @@
-import peerLs from './ls'
-import peerFollow from './follow'
-import peerUnfollow from './unfollow'
-import peerFeed from './feed'
+import peerLs from './ls.js'
+import peerFollow from './follow.js'
+import peerUnfollow from './unfollow.js'
+import peerFeed from './feed.js'
 
 export const commands = [
   peerLs,

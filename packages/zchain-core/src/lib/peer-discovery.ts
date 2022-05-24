@@ -1,7 +1,7 @@
 import {Libp2p as ILibp2p} from "libp2p";
 import Bootstrap from 'libp2p-bootstrap';
 import PeerId from "peer-id";
-import { ZStore } from "./storage";
+import { ZStore } from "./storage.js";
 
 /**
  * Class to handle Peer Discovery by libp2p node

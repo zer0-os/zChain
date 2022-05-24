@@ -1,15 +1,15 @@
 import { Libp2p as ILibp2p } from "libp2p";
 import path from "path";
-import { DBs, LogPaths, ZChainMessage } from "../types";
-import { decode, encode } from "./encryption";
+import { DBs, LogPaths, ZChainMessage } from "../types.js";
+import { decode, encode } from "./encryption.js";
 
 import { IPFS as IIPFS } from 'ipfs';
 import OrbitDB from "orbit-db";
 import FeedStore from "orbit-db-feedstore";
 import KeyValueStore from "orbit-db-kvstore";
 import chalk from "chalk";
-import { assertValidzId } from "./zid";
-import { DB_PATH } from "./constants";
+import { assertValidzId } from "./zid.js";
+import { DB_PATH } from "./constants.js";
 
 // zchain operations are at the "system" level
 const SYSPATH = 'sys';

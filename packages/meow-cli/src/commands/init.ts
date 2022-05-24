@@ -2,7 +2,7 @@ import os from 'os';
 import fs from 'fs';
 import path from 'path';
 import chalk from 'chalk';
-import { ipfsPathHelp } from '../utils'
+import { ipfsPathHelp } from '../utils.js'
 import { MEOW } from "meow-app";
 
 export default {

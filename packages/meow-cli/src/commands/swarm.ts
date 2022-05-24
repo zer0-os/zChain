@@ -1,4 +1,4 @@
-import { commands } from './swarm/index'
+import { commands } from './swarm/index.js'
 
 export default {
   command: 'swarm <command>',

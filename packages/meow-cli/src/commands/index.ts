@@ -1,14 +1,5 @@
-import commands from './commands'
-import daemon from './daemon'
-import channel from './channel'
-import sendmeow from './sendmeow';
-import peer from './peer';
-import open from './open';
-// import init from './init';
-import swarm from './swarm';
-import db from './db';
-import set from './set';
-import sandbox from './sandbox';
+
+import sandbox from './sandbox.js';
 
 export const commandList = [
   //init,

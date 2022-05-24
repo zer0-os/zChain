@@ -1,7 +1,7 @@
 import { ZCHAIN } from "zchain-core";
-import { MStore } from "./storage";
+import { MStore } from "./storage.js";
 import  { TwitterApi } from "twitter-api-v2";
-import { TwitterConfig } from "../types";
+import { TwitterConfig } from "../types.js";
 import chalk from 'chalk';
 
 /**

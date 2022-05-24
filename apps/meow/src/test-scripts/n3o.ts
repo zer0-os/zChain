@@ -1,5 +1,5 @@
 import delay from "delay";
-import { MEOW } from "../meow";
+import { MEOW } from "../meow.js";
 
 ;(async () => {
   const meow = new MEOW();

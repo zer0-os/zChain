@@ -1,11 +1,11 @@
-import { stdinToStream, streamToConsole } from "./lib/stream";
-import { ZCHAIN } from "./lib/zchain";
-import { ZStore } from "./lib/storage";
-import { decode, encode } from "./lib/encryption";
-import { RELAY_ADDRS } from "./lib/constants";
-import { assertValidzId, ZID } from "./lib/zid";
-import { isDaemonOn, getIpfs } from "./lib/utils";
-import * as types from "./types";
+import { stdinToStream, streamToConsole } from "./lib/stream.js";
+import { ZCHAIN } from "./lib/zchain.js";
+import { ZStore } from "./lib/storage.js";
+import { decode, encode } from "./lib/encryption.js";
+import { RELAY_ADDRS } from "./lib/constants.js";
+import { assertValidzId, ZID } from "./lib/zid.js";
+import { isDaemonOn, getIpfs } from "./lib/utils.js";
+import * as types from "./types.js";
 
 export {
   ZCHAIN,

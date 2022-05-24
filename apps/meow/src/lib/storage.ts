@@ -1,8 +1,8 @@
 import FeedStore from "orbit-db-feedstore";
 import { ZCHAIN, ZStore, types, decode } from "zchain-core";
-import { password } from "./constants";
+import { password } from "./constants.js";
 import chalk from "chalk";
-import { MeowDBs } from "../types";
+import { MeowDBs } from "../types.js";
 import { fromString } from "uint8arrays/from-string";
 import { toString as uint8ArrayToString } from "uint8arrays/to-string";
 

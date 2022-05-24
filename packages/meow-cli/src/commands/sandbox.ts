@@ -1,4 +1,4 @@
-import { ipfsPathHelp } from '../utils'
+import { ipfsPathHelp } from '../utils.js'
 import repl from "repl";
 import chalk from "chalk";
 import { runInNewContext } from "vm";
