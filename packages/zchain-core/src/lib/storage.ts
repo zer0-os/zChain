@@ -277,11 +277,10 @@ export class ZStore {
         throw new Error(chalk.red(`Wrong signature provided`));
       }
     } catch(e) {
-      console.log(e.toString());
+      throw new Error(e);
     }
 
     const peerMeta = (await this.dbs.metaData.get(this.libp2p.peerId.toB58String()) ?? []) as PeerMeta[];
-
     for (const m of peerMeta) {
       if (m.ethAddress === ethAddress) {
         console.warn(chalk.yellow(`Signature has already been set for ethereum address ${ethAddress}`));
