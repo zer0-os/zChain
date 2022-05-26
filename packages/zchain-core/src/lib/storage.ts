@@ -1,19 +1,16 @@
 import Libp2p from "libp2p";
-import fs from "fs";
 import path from "path";
-import { DBs, LogPaths, PubSubMessage, ZChainMessage } from "../types";
+import { DBs, LogPaths, PeerMeta, PubSubMessage, ZChainMessage } from "../types";
 import { decode, encode } from "./encryption";
-import { toString as uint8ArrayToString } from "uint8arrays/to-string";
-import { fromString } from "uint8arrays/from-string";
 
 import { IPFS as IIPFS } from 'ipfs';
 import OrbitDB from "orbit-db";
 import FeedStore from "orbit-db-feedstore";
 import KeyValueStore from "orbit-db-kvstore";
 import chalk from "chalk";
-import os from 'os'
 import { assertValidzId } from "./zid";
 import { DB_PATH } from "./constants";
+import Web3 from 'web3';
 
 // zchain operations are at the "system" level
 const SYSPATH = 'sys';
@@ -78,12 +75,20 @@ export class ZStore {
     this.paths.default = this.libp2p.peerId.toB58String() + "." + SYSPATH;
     this.paths.feeds = this.paths.default + '.feed';
     this.paths.addressBook = this.paths.default + '.addressBook';
+    this.paths.metaData = SYSPATH + '.metaData';
     //this.paths.channels = path.join(this.paths.default, 'channels');
 
     this.dbs.feeds[this.libp2p.peerId.toB58String()] = await this.getFeedsOrbitDB(
       this.paths.feeds
     );
     this.dbs.addressBook = await this.getKeyValueOrbitDB(this.paths.addressBook);
+    this.dbs.metaData = await this.getKeyValueOrbitDB(this.paths.metaData);
+
+    if (await this.dbs.metaData.get(this.libp2p.peerId.toB58String())) {
+      await this.dbs.metaData.set(this.libp2p.peerId.toB58String(), {
+        "displayName": zIdName
+      });
+    }
   }
 
   /**
@@ -256,5 +261,57 @@ export class ZStore {
     }
 
     console.info(chalk.green(`Successfully set name for ${peerId} to ${name} in local address book`));
+  }
+
+  verifySignature(message: string, ethAddress: string, ethSignature: string) {
+
+  }
+
+  async setEthAddressAndSignature(ethAddress: string, ethSignature: string) {
+    const web3 = new Web3(Web3.givenProvider);
+    if (!ethAddress || !web3.utils.isAddress(ethAddress)) {
+      throw new Error(chalk.red(`Incorrect ethereum address given`));
+    }
+
+    if (!ethSignature) {
+      throw new Error(chalk.red(`No signature given`));
+    }
+
+    // address verification
+    try{
+      let claimedAddress = web3.eth.accounts.recover(this.libp2p.peerId.toB58String(), ethSignature)
+      if(claimedAddress === web3.utils.toChecksumAddress(ethAddress)){
+        console.info(chalk.green(`Ethereum address verified`));
+      }
+      else {
+        throw new Error(chalk.red(`Wrong signature provided`));
+      }
+    } catch(e) {
+      console.log(e.toString());
+    }
+
+    const data = await this.dbs.metaData.get(this.libp2p.peerId.toB58String()) as PeerMeta;
+
+    if (data === undefined) {
+      throw new Error(chalk.red(`Metadata for peer ${this.libp2p.peerId.toB58String()} not found`));
+    }
+
+    await this.dbs.metaData.set(this.libp2p.peerId.toB58String(), {
+      ...data,
+      "ethAddress": ethAddress,
+      "sig": ethSignature
+    });
+
+    console.info(chalk.green(`Successfully set ethAddress & signature in metadata db`));
+  }
+
+  /**
+   * @param peerID
+   * @returns peerMeta :: { displayName, ethaddress, sig }
+   */
+  async getPeerMetaData(peerID: string): Promise<Object> {
+    assertValidzId(peerID);
+
+    return await this.dbs.metaData.get(peerID);
   }
 }

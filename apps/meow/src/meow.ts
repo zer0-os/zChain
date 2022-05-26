@@ -377,13 +377,13 @@ Avalilable functions:
 
 	meow.followZId("<peerIdOrName>")		Follow a peer (by ID or display name)
 	meow.unfollowZId("<peerIdOrName>")  		Unfollow a peer (by ID or display name)
-	meow.getFollowedPeers()        		Lists all peers followed by this node
+	meow.getFollowedPeers()        			Lists all peers followed by this node
 	meow.getPeerFeed("<peerIdOrName>", n) 		Display last "n" messages published by this peer
 
 	meow.followChannel("<channel>")         	Follow a channel (#hashtag)
 	meow.unFollowChannel("<channel>")       	Unfollow a channel (#hashtag)
 	meow.getFollowedChannels()       		Lists all channels followed by this node
-	meow.getChannelFeed("<channel>", n) 	Display last "n" messages published on a channel
+	meow.getChannelFeed("<channel>", n) 		Display last "n" messages published on a channel
 `);
   }
 }

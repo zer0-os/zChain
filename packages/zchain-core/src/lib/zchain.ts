@@ -1,17 +1,16 @@
 import { NOISE } from '@chainsafe/libp2p-noise';
-import Libp2p, { Libp2pOptions } from "libp2p";
+import Libp2p from "libp2p";
 import { IPFS as IIPFS } from 'ipfs';
 import * as IPFS from 'ipfs';
 
 import Gossipsub from "libp2p-gossipsub";
 import KadDHT from 'libp2p-kad-dht';
-import Mdns from "libp2p-mdns";
 import Mplex from "libp2p-mplex";
 import TCP from 'libp2p-tcp';
 import { fromString } from "uint8arrays/from-string";
 import { toString as uint8ArrayToString } from "uint8arrays/to-string";
 
-import { PubSubMessage, ZChainMessage } from "../types";
+import { PubSubMessage } from "../types";
 import { PeerDiscovery } from "./peer-discovery";
 import { ZStore } from './storage';
 import { addWebRTCStarAddrs } from "./transport";
@@ -20,7 +19,6 @@ import chalk from 'chalk';
 import { DB_PATH, IPFS_PATH, RELAY_ADDRS, ZCHAIN_DIR, ZID_PATH } from './constants';
 
 import { Daemon } from 'ipfs-daemon'
-import os from 'os'
 import path from 'path'
 import fs from "fs";
 import { getIpfs, isDaemonOn } from './utils';
@@ -226,4 +224,6 @@ export class ZCHAIN {
 
       await this.zStore.handlePublish(msg, channels);
     }
+
+
 }
