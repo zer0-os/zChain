@@ -27,15 +27,23 @@ export interface LogPaths {
   feeds: string
   topics: string
   addressBook: string
+  metaData: string
 }
 
 export interface FeedMap {
   [key: string]: FeedStore<unknown>
 }
 
+export interface PeerMeta {
+  ethAddress: string
+  signature: string
+}
+
+
 export interface DBs {
   // default: hypercore | undefined // not sure if we need a "default" feed
   feeds: FeedMap
   //topics: FeedMap
   addressBook: KeyValueStore<unknown>
+  metaData: KeyValueStore<unknown>
 }
