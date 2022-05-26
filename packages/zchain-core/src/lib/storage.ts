@@ -272,8 +272,7 @@ export class ZStore {
       let claimedAddress = web3.eth.accounts.recover(this.libp2p.peerId.toB58String(), ethSignature)
       if(claimedAddress === web3.utils.toChecksumAddress(ethAddress)){
         console.info(chalk.green(`Ethereum address verified`));
-      }
-      else {
+      } else {
         throw new Error(chalk.red(`Wrong signature provided`));
       }
     } catch(e) {
@@ -284,6 +283,7 @@ export class ZStore {
     for (const m of peerMeta) {
       if (m.ethAddress === ethAddress) {
         console.warn(chalk.yellow(`Signature has already been set for ethereum address ${ethAddress}`));
+        return;
       }
     }
 
