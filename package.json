@@ -13,7 +13,7 @@
     "apps/*"
   ],
   "engines": {
-    "node": ">=14.11.0"
+    "node": ">=12.11.0"
   },
   "scripts": {
     "build": "yarn workspaces run build",
