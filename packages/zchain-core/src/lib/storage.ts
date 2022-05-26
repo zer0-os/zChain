@@ -83,12 +83,6 @@ export class ZStore {
     );
     this.dbs.addressBook = await this.getKeyValueOrbitDB(this.paths.addressBook);
     this.dbs.metaData = await this.getKeyValueOrbitDB(this.paths.metaData);
-
-    if (await this.dbs.metaData.get(this.libp2p.peerId.toB58String())) {
-      await this.dbs.metaData.set(this.libp2p.peerId.toB58String(), {
-        "displayName": zIdName
-      });
-    }
   }
 
   /**
@@ -263,11 +257,7 @@ export class ZStore {
     console.info(chalk.green(`Successfully set name for ${peerId} to ${name} in local address book`));
   }
 
-  verifySignature(message: string, ethAddress: string, ethSignature: string) {
-
-  }
-
-  async setEthAddressAndSignature(ethAddress: string, ethSignature: string) {
+  async addEthAddressAndSignature(ethAddress: string, ethSignature: string) {
     const web3 = new Web3(Web3.givenProvider);
     if (!ethAddress || !web3.utils.isAddress(ethAddress)) {
       throw new Error(chalk.red(`Incorrect ethereum address given`));
@@ -290,26 +280,30 @@ export class ZStore {
       console.log(e.toString());
     }
 
-    const data = await this.dbs.metaData.get(this.libp2p.peerId.toB58String()) as PeerMeta;
+    const peerMeta = (await this.dbs.metaData.get(this.libp2p.peerId.toB58String()) ?? []) as PeerMeta[];
 
-    if (data === undefined) {
-      throw new Error(chalk.red(`Metadata for peer ${this.libp2p.peerId.toB58String()} not found`));
+    for (const m of peerMeta) {
+      if (m.ethAddress === ethAddress) {
+        console.warn(chalk.yellow(`Signature has already been set for ethereum address ${ethAddress}`));
+      }
     }
 
-    await this.dbs.metaData.set(this.libp2p.peerId.toB58String(), {
-      ...data,
-      "ethAddress": ethAddress,
-      "sig": ethSignature
-    });
+    await this.dbs.metaData.set(this.libp2p.peerId.toB58String(), [
+      ...peerMeta,
+      {
+        "ethAddress": ethAddress,
+        "sig": ethSignature
+      }
+    ]);
 
     console.info(chalk.green(`Successfully set ethAddress & signature in metadata db`));
   }
 
   /**
    * @param peerID
-   * @returns peerMeta :: { displayName, ethaddress, sig }
+   * @returns peerMeta :: [ { ethaddress, sig }, {..} ]
    */
-  async getPeerMetaData(peerID: string): Promise<Object> {
+  async getPeerEthAddressAndSignature(peerID: string): Promise<Object> {
     assertValidzId(peerID);
 
     return await this.dbs.metaData.get(peerID);

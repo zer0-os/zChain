@@ -224,6 +224,4 @@ export class ZCHAIN {
 
       await this.zStore.handlePublish(msg, channels);
     }
-
-
 }

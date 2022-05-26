@@ -35,7 +35,6 @@ export interface FeedMap {
 }
 
 export interface PeerMeta {
-  displayName: string
   ethAddress: string
   signature: string
 }
