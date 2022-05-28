@@ -11,7 +11,7 @@
     "experimentalDecorators": true,
     "esModuleInterop": true,
     "allowJs": true,
-    "module": "NodeNext",
+    "module": "es6",
     "moduleResolution": "Node",
     "resolveJsonModule": true,
     "noImplicitReturns": true,
@@ -29,3 +29,6 @@
     "**/webpack"
   ]
 }
+
+
+// "module": "NodeNext"

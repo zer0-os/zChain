@@ -10,6 +10,10 @@
   "exports": "./build/src/index.js",
   "types": "build/src/index.d.ts",
   "preferGlobal": true,
+  "type": "module",
+  "engines": {
+    "node": ">=14.13.1 || >=16.0.0"
+  },
   "typesVersions": {
     "*": {
       "*": [
@@ -43,9 +47,9 @@
     "meow": "meow"
   },
   "dependencies": {
-    "@ipld/dag-cbor": "^7.0.1",
-    "@ipld/dag-json": "^8.0.9",
-    "@ipld/dag-pb": "^2.1.16",
+    "@ipld/dag-cbor": "^7.0.2",
+    "@ipld/dag-json": "^8.0.10",
+    "@ipld/dag-pb": "^2.1.17",
     "debug": "^4.3.4",
     "err-code": "^3.0.1",
     "ipfs": "^0.62.3",
@@ -54,11 +58,10 @@
     "ipfs-http-client": "^56.0.3",
     "it-all": "^1.0.6",
     "it-glob": "^1.0.2",
-    "yargs": "^16.0.3"
+    "yargs": "^17.5.1"
   },
   "devDependencies": {
-    "@types/yargs": "^16.0.0",
-    "peer-id": "^0.16.0",
+    "@types/yargs": "^17.0.10",
     "sinon": "^14.0.0"
   }
 }
