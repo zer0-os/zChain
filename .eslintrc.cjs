@@ -15,8 +15,8 @@ module.exports = {
   extends: ["standard-with-typescript", "plugin:sonarjs/recommended"],
   parserOptions: {
     ecmaVersion: 2020,
-    "project": ["tsconfig.json"]
-    // sourceType: "module"
+    "project": ["tsconfig.json"],
+    sourceType: "module"
   },
   rules: {
     // "ter-indent": [2, {"FunctionDeclaration": {"parameters": "first"}}],
