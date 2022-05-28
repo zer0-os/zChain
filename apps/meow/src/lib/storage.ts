@@ -41,12 +41,12 @@ export class MStore extends ZStore {
   // todo: review and remove
   // update: i think for sandbox we can use this logic
   private async _initModules() {
-    this.zChain.peerDiscovery.onConnect(async (connection) => {
+    this.zChain.peerDiscovery.onConnect(async (connection: any) => {
       const [_, __, displayStr] = this.getNameAndPeerID(connection.remotePeer.toB58String())
       console.log('Connection established to:', displayStr);
     });
 
-    this.zChain.peerDiscovery.onDiscover((peerId) => {
+    this.zChain.peerDiscovery.onDiscover((peerId: any) => {
       const [_, __, displayStr] = this.getNameAndPeerID(peerId.toB58String())
       console.log('Discovered:', displayStr);
     });

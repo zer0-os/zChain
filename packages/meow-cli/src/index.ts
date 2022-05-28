@@ -15,9 +15,9 @@ export function cli (command, ctxMiddleware) {
       parser
         .scriptName("meow")
         .middleware(ctxMiddleware)
-        .onFinishCommand((data) => {
-          resolve(data)
-        })
+        // .onFinishCommand((data) => {
+        //   resolve(data)
+        // })
         .fail((msg, err, yargs) => {
           // Handle yargs errors
           if (msg) {

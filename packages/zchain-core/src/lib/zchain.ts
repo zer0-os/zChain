@@ -1,4 +1,4 @@
-import { Libp2p as ILibp2p, createLibp2p, Libp2pInit, Libp2pOptions } from "libp2p";
+import { createLibp2p } from "libp2p";
 import { IPFS as IIPFS } from 'ipfs';
 import * as IPFS from 'ipfs';
 
@@ -32,7 +32,7 @@ export const password = "ratikjindal@3445"
 
 export class ZCHAIN {
     ipfs: IIPFS | undefined;
-    node: ILibp2p | undefined;
+    node: any | undefined;
     zId: ZID | undefined;
     peerDiscovery: PeerDiscovery | undefined;
     zStore: ZStore;
@@ -46,6 +46,7 @@ export class ZCHAIN {
         addresses: {
           listen: [
             '/ip4/0.0.0.0/tcp/0/ws',
+            '/ip4/0.0.0.0/tcp/0',
             // custom deployed webrtc-star signalling server
             '/dns4/vast-escarpment-62759.herokuapp.com/tcp/443/wss/p2p-webrtc-star/',
             '/dns4/sheltered-mountain-08581.herokuapp.com/tcp/443/wss/p2p-webrtc-star/',
@@ -80,6 +81,9 @@ export class ZCHAIN {
             interval: 1000
           })
         ],
+        identify: {
+          protocolPrefix: 'ipfs'
+        },
         config: {
           dht: {
             enabled: false
@@ -91,10 +95,6 @@ export class ZCHAIN {
           }
         }
       };
-
-      // // add webrtc-transport if listen addresses has "p2p-webrtc-star"
-      // const starAddresses = options.addresses.listen.filter(a => a.includes('p2p-webrtc-star'));
-      // if (starAddresses.length) { addWebRTCStarAddrs(options); }
 
       const ipfsOptions = {
         libp2p: options,
@@ -128,7 +128,7 @@ export class ZCHAIN {
      * @param name Name assinged to this node (by the user)
      * @returns libp2p node instance
      */
-    async initialize (name: string, listenAddrs?: string[]): Promise<ILibp2p> {
+    async initialize (name: string, listenAddrs?: string[]): Promise<any> {
       fs.mkdirSync(ZID_PATH, { recursive: true });
       fs.mkdirSync(IPFS_PATH, { recursive: true });
       fs.mkdirSync(DB_PATH, { recursive: true });
@@ -142,7 +142,7 @@ export class ZCHAIN {
       });
 
       // need to go through type hacks here..
-      const node = (this.ipfs as any).libp2p as ILibp2p;
+      const node = (this.ipfs as any).libp2p as any;
       console.log("\n★ ", chalk.cyan('zChain Node Activated: ' + node.peerId.toString()) + " ★\n");
       this.node = node;
 
@@ -180,7 +180,7 @@ export class ZCHAIN {
       this.ipfs = daemon._ipfs;
 
       // need to go through type hacks here :(
-      const node = (this.ipfs as any).libp2p as ILibp2p;
+      const node = (this.ipfs as any).libp2p as any;
 
       console.log("\n★", chalk.cyan('zChain Daemon Activated: ' + node.peerId.toString()) + " ★\n");
       this.node = node;
@@ -209,7 +209,7 @@ export class ZCHAIN {
       const libp2p = await createLibp2p(ipfsOptions.libp2p as any);
       (this.ipfs as any).libp2p = libp2p;
 
-      const node = (this.ipfs as any).libp2p as ILibp2p;
+      const node = (this.ipfs as any).libp2p as any;
       this.node = node;
 
       // intialize zstore (note we're initializing both in meow app)
@@ -238,7 +238,7 @@ export class ZCHAIN {
       }
 
       this.ipfs.pubsub.unsubscribe(channel);
-      console.log(this.zId.peerId.toB58String() + " has unsubscribed from: " + channel);
+      console.log(this.zId.peerId.toString() + " has unsubscribed from: " + channel);
     }
 
     async publish (channel: string, msg: string, channels: string[]): Promise<void> {

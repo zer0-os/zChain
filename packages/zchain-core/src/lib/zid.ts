@@ -1,13 +1,14 @@
 import chalk from "chalk";
 import fs from "fs";
 import path from "path";
-import PeerId from "peer-id";
-
-import { ZID_PATH } from "./constants";
+import { peerIdFromString, } from "@libp2p/peer-id";
+import type { PeerId } from '@libp2p/interfaces/peer-id'
+import { createFromJSON, createEd25519PeerId } from '@libp2p/peer-id-factory';
+import { ZID_PATH } from "./constants.js";
 
 export function assertValidzId(peerId: string) {
   try {
-    PeerId.createFromB58String(peerId);
+    peerIdFromString(peerId);
   } catch (error) {
     throw new Error(chalk.red(`Invalid zId: ${peerId}`))
     //console.error(chalk.red(`Invalid zId: ${peerId}`));
@@ -32,20 +33,17 @@ export class ZID {
     if (fs.existsSync(peerIdPath)) {
       console.info(`Using existing peer id at ${peerIdPath}\n`);
       const content = this.readFile(peerIdPath);
-      this.peerId = await PeerId.createFromJSON(JSON.parse(content));
+      this.peerId = await createFromJSON(JSON.parse(content));
       return;
     }
 
     console.info(`PeerId not found. Generating new peer id at ${peerIdPath}`);
-    this.peerId = await PeerId.create();
-    this.writeFile(
-      peerIdPath,
-      JSON.stringify(this.peerId.toJSON(), null, 2)
-    );
-  }
+    this.peerId = await createEd25519PeerId();
 
-  createFromB58String (peerIdStr: string): void {
-    this.peerId = PeerId.createFromB58String(peerIdStr);
+    // this.writeFile(
+    //   peerIdPath,
+    //   JSON.stringify(this.peerId.toJSON(), null, 2)
+    // );
   }
 
   private readFile (path: string): string {

@@ -1,7 +1,7 @@
 import {Libp2p as ILibp2p} from "libp2p";
-import Bootstrap from 'libp2p-bootstrap';
-import PeerId from "peer-id";
+import { Bootstrap } from '@libp2p/bootstrap'
 import { ZStore } from "./storage.js";
+import type { PeerId } from '@libp2p/interfaces/peer-id'
 
 /**
  * Class to handle Peer Discovery by libp2p node
@@ -53,7 +53,7 @@ export class PeerDiscovery {
    */
   onConnect (handler: (connection) => void): void {
     this.node = this._assertNodeInitialized();
-    //this.node.connectionManager.on('peer:connect', handler);
+    (this.node as any).connectionManager.on('peer:connect', handler);
   }
 
   /**
@@ -63,10 +63,10 @@ export class PeerDiscovery {
   onDiscover (handler: (peerId: PeerId) => void): void {
     this.node = this._assertNodeInitialized();
 
-    // this.node.on('peer:discovery', async (peerId: PeerId) => {
-    //   // handler passed by user
-    //   handler(peerId);
-    // });
+    (this.node as any).on('peer:discovery', async (peerId: PeerId) => {
+      // handler passed by user
+      handler(peerId);
+    });
   }
 
   /**
@@ -78,3 +78,43 @@ export class PeerDiscovery {
     this.node.handle(protocol, handler);
   }
 }
+
+
+  // /**
+  //  * On Connect handler.
+  //  * @param handler callback after connection is established
+  //  */
+  // onConnect (handler: (event: CustomEvent<any>) => void): void {
+  //   this.node = this._assertNodeInitialized();
+  //   //this.node.connectionManager.addEventListener('peer:connect', handler);
+  // }
+
+  // /**
+  //  * On Discover handler.
+  //  * @param handler callback after new peer is discovered
+  //  */
+  // onDiscover (handler: (event: CustomEvent<any>) => void): void {
+  //   console.log("N ", this.node);
+
+  //   this.node = this._assertNodeInitialized();
+  //   this.node.addEventListener('peer:discovery', handler);
+  // }
+
+
+  //   // todo: review and remove
+  // // update: i think for sandbox we can use this logic
+  // private async _initModules() {
+  //   this.zChain.peerDiscovery.onConnect(async (event) => {
+  //     const connection = event.detail;
+
+  //     const [_, __, displayStr] = this.getNameAndPeerID(connection.remotePeer.toB58String())
+  //     console.log('Connection established to:', displayStr);
+  //   });
+
+  //   this.zChain.peerDiscovery.onDiscover((event) => {
+  //     const peerInfo = event.detail;
+
+  //     const [_, __, displayStr] = this.getNameAndPeerID(peerInfo.toB58String())
+  //     console.log('Discovered:', displayStr);
+  //   });
+  // }

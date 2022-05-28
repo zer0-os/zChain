@@ -31,8 +31,6 @@ export class MEOW {
   private async connect(peerAddress: string) {
     const connectedPeers = (await this.zchain.ipfs.swarm.peers()).map(p => p.peer);
     const relayAddresses = RELAY_ADDRS.map(addr => addr.split('/p2p/')[1]);
-
-
     // console.log("relayAddresses ", relayAddresses);
 
     if (

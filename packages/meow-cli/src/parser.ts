@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import yargs from 'yargs'
 import { ipfsPathHelp, disablePrinting } from './utils.js'
 import { commandList } from './commands/index.js'
@@ -19,6 +21,7 @@ const args = yargs(process.argv.slice(2))
   .command(commandList)
   .help()
   .strict()
+
   //.completion()
 
 export default args

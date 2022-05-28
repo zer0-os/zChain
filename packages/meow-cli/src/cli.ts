@@ -9,13 +9,12 @@
  * @param {string} [origin]
  */
 import semver from 'semver'
-import * as pkg from './package'
+import * as pkg from './package.js'
 import debug from 'debug'
 
 import { cli } from "./index.js";
 
-import { loadMeow, print, getRepoPath } from './utils';
-import { Context } from './types';
+import { loadMeow, print, getRepoPath } from './utils.js';
 import { MEOW } from "meow-app";
 
 /**
