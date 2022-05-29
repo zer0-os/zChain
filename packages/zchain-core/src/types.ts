@@ -35,10 +35,14 @@ export interface FeedMap {
 }
 
 export interface PeerMeta {
+  defaultAddress: string
+  meta: Meta[]
+}
+
+export interface Meta {
   ethAddress: string
   signature: string
 }
-
 
 export interface DBs {
   // default: hypercore | undefined // not sure if we need a "default" feed
