@@ -257,7 +257,11 @@ export class ZStore {
     console.info(chalk.green(`Successfully set name for ${peerId} to ${name} in local address book`));
   }
 
-  async addEthAddressAndSignature(ethAddress: string, ethSignature: string) {
+  async addEthAddressAndSignature(
+    ethAddress: string,
+    ethSignature: string,
+    setAsDefault: boolean = false
+  ) {
     const web3 = new Web3(Web3.givenProvider);
     if (!ethAddress || !web3.utils.isAddress(ethAddress)) {
       throw new Error(chalk.red(`Incorrect ethereum address given`));
@@ -280,23 +284,62 @@ export class ZStore {
       throw new Error(e);
     }
 
-    const peerMeta = (await this.dbs.metaData.get(this.libp2p.peerId.toB58String()) ?? []) as PeerMeta[];
-    for (const m of peerMeta) {
+    const peerMeta = (await this.dbs.metaData.get(this.libp2p.peerId.toB58String()) ?? {}) as PeerMeta;
+    const meta = peerMeta.meta ?? [];
+    for (const m of meta) {
       if (m.ethAddress === checkSumAddress) {
         console.warn(chalk.yellow(`Signature has already been set for ethereum address ${ethAddress}`));
         return;
       }
     }
 
-    await this.dbs.metaData.set(this.libp2p.peerId.toB58String(), [
-      ...peerMeta,
-      {
+    const metaDataToSave = [
+      ...meta, {
         "ethAddress": checkSumAddress,
         "sig": ethSignature
       }
-    ]);
+    ];
 
-    console.info(chalk.green(`Successfully set ethAddress & signature in metadata db`));
+    let defaultAddress: string;
+    if (setAsDefault === true || meta.length === 0) {
+      defaultAddress = checkSumAddress
+    } else {
+      defaultAddress = peerMeta.defaultAddress;
+    }
+
+    await this.dbs.metaData.set(this.libp2p.peerId.toB58String(), {
+      defaultAddress: defaultAddress,
+      meta: metaDataToSave
+    });
+
+    console.info(chalk.green(`Successfully added ethAddress & signature in metadata db`));
+  }
+
+
+  async updateDefaultEthAddress(ethAddress: string) {
+    const web3 = new Web3(Web3.givenProvider);
+    const checkSumAddress = web3.utils.toChecksumAddress(ethAddress);
+    const peerMeta = (await this.dbs.metaData.get(this.libp2p.peerId.toB58String()) ?? {}) as PeerMeta;
+    const meta = peerMeta.meta ?? [];
+
+    let found = false;
+    for (const m of meta) {
+      if (m.ethAddress === checkSumAddress) {
+        found = true;
+        break;
+      }
+    }
+
+    if (found === false) {
+      throw new Error(chalk.red(`Address ${ethAddress} not found in metadata db. Please use addEthAddressAndSignature to add ethereum address and signature first`));
+    }
+
+    await this.dbs.metaData.set(this.libp2p.peerId.toB58String(), {
+      defaultAddress: checkSumAddress,
+      meta: meta
+    });
+
+    console.info(chalk.green(`Successfully set default eth address to ${ethAddress} in metadata db`));
   }
 
   /**
