@@ -82,7 +82,7 @@ export class ZStore {
       this.paths.feeds
     );
     this.dbs.addressBook = await this.getKeyValueOrbitDB(this.paths.addressBook);
-    this.dbs.metaData = await this.getMetaDataPublicDB();
+    this.dbs.metaData = await this._getMetaDataPublicDB();
   }
 
   /**
@@ -115,7 +115,7 @@ export class ZStore {
   /**
    * Get public orbitdb address of the shared metadata db
    */
-  private async getMetaDataPublicDB(): Promise<KeyValueStore<unknown>> {
+  private async _getMetaDataPublicDB(): Promise<KeyValueStore<unknown>> {
     const options = {
       // Give write access to ourselves
       accessController: {
