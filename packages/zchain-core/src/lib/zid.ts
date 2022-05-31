@@ -1,9 +1,9 @@
 import chalk from "chalk";
 import fs from "fs";
 import path from "path";
-import { peerIdFromString, } from "@libp2p/peer-id";
+import { peerIdFromString } from "@libp2p/peer-id";
 import type { PeerId } from '@libp2p/interfaces/peer-id'
-import { createFromJSON, createEd25519PeerId } from '@libp2p/peer-id-factory';
+import { createFromJSON, createRSAPeerId } from '@libp2p/peer-id-factory';
 import { ZID_PATH } from "./constants.js";
 
 export function assertValidzId(peerId: string) {
@@ -38,7 +38,7 @@ export class ZID {
     }
 
     console.info(`PeerId not found. Generating new peer id at ${peerIdPath}`);
-    this.peerId = await createEd25519PeerId();
+    this.peerId = await createRSAPeerId();
 
     // this.writeFile(
     //   peerIdPath,
