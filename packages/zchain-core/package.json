@@ -44,7 +44,7 @@
     "express": "^4.18.1",
     "libp2p-websockets": "^0.16.2",
     "nyc": "^15.1.0",
-    "typedoc": "^0.22.15"
+    "typedoc": "^0.22.16"
   },
   "files": [
     "build/",
