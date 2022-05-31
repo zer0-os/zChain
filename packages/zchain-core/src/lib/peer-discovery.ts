@@ -51,22 +51,18 @@ export class PeerDiscovery {
    * On Connect handler.
    * @param handler callback after connection is established
    */
-  onConnect (handler: (connection) => void): void {
+  onConnect (handler: (event: CustomEvent<any>) => void): void {
     this.node = this._assertNodeInitialized();
-    (this.node as any).connectionManager.on('peer:connect', handler);
+    this.node.connectionManager.addEventListener('peer:connect', handler);
   }
 
   /**
    * On Discover handler.
    * @param handler callback after new peer is discovered
    */
-  onDiscover (handler: (peerId: PeerId) => void): void {
+  onDiscover (handler: (event: CustomEvent<any>) => void): void {
     this.node = this._assertNodeInitialized();
-
-    (this.node as any).on('peer:discovery', async (peerId: PeerId) => {
-      // handler passed by user
-      handler(peerId);
-    });
+    this.node.addEventListener('peer:discovery', handler);
   }
 
   /**

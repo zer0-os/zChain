@@ -11,7 +11,7 @@ import { Twitter } from "./lib/twitter.js";
 import { TwitterApi } from "twitter-api-v2";
 import express from "express";
 import { shuffle } from "./lib/array.js";
-
+import { Multiaddr } from 'multiaddr';
 
 export class MEOW {
   zchain: ZCHAIN | undefined;
@@ -29,7 +29,7 @@ export class MEOW {
 
 
   private async connect(peerAddress: string) {
-    const connectedPeers = (await this.zchain.ipfs.swarm.peers()).map(p => p.peer);
+    const connectedPeers = (await this.zchain.ipfs.swarm.peers()).map(p => p.peer.toString());
     const relayAddresses = RELAY_ADDRS.map(addr => addr.split('/p2p/')[1]);
     // console.log("relayAddresses ", relayAddresses);
 
@@ -39,12 +39,13 @@ export class MEOW {
     ) {
       // try to connect via relay protocol (using all relays), if not connected & is not a relay
       let connected = false;
-      const shuffledRelays = shuffle(RELAY_ADDRS);
+      const shuffledRelays = shuffle(RELAY_ADDRS) as string[];
       for (const relay of shuffledRelays) {
         if (connected === true) { break; }
         const address = `${relay}/p2p-circuit/p2p/${peerAddress}`;
+
         try {
-          await this.zchain.ipfs.swarm.connect(address);
+          await this.zchain.ipfs.swarm.connect(new Multiaddr(address) as any);
           connected = true;
         } catch (e) {
           //console.log('e ', e);
@@ -83,8 +84,8 @@ export class MEOW {
       const connectedPeers = (await this.zchain.ipfs.swarm.peers()).map(p => p.peer);
       const discoveredPeers = await this.zchain.ipfs.swarm.addrs();
       for (const discoveredPeer of discoveredPeers) {
-        if (relayAddresses.includes(discoveredPeer.id) === false && connectedPeers.includes(discoveredPeer.id) === false) {
-          await this.connect(discoveredPeer.id);
+        if (relayAddresses.includes(discoveredPeer.id.toString()) === false && connectedPeers.includes(discoveredPeer.id) === false) {
+          await this.connect(discoveredPeer.id.toString());
         }
       }
     }, 10 * 1000);
@@ -120,8 +121,8 @@ export class MEOW {
       const connectedPeers = (await this.zchain.ipfs.swarm.peers()).map(p => p.peer);
       const discoveredPeers = await this.zchain.ipfs.swarm.addrs();
       for (const discoveredPeer of discoveredPeers) {
-        if (!(relayAddresses.includes(discoveredPeer.id) && connectedPeers.includes(discoveredPeer.id))) {
-          await this.connect(discoveredPeer.id);
+        if (!(relayAddresses.includes(discoveredPeer.id.toString()) && connectedPeers.includes(discoveredPeer.id))) {
+          await this.connect(discoveredPeer.id.toString());
         }
       }
     }, 10 * 1000);

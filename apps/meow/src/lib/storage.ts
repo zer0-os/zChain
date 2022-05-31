@@ -41,19 +41,23 @@ export class MStore extends ZStore {
   // todo: review and remove
   // update: i think for sandbox we can use this logic
   private async _initModules() {
-    this.zChain.peerDiscovery.onConnect(async (connection: any) => {
-      const [_, __, displayStr] = this.getNameAndPeerID(connection.remotePeer.toB58String())
+    this.zChain.peerDiscovery.onConnect(async (event) => {
+      const connection = event.detail;
+
+      const [_, __, displayStr] = this.getNameAndPeerID(connection.remotePeer.toString())
       console.log('Connection established to:', displayStr);
     });
 
-    this.zChain.peerDiscovery.onDiscover((peerId: any) => {
-      const [_, __, displayStr] = this.getNameAndPeerID(peerId.toB58String())
-      console.log('Discovered:', displayStr);
+    this.zChain.peerDiscovery.onDiscover((event) => {
+      const peerInfo = event.detail;
+
+      const [_, __, displayStr] = this.getNameAndPeerID(peerInfo.id.toString())
+     // console.log('Discovered:', displayStr);
     });
   }
 
   private async _subscribeToFeed(peerId: string) {
-    await this.ipfs.pubsub.subscribe(`${peerId}.sys.feed`, async (msg: types.PubSubMessage) => {
+    await this.ipfs.pubsub.subscribe(`${peerId}.sys.feed`, async (msg) => {
       const orbitDBAddress = uint8ArrayToString(msg.data);
 
       // just a sanity check, it should be defined.
@@ -63,10 +67,11 @@ export class MStore extends ZStore {
         );
       }
 
-      if (this.meowDbs.followingZIds.get(msg.from) === 1 || this.meowDbs.followingZIds.get(msg.from) === undefined) {
-        await this.meowDbs.followingZIds.put(msg.from, uint8ArrayToString(msg.data));
-        this.dbs.feeds[msg.from] = await this.orbitdb.open(orbitDBAddress) as FeedStore<unknown>;
-        this.listenForReplicatedEvent(this.dbs.feeds[msg.from]);
+      const from = msg.from.toString();
+      if (this.meowDbs.followingZIds.get(from) === 1 || this.meowDbs.followingZIds.get(from) === undefined) {
+        await this.meowDbs.followingZIds.put(from, uint8ArrayToString(msg.data));
+        this.dbs.feeds[from] = await this.orbitdb.open(orbitDBAddress) as FeedStore<unknown>;
+        this.listenForReplicatedEvent(this.dbs.feeds[from]);
       }
     });
   }
@@ -117,13 +122,13 @@ export class MStore extends ZStore {
     }
 
     // a) broadcast your "own" feed database address on the channel
-    setInterval(async () => {
-      const feedDB = this.getFeedDB();
-      await this.ipfs.pubsub.publish(
-        `${this.peerID()}.sys.feed`,
-        fromString(feedDB.address.toString())
-      );
-    }, 10 * 1000);
+    // setInterval(async () => {
+    //   const feedDB = this.getFeedDB();
+    //   await this.ipfs.pubsub.publish(
+    //     `${this.peerID()}.sys.feed`,
+    //     fromString(feedDB.address.toString())
+    //   );
+    // }, 10 * 1000);
   }
 
   // log replication ("sync" events accross all dbs)

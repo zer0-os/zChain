@@ -41,18 +41,9 @@ export class ZCHAIN {
       const peerId = this.zId.peerId;
 
       listenAddrs = listenAddrs ?? [];
+      const transportKey = WebRTCStar.prototype[Symbol.toStringTag]
       const options = {
         peerId,
-        addresses: {
-          listen: [
-            '/ip4/0.0.0.0/tcp/0/ws',
-            '/ip4/0.0.0.0/tcp/0',
-            // custom deployed webrtc-star signalling server
-            '/dns4/vast-escarpment-62759.herokuapp.com/tcp/443/wss/p2p-webrtc-star/',
-            '/dns4/sheltered-mountain-08581.herokuapp.com/tcp/443/wss/p2p-webrtc-star/',
-            ...listenAddrs
-          ]
-        },
         addressManager: {
           autoDial: true
         },
@@ -60,7 +51,7 @@ export class ZCHAIN {
           dialTimeout: 60000
         },
         transports: [
-          new TCP(), new WebSockets(), new WebRTCStar({ wrtc: wrtc })
+          new WebRTCStar({ wrtc: wrtc })
         ],
         streamMuxers: [
           new Mplex()
@@ -68,22 +59,19 @@ export class ZCHAIN {
         connectionEncryption: [
           new Noise()
         ],
-        dht: new KadDHT(),
+        //dht: new KadDHT(),
         pubsub: new GossipSub(),
         peerDiscovery: [
-          new Bootstrap({
-            list: [
-              ...RELAY_ADDRS
-            ],
-            interval: 2000
-          }),
+          // new Bootstrap({
+          //   list: [
+          //     ...RELAY_ADDRS
+          //   ],
+          //   interval: 2000
+          // }),
           new MulticastDNS({
             interval: 1000
           })
         ],
-        identify: {
-          protocolPrefix: 'ipfs'
-        },
         config: {
           dht: {
             enabled: false
@@ -92,6 +80,11 @@ export class ZCHAIN {
             enabled: true,
             // uncomment to enable publishing node to listen to it's "own" message
             // emitSelf: true
+          },
+          transport: {
+            [transportKey]: {
+              wrtc // You can use `wrtc` when running in Node.js
+            }
           }
         }
       };
@@ -104,7 +97,14 @@ export class ZCHAIN {
         },
         config: {
           Addresses: {
-            Swarm: [],
+            Swarm: [
+              '/ip4/0.0.0.0/tcp/0/ws',
+              '/ip4/0.0.0.0/tcp/0',
+              // custom deployed webrtc-star signalling server
+              '/dns4/vast-escarpment-62759.herokuapp.com/tcp/443/wss/p2p-webrtc-star/',
+              '/dns4/sheltered-mountain-08581.herokuapp.com/tcp/443/wss/p2p-webrtc-star/',
+              ...listenAddrs
+            ]
           },
           Bootstrap: [
             ...RELAY_ADDRS
@@ -225,8 +225,8 @@ export class ZCHAIN {
         throw new Error('pubsub has not been configured');
       }
 
-      this.ipfs.pubsub.subscribe(channel, async (msg: PubSubMessage) => {
-        const [_, __, displayStr] = this.zStore.getNameAndPeerID(msg.from);
+      this.ipfs.pubsub.subscribe(channel, async (msg) => {
+        const [_, __, displayStr] = this.zStore.getNameAndPeerID(msg.from.toString());
 
         console.log(`Received from ${displayStr} on channel ${channel}: ${uint8ArrayToString(msg.data)}`);
       });
