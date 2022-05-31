@@ -66,8 +66,9 @@ export class ZStore {
       this.ipfs as any,
       {
         directory: path.join(DB_PATH, zIdName),
-        peerId: peerId as string
-      }
+        peerId: peerId.toString(),
+        id: peerId.toString() // note: this is a hack
+      } as any
     );
 
     // eg. ./zchain-db/{peerId}/sys/<log>
