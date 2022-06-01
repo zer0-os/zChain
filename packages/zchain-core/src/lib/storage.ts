@@ -121,12 +121,13 @@ export class ZStore {
       accessController: {
         write: ['*']
       },
-      meta: { meta: "ethaddr-sig" }
+      meta: { data: "ethaddr-sig" }
     }
     const address = await this.orbitdb.determineAddress(
       this.paths.metaData, "keyvalue", options
     );
     const db = await this.orbitdb.open(address.toString()) as any;
+    await db.load();
     return db;
   }
 
