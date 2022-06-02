@@ -18,8 +18,12 @@ export class MEOW {
   zchain: ZCHAIN | undefined;
   store: MStore | undefined;
   twitter: Twitter | undefined;
+  defaultChannels: string[];
 
-  constructor () {}
+  constructor () {
+    // list of "initial" default channels
+    this.defaultChannels = [ '#zchain', '#zero', '#random' ];
+  }
 
   assertZChainInitialized (): ZCHAIN {
     if (this.zchain === undefined) {
@@ -75,6 +79,11 @@ export class MEOW {
     const twitterConfig = this._getTwitterConfig();
     if (twitterConfig) {
       this.twitter = new Twitter(this.zchain, this.store, twitterConfig);
+    }
+
+    // follow default channels
+    for (const c of this.defaultChannels) {
+      await this.followChannel(c);
     }
 
     /**
@@ -388,6 +397,6 @@ Avalilable functions:
   }
 
   getDefaultChannels() {
-    return [ '#zchain', '#zero', '#random' ];
+    return this.defaultChannels;
   }
 }
