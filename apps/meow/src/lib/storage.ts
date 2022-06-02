@@ -105,7 +105,7 @@ export class MStore extends ZStore {
       }
     }
 
-    // similarly load db for each "channel" (#hashtag)
+    // similarly load db for each "network::channel" (#hashtag)
     const channelsList = this.meowDbs.followingChannels.all;
     for (const key in channelsList) {
       // subscribe again if you're restarting the node
@@ -227,7 +227,7 @@ export class MStore extends ZStore {
 
   /**
    * Get public orbitdb address from a channel
-   * @param channel channel to extract db address of
+   * @param channel channel (with network preappended eg. network::channel) to extract db address of
    */
   private async getChannelPublicDBAddress(channel: string): Promise<string> {
     if (channel[0] !== `#`) { channel = '#' + channel; }
@@ -263,12 +263,32 @@ export class MStore extends ZStore {
     return db;
   }
 
+  private async _assertChannelPresentInNetwork(
+    channel: string, network: string): Promise<void> {
+    const networkMetaData = await this.getNetworkMetadata(network);
+    const channels = networkMetaData["channels"];
+    if (!channels.includes(channel)) {
+      throw new Error(chalk.red(
+        `Channel: ${channel} not present in network ${network}. Use getNetworkMetaData(network) to check list of available channels in that network.`
+      ));
+    }
+  }
+
   /**
    * Follow a channel (#hashtag). Save public orbitdb address of the channel
    * to the "followingChannels" database
    * @param channel channel to follow
+   * @param network name of network where channel is. If not passed default network will be used.
    */
-  async followChannel(channel: string) {
+  async followChannel(channel: string, network?: string) {
+    if (network === undefined) {
+      console.warn(chalk.yellow(`Network name not passed. Using default network ${DEFAULT_NETWORK}`));
+      network = DEFAULT_NETWORK;
+    }
+    this._assertChannelPresentInNetwork(channel, network);
+
+    // append network name before channel
+    channel = `${network}::${channel}`;
     const data = this.meowDbs.followingChannels.get(channel);
     if (data === undefined) {
       this.zChain.subscribe(channel);
@@ -290,9 +310,17 @@ export class MStore extends ZStore {
    * Unfollow a channel (#hashtag). Remove entry from database, and drop the channel
    * database, if present.
    * @param channel channel to unfollow
+   * @param network name of network where channel is. If not passed default network will be used.
    */
-  async unFollowChannel(channel: string) {
+  async unFollowChannel(channel: string, network?: string) {
+    if (network === undefined) {
+      console.warn(chalk.yellow(`Network name not passed. Using default network ${DEFAULT_NETWORK}`));
+      network = DEFAULT_NETWORK;
+    }
+    this._assertChannelPresentInNetwork(channel, network);
 
+    // append network name before channel
+    channel = `${network}::${channel}`;
     const data = this.meowDbs.followingChannels.get(channel);
     if (data !== undefined) {
       await this.meowDbs.followingChannels.del(channel);
@@ -310,9 +338,22 @@ export class MStore extends ZStore {
    * Publish a message on a channel. Note: it doesn't matter if "this" node is following
    * this channel or not, we write to the orbitdb on the publishing side of pubsub msg.
    * @param channel channel on which to publish message on
+   * @param message message to publish
+   * @param channels a "list" of channels this message is being published on. (could be multiple channels)
+   * @param network network where the channel belong. If not passed, default network will be used.
    */
-  async publishMessageOnChannel(channel: string, message: string, channels: string[]): Promise<void> {
+  async publishMessageOnChannel(
+    channel: string,
+    message: string,
+    channels: string[],
+    network?: string
+  ): Promise<void> {
     if (channel[0] !== `#`) { channel = '#' + channel; }
+
+    // append network name before channel
+    network = network ?? DEFAULT_NETWORK;
+    this._assertChannelPresentInNetwork(channel, network);
+    channel = `${network}::${channel}`;
 
     let db: FeedStore<unknown>;
     let dropDB = false;
@@ -324,7 +365,7 @@ export class MStore extends ZStore {
       dropDB = true; // since we're not following this channel, we should drop this db, after publish
     }
 
-    await this.appendZChainMessageToFeed(db, message, channels);
+    await this.appendZChainMessageToFeed(db, message, channels, network);
 
     // TODO: think about it more (dropping a db if not following -- the problem is if no
     // other node is online, and we publish & drop the db, the "appended" data us actually LOST)
@@ -335,10 +376,18 @@ export class MStore extends ZStore {
    * Lists messages published on a channel.
    * @param channel channel of which to display feed of
    * @param n number of messages (in reverse order) to list
+   * @param network name of network where channel is. If not passed default network will be used.
    * @returns
    */
-  async getChannelFeed(channel: string, n:number): Promise<types.ZChainMessage[]> {
-    if (channel[0] !== `#`) { channel = '#' + channel; }
+  async getChannelFeed(channel: string, n:number, network?: string): Promise<types.ZChainMessage[]> {
+    if (network === undefined) {
+      console.warn(chalk.yellow(`Network name not passed. Using default network ${DEFAULT_NETWORK}`));
+      network = DEFAULT_NETWORK;
+    }
+    this._assertChannelPresentInNetwork(channel, network);
+
+    // append network name before channel
+    channel = `${network}::${channel}`;
     if (this.meowDbs.followingChannels.get(channel) === undefined) {
       console.error(
         chalk.red(`Cannot fetch feed (Invalid request): You're not following ${channel}`)
@@ -439,20 +488,20 @@ export class MStore extends ZStore {
     console.log(chalk.green(`Successfully created network ${name}`));
   }
 
-  async getNetworkInfo(networkName: string): Promise<Network | undefined> {
-    return await this.meowDbs.networks.get(networkName) as Network;
+  async getNetworkMetadata(networkName: string): Promise<Network | undefined> {
+    const networkMetaData = await this.meowDbs.networks.get(networkName) as Network;
+    if (networkMetaData === undefined) {
+      throw new Error(chalk.red(`Network ${networkName} not found. Please create a network first`));
+    }
+
+    return networkMetaData;
   }
 
   /**
    * Add a new channel in network.
    */
   async addChannelInNetwork(networkName: string, channel: string): Promise<void> {
-    const networkMetaData = await this.getNetworkInfo(networkName);
-    if (networkMetaData === undefined) {
-      console.error(chalk.red(`Network ${networkName} not found. Please create a network first`));
-      return;
-    }
-
+    const networkMetaData = await this.getNetworkMetadata(networkName);
     const channels = networkMetaData["channels"];
     for (const c of channels) {
       if (c === channel) {
@@ -471,21 +520,81 @@ export class MStore extends ZStore {
   }
 
   /**
-   * Follow a network
+   * Join a network
    */
-  async followNetwork(name: string) {
+  async joinNetwork(networkName: string) {
+    const networkMetaData = await this.getNetworkMetadata(networkName);
+    // follow each channel in network
+    const channels = networkMetaData["channels"];
+    for (const c of channels) {
+      await this.followChannel(c, networkName);
+    }
 
+    console.log(chalk.green(`Successfully joined network ${networkName}`));
+  }
+
+  /**
+   * Join a network
+   */
+  async leaveNetwork(networkName: string) {
+    const networkMetaData = await this.getNetworkMetadata(networkName);
+
+    // unfollow each channel in network
+    const channels = networkMetaData["channels"];
+    for (const c of channels) {
+      await this.unFollowChannel(c, networkName);
+    }
+
+    console.log(chalk.green(`Successfully left network ${networkName}`));
+  }
+
+  /**
+   * Returns a list of all networks along with associated channels
+   */
+  async getNetworkList() {
+    const list = [];
+    const networks = await this.meowDbs.networks.all as { [key: string]: Network };
+    for (const key of Object.keys(networks)) {
+      list.push({
+        "network": key,
+        "channels": networks[key]["channels"]
+      })
+    }
+
+    return list;
+  }
+
+  /**
+   * Returns a list of all networks "I am following" along with their associated channels
+   */
+  async getMyNetworks() {
+    // followingChannels is in the format of network::channel
+    const followingChannels = Object.keys(this.meowDbs.followingChannels.all ?? {});
+
+    const followingNetworksData = {};
+    for (const channel of followingChannels) {
+      const [n, c] = channel.split("::");
+      if (n && c) {
+        if (followingNetworksData[n]) {
+          followingNetworksData[n] = {};
+          followingNetworksData[n]["channels"] = [];
+        }
+
+        (followingNetworksData[n]["channels"] ?? []).push(c);
+      }
+    }
+
+    const list = [];
+    for (const key of Object.keys(followingNetworksData)) {
+      list.push({
+        "network": key,
+        "channels": followingNetworksData[key]["channels"]
+      })
+    }
+
+    return list;
   }
 }
-
-/**
-
- Company name, address, mobile no.
- gst stamp
-
-+ 10% profit
-
-*/
 
 
 
