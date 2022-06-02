@@ -16,7 +16,7 @@ import { ZStore } from './storage';
 import { addWebRTCStarAddrs } from "./transport";
 import { ZID } from "./zid";
 import chalk from 'chalk';
-import { DB_PATH, IPFS_PATH, RELAY_ADDRS, ZCHAIN_DIR, ZID_PATH } from './constants';
+import { DB_PATH, DEFAULT_NETWORK, IPFS_PATH, RELAY_ADDRS, ZCHAIN_DIR, ZID_PATH } from './constants';
 
 import { Daemon } from 'ipfs-daemon'
 import path from 'path'
@@ -222,6 +222,13 @@ export class ZCHAIN {
         .publish(channel, fromString(msg))
         .catch(err => { throw new Error(err); });
 
-      await this.zStore.handlePublish(msg, channels);
+      // if channel includes a network::channel, split and pass separately.
+      // this is done to keep zchain independent of networks. Only add network
+      // if it's been passed from top(meow app)
+      let network;
+      if (channel.includes('::')) {
+        network = channel.split('::')[0];
+      }
+      await this.zStore.handlePublish(msg, channels, network);
     }
 }
