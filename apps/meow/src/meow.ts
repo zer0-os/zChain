@@ -386,4 +386,8 @@ Avalilable functions:
 	meow.getChannelFeed("<channel>", n) 		Display last "n" messages published on a channel
 `);
   }
+
+  getDefaultChannels() {
+    return [ '#zchain', '#zero', '#random' ];
+  }
 }
