@@ -12,6 +12,7 @@ import { Twitter } from "./lib/twitter";
 import { TwitterApi } from "twitter-api-v2";
 import express from "express";
 import { shuffle } from "./lib/array";
+import { Network } from "./types";
 
 
 export class MEOW {
@@ -402,5 +403,43 @@ Avalilable functions:
 
   getDefaultChannels() {
     return this.defaultChannels;
+  }
+
+  /*******   Network API's   ********/
+
+  /**
+   * Creates a new network by name. But have a valid zNA + address
+   * @param name name of network. eg. 0://wilder.team
+   * @param channels list of initial channels
+   */
+  async createNetwork(name: string, channels: string[]) {
+    const parsedChannels = [];
+    for (const c of channels) {
+      if (c[0] !== `#`) { parsedChannels.push('#' + c); }
+      else {
+        parsedChannels.push(c);
+      }
+    }
+
+    await this.store.createNetwork(name, channels);
+  }
+
+  /**
+   * Returns network metadata {address, sig, channels}
+   * @param networkName
+   */
+  async getNetworkInfo(networkName: string): Promise<Network | undefined> {
+    return await this.store.getNetworkInfo(networkName);
+  }
+
+  /**
+   * Add a new channel in network.
+   * @param networkName name of network. eg. 0://wilder.team
+   * @param channel channel to add
+   */
+  async addChannelInNetwork(networkName: string, channel: string): Promise<void> {
+    if (channel[0] !== `#`) { channel = '#' + channel; }
+
+    await this.store.addChannelInNetwork(networkName, channel);
   }
 }

@@ -1,10 +1,11 @@
 import FeedStore from "orbit-db-feedstore";
 import { ZCHAIN, ZStore, types, decode } from "zchain-core";
-import { password } from "./constants";
+import { DEFAULT_NETWORK, password } from "./constants";
 import chalk from "chalk";
-import { MeowDBs } from "../types";
+import { MeowDBs, Network } from "../types";
 import { fromString } from "uint8arrays/from-string";
 import { toString as uint8ArrayToString } from "uint8arrays/to-string";
+import KeyValueStore from "orbit-db-kvstore";
 
 
 // meow operations are at the "application" level
@@ -32,7 +33,9 @@ export class MStore extends ZStore {
     this.orbitdb = zChain.zStore.orbitdb;
     this.meowDbs = {} as any;
     this.meowDbs.followingZIds = {} as any;
+    // note: each channel is now denoted as `network::#channel`
     this.meowDbs.followingChannels = {} as any;
+    this.meowDbs.networks = {} as any;
     this.meowDbs.channels = {} as any;
   }
 
@@ -114,6 +117,16 @@ export class MStore extends ZStore {
         this.meowDbs.channels[key] = await this.orbitdb.open(remoteAddress) as FeedStore<unknown>;
         this.listenForReplicatedEvent(this.meowDbs.channels[key]);
       }
+    }
+
+    // initialize network db
+    this.meowDbs.networks = await this._getNetworkPublicDBAddress();
+    if (this.meowDbs.networks.get(DEFAULT_NETWORK) === undefined) {
+      this.meowDbs.networks.put(DEFAULT_NETWORK, {
+        address: "addr",
+        signature: "sig",
+        channels: [ "#zchain", "#zero", "#random" ]
+      })
     }
 
     // a) broadcast your "own" feed database address on the channel
@@ -220,7 +233,7 @@ export class MStore extends ZStore {
     if (channel[0] !== `#`) { channel = '#' + channel; }
 
     const options = {
-      // Give write access to ourselves
+      // Give write access to everyone
       accessController: {
         write: ['*']
       },
@@ -230,6 +243,24 @@ export class MStore extends ZStore {
       APP_PATH + `.${channel}.feed`, 'feed', options
     );
     return address.toString();
+  }
+
+  /**
+   * Get public orbitdb address of networks db
+   */
+  private async _getNetworkPublicDBAddress(): Promise<KeyValueStore<unknown>> {
+    const options = {
+      accessController: {
+        write: ['*']
+      },
+      meta: { name: "networks-db-607532195" }
+    }
+    const address = await this.orbitdb.determineAddress(
+      APP_PATH + `.network`, 'keyvalue', options
+    );
+    const db = await this.orbitdb.open(address.toString()) as any;
+    await db.load();
+    return db;
   }
 
   /**
@@ -392,5 +423,69 @@ export class MStore extends ZStore {
 
     console.log(dbs);
   }
+
+  /**
+   * Creates a new network by name.
+   */
+  async createNetwork(name: string, channels: string[]): Promise<void> {
+
+    // add validation logic first
+    this.meowDbs.networks.put(name, {
+      address: "<addr>",
+      signature: "<sig>",
+      channels: channels
+    });
+
+    console.log(chalk.green(`Successfully created network ${name}`));
+  }
+
+  async getNetworkInfo(networkName: string): Promise<Network | undefined> {
+    return await this.meowDbs.networks.get(networkName) as Network;
+  }
+
+  /**
+   * Add a new channel in network.
+   */
+  async addChannelInNetwork(networkName: string, channel: string): Promise<void> {
+    const networkMetaData = await this.getNetworkInfo(networkName);
+    if (networkMetaData === undefined) {
+      console.error(chalk.red(`Network ${networkName} not found. Please create a network first`));
+      return;
+    }
+
+    const channels = networkMetaData["channels"];
+    for (const c of channels) {
+      if (c === channel) {
+        console.warn(chalk.yellow(`Channel ${channel} is already present in network ${networkName}. Skipping..`));
+        return;
+      }
+    }
+
+    // add validation logic first
+    this.meowDbs.networks.put(networkName, {
+      ...networkMetaData,
+      channels: [ ...channels ].push(channel)
+    });
+
+    console.log(chalk.green(`Successfully added Channel:${channel} in network ${networkName}`));
+  }
+
+  /**
+   * Follow a network
+   */
+  async followNetwork(name: string) {
+
+  }
 }
+
+/**
+
+ Company name, address, mobile no.
+ gst stamp
+
++ 10% profit
+
+*/
+
+
 
