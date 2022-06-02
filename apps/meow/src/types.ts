@@ -2,10 +2,10 @@ import { types as ztypes } from "zchain-core";
 import KeyValueStore from "orbit-db-kvstore";
 
 export interface MeowDBs {
-  // default: hypercore | undefined // not sure if we need a "default" feed
   channels: ztypes.FeedMap
   followingZIds: KeyValueStore<unknown>
   followingChannels: KeyValueStore<unknown>
+  networks: KeyValueStore<unknown>
 }
 
 export interface TwitterConfig {
@@ -13,4 +13,10 @@ export interface TwitterConfig {
   appSecret: string,
   accessToken: string,
   accessSecret: string
+}
+
+export interface Network {
+  address: string,
+  signature: string,
+  channels: string[]
 }
