@@ -1,5 +1,5 @@
 import { RELAY_ADDRS, ZCHAIN } from "zchain-core";
-import { APP_KEY, APP_SECRET, EVERYTHING_TOPIC, MAX_MESSAGE_LEN, ZERO_TOPIC } from "./lib/constants";
+import { APP_KEY, APP_SECRET, DEFAULT_NETWORK, EVERYTHING_TOPIC, MAX_MESSAGE_LEN, ZERO_TOPIC } from "./lib/constants";
 import { MStore } from "./lib/storage";
 import { Daemon } from 'ipfs-daemon'
 import chalk from "chalk";
@@ -162,8 +162,12 @@ export class MEOW {
     await this.store.init();
   }
 
-  async sendMeow (msg: string, publishOnTwitter: boolean = false): Promise<void> {
+  async sendMeow (msg: string, publishOnTwitter: boolean = false, network?: string): Promise<void> {
     this.zchain = this.assertZChainInitialized();
+    if (network === undefined) {
+      console.warn(chalk.yellow(`Network name not passed. Using default network ${DEFAULT_NETWORK}`));
+      network = DEFAULT_NETWORK;
+    }
 
     // only publish (to twitter) if twitter-config is enabled AND flag is true
     const publishToTwitter = this.twitter && publishOnTwitter === true;
@@ -185,8 +189,8 @@ export class MEOW {
 
     // publish on zchain
     for (const hashtag of channels) {
-      await this.zchain.publish(hashtag, msg, channels);
-      await this.store.publishMessageOnChannel(hashtag, msg, channels);
+      await this.zchain.publish(`${network}::${hashtag}`, msg, channels);
+      await this.store.publishMessageOnChannel(hashtag, msg, channels, network);
     }
 
     console.log(chalk.green('Sent on zchain!'));
@@ -429,7 +433,7 @@ Avalilable functions:
    * @param networkName
    */
   async getNetworkInfo(networkName: string): Promise<Network | undefined> {
-    return await this.store.getNetworkInfo(networkName);
+    return await this.store.getNetworkMetadata(networkName);
   }
 
   /**
