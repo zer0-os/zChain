@@ -397,6 +397,6 @@ Avalilable functions:
   }
 
   getDefaultChannels() {
-    return this.defaultChannels;;
+    return this.defaultChannels;
   }
 }
