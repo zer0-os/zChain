@@ -172,7 +172,7 @@ export class MEOW {
     }
 
     // extract hashtags(channels) from the msg
-    const hashtags = msg.match(/#[a-z0-9_]+/g) ?? [];
+    const hashtags = msg.match(/#[a-z]+/gi) ?? [];
 
     // publish message on each channel
     // messages published to "#everything" will be listened by only "super node"
