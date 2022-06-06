@@ -30,9 +30,9 @@ This shell script will install, build and link all the packages. Try running `me
 ### Windows
 
 For installation on windows, check out this great infographic posted by [0://wilder.LΘΤΣΝΣ](https://twitter.com/_LOTENE), [here](https://twitter.com/_LOTENE/status/1520865654533988354).
-![diag](https://user-images.githubusercontent.com/33264364/166919430-dff1f68e-cea4-4ee7-aabe-63620f8f392c.jpeg)
 
-### Mac
+
+### MacOS
 
 **NOTE:** For *macOS* users, it is recommended to use `nvm` to install and use nodejs instead of `brew`. Follow [this](https://medium.com/@lucaskay/install-node-and-npm-using-nvm-in-mac-or-linux-ubuntu-f0c85153e173) tutorial to setup `nvm` on mac/linux. If you're getting `nvm: command not found` after running the curl, simply do `source ~/.zshrc` (or mac), or `source ~/.bashrc` (on linux). Make sure **not** to install nodejs using sudo.
 
@@ -84,7 +84,7 @@ To install and run zchain we'll need to switch the architecture from `arm` to `x
 Try running `meow --help` to check if the installation was proper.
 
 **NOTES:**
-+ Don't forget the "exit" the `x64` architecture. Simply run `exit` on the terminal, to get back to `arm` arch.
++ After running zchain, don't forget the "exit" the `x64` architecture. Simply run `exit` on the terminal, to get back to `arm` arch.
 + Currently this installation does **not** guarantee that zchain will run on m1 macs successfully. On some m1's it was able to run zchain after following the steps above. So for now this is still a *wip*.
 
 
