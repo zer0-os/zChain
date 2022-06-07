@@ -6,10 +6,18 @@ A zChain is a chain of Messages. Each Message contains a hash as a reference to 
 
 + Node 14+
 + Yarn `v1.2+`. Use `npm install -g yarn` to install `yarn`
++ Git
 
 ## Setup
 
+First clone the git repo:
+```sh
+git clone https://github.com/zer0-os/zChain.git
+cd zChain/
+```
+
 ### Linux
+
 After cloning the git repo, simply run:
 ```sh
 sh install.sh
@@ -19,28 +27,80 @@ This shell script will install, build and link all the packages. Try running `me
 
 ![image](https://user-images.githubusercontent.com/33264364/165640076-fe28e4d3-83a1-48da-9bc7-72ef58dc6ad8.png)
 
-**NOTE**: If you're getting *Permission denied* error on the bin file, simply do
-```sh
-chmod +x <path-to-file>
-```
+### Windows
+
+For installation on windows, check out this great infographic posted by [0://wilder.LΘΤΣΝΣ](https://twitter.com/_LOTENE), [here](https://twitter.com/_LOTENE/status/1520865654533988354).
+
+
+### MacOS
+
+**NOTE:** For *macOS* users, it is recommended to use `nvm` to install and use nodejs instead of `brew`. Follow [this](https://medium.com/@lucaskay/install-node-and-npm-using-nvm-in-mac-or-linux-ubuntu-f0c85153e173) tutorial to setup `nvm` on mac/linux. If you're getting `nvm: command not found` after running the curl, simply do `source ~/.zshrc` (or mac), or `source ~/.bashrc` (on linux). Make sure **not** to install nodejs using sudo.
+
+#### Intel based macs (*not m1* )
+
+For intel chip macs, you can follow the same steps for `linux` setup, i.e simply run `install.sh` after cloning the repo. If you're getting a permission denied issue, you likely installed nodejs with sudo. Follow the comment in above section to reinstall node using `nvm`.
+
+#### M1 macs (ARM architecture)
+
+For `m1` chip macs, the installation/running zchain can be a bit tricky. There are some dependencies which are incompatible with the mac arm architecture, specifically `wrtc`. (open) Issue can be found [here](https://github.com/node-webrtc/node-webrtc/issues/698).
+
+To install and run zchain we'll need to switch the architecture from `arm` to `x64`. And then we will continue with the setup. Steps:
+
++ Switch architecture from `arm` to `x64`
+  ```sh
+  arch -x86_64 zsh
+  ```
+
++ Confirm the "current" architure you're on by running
+  ```
+  arch
+  ```
+  This should return `x64`/`i3`/`i9`..
+
++ Install nodejs using `nvm`. We'll install nodev16 (**not** 18). This is because of incompatibility with the latest node with m1.
+  ```
+  // run install script
+  curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.38.0/install.sh | bash
+
+  // reload terminal
+  source ~/.zshrc
+
+  // install node v16
+  nvm install 16
+
+  // use nodev16
+  nvm use 16
+  ```
+
++ Confirm the nodejs installation by running `node -v && npm -v` and checking the respective versions of node and npm.
+
++ Now, we can clone the repo and setup zchain (similar to other OS setups):
+  ```sh
+  git clone https://github.com/zer0-os/zChain.git
+  cd zChain/
+  sh install.sh
+  ```
+
+Try running `meow --help` to check if the installation was proper.
+
+**NOTES:**
++ After running zchain, don't forget the "exit" the `x64` architecture. Simply run `exit` on the terminal, to get back to `arm` arch.
++ Currently this installation does **not** guarantee that zchain will run on m1 macs successfully. On some m1's it was able to run zchain after following the steps above. So for now this is still a *wip*.
+
+
+## Clean
 
 To remove *node_modules* & all *build/* folders run
 ```sh
 sh clean.sh
 ```
 
-### Windows
-
-For installation on windows, check out this great infographic posted by [0://wilder.LΘΤΣΝΣ](https://twitter.com/_LOTENE), [here](https://twitter.com/_LOTENE/status/1520865654533988354).
-![diag](https://user-images.githubusercontent.com/33264364/166919430-dff1f68e-cea4-4ee7-aabe-63620f8f392c.jpeg)
-
-
 ## Quick Start
 
 To quickly get up a node up & running, you can start up the sandbox. It has the zChain (ipfs) node initialized within the `meow` global var (present in the execution environment of the REPL):
 ```sh
 # clone + setup
-git clone <zChain-repo>
+git clone <zChain-repo-git-url>
 sh install.sh
 
 # run the sandbox
@@ -50,14 +110,7 @@ meow sandbox
 The screen should look something like this:
 ![image](https://user-images.githubusercontent.com/33264364/165646660-fdf65586-f324-48ca-bd02-6dea50996e75.png)
 
-You can run another node, on another terminal screen (using `meow sandbox` again). Then those two nodes can interact with each other.
-
-**NOTE**: Each time you run `meow sandbox` it will spawn up a new node and database. If you want to connect to an existing node with a peerID, pass the `--zId` flag with path to the peerID json. Eg.
-```sh
-meow sandbox --zId ~/.jsipfs/QmdtyPhSdzDKDXHKSpJPwBwnK4b1ZqbYuRjZaUNzYPih5w/peer.json
-```
-
-This will launch the sandbox with previously connected (`<QmdtyPhSdzDKDXHKSpJPwBwnK4b1ZqbYuRjZaUNzYPih5w>`) node.
+You can run another node, on another terminal screen (using `meow sandbox` again, and select the option "*Initialize a new node*"). Then those two nodes can interact with each other.
 
 ## Packages
 
@@ -65,7 +118,7 @@ The repo has mainly been divided into 3 packages
 
 + `packages/zchain-core`: Contains code for core zChain package (library).
 + `packages/apps/meow`: A meow app (p2p twitter like) built on top of zChain.
-+ `packages/meow-cli`: CLI for meow app.
++ `packages/meow-cli`: CLI for meow app. Currently supports only the "sandbox" command.
 
 ## Usage
 
