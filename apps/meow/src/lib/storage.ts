@@ -1,6 +1,6 @@
 import FeedStore from "orbit-db-feedstore";
 import { ZCHAIN, ZStore, types, decode } from "zchain-core";
-import { DEFAULT_NETWORK, password } from "./constants";
+import { DEFAULT_NETWORK, EVERYTHING_TOPIC, password } from "./constants";
 import chalk from "chalk";
 import { MeowDBs, Network } from "../types";
 import { fromString } from "uint8arrays/from-string";
@@ -119,14 +119,18 @@ export class MStore extends ZStore {
       }
     }
 
-    // initialize network db
+    // initialize network db with default network + channels
     this.meowDbs.networks = await this._getNetworkPublicDBAddress();
     if (this.meowDbs.networks.get(DEFAULT_NETWORK) === undefined) {
-      this.meowDbs.networks.put(DEFAULT_NETWORK, {
+      const channels = [ "#zchain", "#zero", "#random", EVERYTHING_TOPIC ];
+      await this.meowDbs.networks.put(DEFAULT_NETWORK, {
         address: "addr",
         signature: "sig",
-        channels: [ "#zchain", "#zero", "#random" ]
-      })
+        channels: [ "#zchain", "#zero", "#random", EVERYTHING_TOPIC ]
+      });
+
+      // follow each channel from network as well
+      for (const c of channels) { await this.followChannel(c, DEFAULT_NETWORK); }
     }
 
     // a) broadcast your "own" feed database address on the channel
@@ -285,7 +289,7 @@ export class MStore extends ZStore {
       console.warn(chalk.yellow(`Network name not passed. Using default network ${DEFAULT_NETWORK}`));
       network = DEFAULT_NETWORK;
     }
-    this._assertChannelPresentInNetwork(channel, network);
+    await this._assertChannelPresentInNetwork(channel, network);
 
     // append network name before channel
     channel = `${network}::${channel}`;
@@ -317,7 +321,7 @@ export class MStore extends ZStore {
       console.warn(chalk.yellow(`Network name not passed. Using default network ${DEFAULT_NETWORK}`));
       network = DEFAULT_NETWORK;
     }
-    this._assertChannelPresentInNetwork(channel, network);
+    await this._assertChannelPresentInNetwork(channel, network);
 
     // append network name before channel
     channel = `${network}::${channel}`;
@@ -352,7 +356,7 @@ export class MStore extends ZStore {
 
     // append network name before channel
     network = network ?? DEFAULT_NETWORK;
-    this._assertChannelPresentInNetwork(channel, network);
+    await this._assertChannelPresentInNetwork(channel, network);
     channel = `${network}::${channel}`;
 
     let db: FeedStore<unknown>;
@@ -384,7 +388,7 @@ export class MStore extends ZStore {
       console.warn(chalk.yellow(`Network name not passed. Using default network ${DEFAULT_NETWORK}`));
       network = DEFAULT_NETWORK;
     }
-    this._assertChannelPresentInNetwork(channel, network);
+    await this._assertChannelPresentInNetwork(channel, network);
 
     // append network name before channel
     channel = `${network}::${channel}`;
@@ -479,13 +483,14 @@ export class MStore extends ZStore {
   async createNetwork(name: string, channels: string[]): Promise<void> {
 
     // add validation logic first
-    this.meowDbs.networks.put(name, {
+    await this.meowDbs.networks.put(name, {
       address: "<addr>",
       signature: "<sig>",
       channels: channels
     });
 
     console.log(chalk.green(`Successfully created network ${name}`));
+    await this.joinNetwork(name);
   }
 
   async getNetworkMetadata(networkName: string): Promise<Network | undefined> {
@@ -511,7 +516,7 @@ export class MStore extends ZStore {
     }
 
     // add validation logic first
-    this.meowDbs.networks.put(networkName, {
+    await this.meowDbs.networks.put(networkName, {
       ...networkMetaData,
       channels: [ ...channels ].push(channel)
     });
@@ -527,6 +532,8 @@ export class MStore extends ZStore {
     // follow each channel in network
     const channels = networkMetaData["channels"];
     for (const c of channels) {
+      if (c === EVERYTHING_TOPIC) { continue; }
+
       await this.followChannel(c, networkName);
     }
 
@@ -575,7 +582,7 @@ export class MStore extends ZStore {
     for (const channel of followingChannels) {
       const [n, c] = channel.split("::");
       if (n && c) {
-        if (followingNetworksData[n]) {
+        if (followingNetworksData[n] === undefined) {
           followingNetworksData[n] = {};
           followingNetworksData[n]["channels"] = [];
         }

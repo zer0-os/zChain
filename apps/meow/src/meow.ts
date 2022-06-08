@@ -19,12 +19,8 @@ export class MEOW {
   zchain: ZCHAIN | undefined;
   store: MStore | undefined;
   twitter: Twitter | undefined;
-  defaultChannels: string[];
 
-  constructor () {
-    // list of "initial" default channels
-    this.defaultChannels = [ '#zchain', '#zero', '#random' ];
-  }
+  constructor () {}
 
   assertZChainInitialized (): ZCHAIN {
     if (this.zchain === undefined) {
@@ -80,11 +76,6 @@ export class MEOW {
     const twitterConfig = this._getTwitterConfig();
     if (twitterConfig) {
       this.twitter = new Twitter(this.zchain, this.store, twitterConfig);
-    }
-
-    // follow default channels
-    for (const c of this.defaultChannels) {
-      await this.followChannel(c);
     }
 
     /**
@@ -177,7 +168,7 @@ export class MEOW {
     }
 
     // extract hashtags(channels) from the msg
-    const hashtags = msg.match(/#[a-z]+/gi) ?? [];
+    const hashtags = msg.match(/#\w+/g) ?? [];
     const lowerCaseHashTags = hashtags.map(h => h.toLowerCase());
 
     // publish message on each channel
@@ -214,19 +205,19 @@ export class MEOW {
     await this.store.unfollowZId(peerIdOrName);
   }
 
-  async followChannel(channel: string) {
+  async followChannel(channel: string, network?: string) {
     if (channel[0] !== `#`) { channel = '#' + channel; }
     channel = channel.toLowerCase();
 
-    await this.store.followChannel(channel);
+    await this.store.followChannel(channel, network);
   }
 
-  async unFollowChannel(channel: string) {
+  async unFollowChannel(channel: string, network?: string) {
     if (channel[0] !== `#`) { channel = '#' + channel; }
     channel = channel.toLowerCase();
 
     this.zchain.unsubscribe(channel);
-    await this.store.unFollowChannel(channel);
+    await this.store.unFollowChannel(channel, network);
   }
 
   getFollowedPeers() {
@@ -241,11 +232,11 @@ export class MEOW {
     return await this.store.getPeerFeed(peerIdOrName, n);
   }
 
-  async getChannelFeed(channel: string, n: number) {
+  async getChannelFeed(channel: string, n: number, network?: string) {
     if (channel[0] !== `#`) { channel = '#' + channel; }
     channel = channel.toLowerCase();
 
-    return await this.store.getChannelFeed(channel, n);
+    return await this.store.getChannelFeed(channel, n, network);
   }
 
   async listDBs() {
@@ -405,10 +396,6 @@ Avalilable functions:
 `);
   }
 
-  getDefaultChannels() {
-    return this.defaultChannels;
-  }
-
   /*******   Network API's   ********/
 
   /**
@@ -418,21 +405,21 @@ Avalilable functions:
    */
   async createNetwork(name: string, channels: string[]) {
     const parsedChannels = [];
-    for (const c of channels) {
-      if (c[0] !== `#`) { parsedChannels.push('#' + c); }
-      else {
-        parsedChannels.push(c);
-      }
+    for (let c of channels) {
+      if (c[0] !== `#`) { c = '#' + c; }
+      c = c.toLowerCase();
+
+      parsedChannels.push(c);
     }
 
-    await this.store.createNetwork(name, channels);
+    await this.store.createNetwork(name, [ ...parsedChannels, EVERYTHING_TOPIC ]);
   }
 
   /**
    * Returns network metadata {address, sig, channels}
    * @param networkName
    */
-  async getNetworkInfo(networkName: string): Promise<Network | undefined> {
+  async getNetworkMetadata(networkName: string): Promise<Network | undefined> {
     return await this.store.getNetworkMetadata(networkName);
   }
 
@@ -443,6 +430,7 @@ Avalilable functions:
    */
   async addChannelInNetwork(networkName: string, channel: string): Promise<void> {
     if (channel[0] !== `#`) { channel = '#' + channel; }
+    channel = channel.toLowerCase();
 
     await this.store.addChannelInNetwork(networkName, channel);
   }
@@ -465,13 +453,13 @@ Avalilable functions:
    * Returns a list of all networks along with associated channels
    */
   async getNetworkList() {
-    await this.store.getNetworkList();
+    return await this.store.getNetworkList();
   }
 
   /**
    * Returns a list of all networks "I am following" along with their associated channels
    */
   async getMyNetworks() {
-    await this.store.getMyNetworks();
+    return await this.store.getMyNetworks();
   }
 }
