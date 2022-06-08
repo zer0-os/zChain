@@ -173,10 +173,11 @@ export class MEOW {
 
     // extract hashtags(channels) from the msg
     const hashtags = msg.match(/#[a-z]+/gi) ?? [];
+    const lowerCaseHashTags = hashtags.map(h => h.toLowerCase());
 
     // publish message on each channel
     // messages published to "#everything" will be listened by only "super node"
-    const channels = [ EVERYTHING_TOPIC, ...hashtags];
+    const channels = [ EVERYTHING_TOPIC, ...lowerCaseHashTags];
     if (publishToTwitter === true && !channels.includes(ZERO_TOPIC)) {
       channels.push(ZERO_TOPIC);
     }
@@ -210,12 +211,14 @@ export class MEOW {
 
   async followChannel(channel: string) {
     if (channel[0] !== `#`) { channel = '#' + channel; }
+    channel = channel.toLowerCase();
 
     await this.store.followChannel(channel);
   }
 
   async unFollowChannel(channel: string) {
     if (channel[0] !== `#`) { channel = '#' + channel; }
+    channel = channel.toLowerCase();
 
     this.zchain.unsubscribe(channel);
     await this.store.unFollowChannel(channel);
@@ -235,6 +238,7 @@ export class MEOW {
 
   async getChannelFeed(channel: string, n: number) {
     if (channel[0] !== `#`) { channel = '#' + channel; }
+    channel = channel.toLowerCase();
 
     return await this.store.getChannelFeed(channel, n);
   }
