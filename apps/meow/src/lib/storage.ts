@@ -534,7 +534,7 @@ export class MStore extends ZStore {
   }
 
   /**
-   * Join a network
+   * Leave a network
    */
   async leaveNetwork(networkName: string) {
     const networkMetaData = await this.getNetworkMetadata(networkName);

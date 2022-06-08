@@ -446,4 +446,32 @@ Avalilable functions:
 
     await this.store.addChannelInNetwork(networkName, channel);
   }
+
+  /**
+   * Join a network. Automatically subscribe to all channels present in the network.
+   */
+  async joinNetwork(networkName: string) {
+    await this.store.joinNetwork(networkName);
+  }
+
+  /**
+   * Leave a network. Automatically unsubscribe from all channels present in the network.
+   */
+  async leaveNetwork(networkName: string) {
+    await this.store.leaveNetwork(networkName);
+  }
+
+  /**
+   * Returns a list of all networks along with associated channels
+   */
+  async getNetworkList() {
+    await this.store.getNetworkList();
+  }
+
+  /**
+   * Returns a list of all networks "I am following" along with their associated channels
+   */
+  async getMyNetworks() {
+    await this.store.getMyNetworks();
+  }
 }
