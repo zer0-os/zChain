@@ -481,6 +481,10 @@ export class MStore extends ZStore {
    * Creates a new network by name.
    */
   async createNetwork(name: string, channels: string[]): Promise<void> {
+    const peerMeta = await this.getPeerEthAddressAndSignature(this.peerID()) as types.PeerMeta;
+    if (peerMeta === undefined) {
+      throw new Error(`No ethereum address and signature found for ${this.peerID()}`);
+    }
 
     // add validation logic first
     await this.meowDbs.networks.put(name, {

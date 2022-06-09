@@ -366,7 +366,7 @@ export class ZStore {
 
   /**
    * @param peerID
-   * @returns peerMeta :: [ { ethaddress, sig }, {..} ]
+   * @returns peerMeta :: { defaultAddress: <addr>, meta: [ { ethaddress, sig }, {..} ] }
    */
   async getPeerEthAddressAndSignature(peerID: string): Promise<Object> {
     assertValidzId(peerID);
