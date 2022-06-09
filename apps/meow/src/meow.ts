@@ -1,5 +1,5 @@
 import { RELAY_ADDRS, ZCHAIN } from "zchain-core";
-import { APP_KEY, APP_SECRET, EVERYTHING_TOPIC, MAX_MESSAGE_LEN, ZERO_TOPIC } from "./lib/constants";
+import { APP_KEY, APP_SECRET, DEFAULT_NETWORK, EVERYTHING_TOPIC, MAX_MESSAGE_LEN, ZERO_TOPIC } from "./lib/constants";
 import { MStore } from "./lib/storage";
 import { Daemon } from 'ipfs-daemon'
 import chalk from "chalk";
@@ -12,18 +12,15 @@ import { Twitter } from "./lib/twitter";
 import { TwitterApi } from "twitter-api-v2";
 import express from "express";
 import { shuffle } from "./lib/array";
+import { Network } from "./types";
 
 
 export class MEOW {
   zchain: ZCHAIN | undefined;
   store: MStore | undefined;
   twitter: Twitter | undefined;
-  defaultChannels: string[];
 
-  constructor () {
-    // list of "initial" default channels
-    this.defaultChannels = [ '#zchain', '#zero', '#random' ];
-  }
+  constructor () {}
 
   assertZChainInitialized (): ZCHAIN {
     if (this.zchain === undefined) {
@@ -79,11 +76,6 @@ export class MEOW {
     const twitterConfig = this._getTwitterConfig();
     if (twitterConfig) {
       this.twitter = new Twitter(this.zchain, this.store, twitterConfig);
-    }
-
-    // follow default channels
-    for (const c of this.defaultChannels) {
-      await this.followChannel(c);
     }
 
     /**
@@ -161,8 +153,12 @@ export class MEOW {
     await this.store.init();
   }
 
-  async sendMeow (msg: string, publishOnTwitter: boolean = false): Promise<void> {
+  async sendMeow (msg: string, publishOnTwitter: boolean = false, network?: string): Promise<void> {
     this.zchain = this.assertZChainInitialized();
+    if (network === undefined) {
+      console.warn(chalk.yellow(`Network name not passed. Using default network ${DEFAULT_NETWORK}`));
+      network = DEFAULT_NETWORK;
+    }
 
     // only publish (to twitter) if twitter-config is enabled AND flag is true
     const publishToTwitter = this.twitter && publishOnTwitter === true;
@@ -172,7 +168,7 @@ export class MEOW {
     }
 
     // extract hashtags(channels) from the msg
-    const hashtags = msg.match(/#[a-z]+/gi) ?? [];
+    const hashtags = msg.match(/#\w+/g) ?? [];
     const lowerCaseHashTags = hashtags.map(h => h.toLowerCase());
 
     // publish message on each channel
@@ -184,8 +180,8 @@ export class MEOW {
 
     // publish on zchain
     for (const hashtag of channels) {
-      await this.zchain.publish(hashtag, msg, channels);
-      await this.store.publishMessageOnChannel(hashtag, msg, channels);
+      await this.zchain.publish(`${network}::${hashtag}`, msg, channels);
+      await this.store.publishMessageOnChannel(hashtag, msg, channels, network);
     }
 
     console.log(chalk.green('Sent on zchain!'));
@@ -209,19 +205,19 @@ export class MEOW {
     await this.store.unfollowZId(peerIdOrName);
   }
 
-  async followChannel(channel: string) {
+  async followChannel(channel: string, network?: string) {
     if (channel[0] !== `#`) { channel = '#' + channel; }
     channel = channel.toLowerCase();
 
-    await this.store.followChannel(channel);
+    await this.store.followChannel(channel, network);
   }
 
-  async unFollowChannel(channel: string) {
+  async unFollowChannel(channel: string, network?: string) {
     if (channel[0] !== `#`) { channel = '#' + channel; }
     channel = channel.toLowerCase();
 
     this.zchain.unsubscribe(channel);
-    await this.store.unFollowChannel(channel);
+    await this.store.unFollowChannel(channel, network);
   }
 
   getFollowedPeers() {
@@ -236,11 +232,11 @@ export class MEOW {
     return await this.store.getPeerFeed(peerIdOrName, n);
   }
 
-  async getChannelFeed(channel: string, n: number) {
+  async getChannelFeed(channel: string, n: number, network?: string) {
     if (channel[0] !== `#`) { channel = '#' + channel; }
     channel = channel.toLowerCase();
 
-    return await this.store.getChannelFeed(channel, n);
+    return await this.store.getChannelFeed(channel, n, network);
   }
 
   async listDBs() {
@@ -400,7 +396,70 @@ Avalilable functions:
 `);
   }
 
-  getDefaultChannels() {
-    return this.defaultChannels;
+  /*******   Network API's   ********/
+
+  /**
+   * Creates a new network by name. But have a valid zNA + address
+   * @param name name of network. eg. 0://wilder.team
+   * @param channels list of initial channels
+   */
+  async createNetwork(name: string, channels: string[]) {
+    const parsedChannels = [];
+    for (let c of channels) {
+      if (c[0] !== `#`) { c = '#' + c; }
+      c = c.toLowerCase();
+
+      parsedChannels.push(c);
+    }
+
+    await this.store.createNetwork(name, [ ...parsedChannels, EVERYTHING_TOPIC ]);
+  }
+
+  /**
+   * Returns network metadata {address, sig, channels}
+   * @param networkName
+   */
+  async getNetworkMetadata(networkName: string): Promise<Network | undefined> {
+    return await this.store.getNetworkMetadata(networkName);
+  }
+
+  /**
+   * Add a new channel in network.
+   * @param networkName name of network. eg. 0://wilder.team
+   * @param channel channel to add
+   */
+  async addChannelInNetwork(networkName: string, channel: string): Promise<void> {
+    if (channel[0] !== `#`) { channel = '#' + channel; }
+    channel = channel.toLowerCase();
+
+    await this.store.addChannelInNetwork(networkName, channel);
+  }
+
+  /**
+   * Join a network. Automatically subscribe to all channels present in the network.
+   */
+  async joinNetwork(networkName: string) {
+    await this.store.joinNetwork(networkName);
+  }
+
+  /**
+   * Leave a network. Automatically unsubscribe from all channels present in the network.
+   */
+  async leaveNetwork(networkName: string) {
+    await this.store.leaveNetwork(networkName);
+  }
+
+  /**
+   * Returns a list of all networks along with associated channels
+   */
+  async getNetworkList() {
+    return await this.store.getNetworkList();
+  }
+
+  /**
+   * Returns a list of all networks "I am following" along with their associated channels
+   */
+  async getMyNetworks() {
+    return await this.store.getMyNetworks();
   }
 }

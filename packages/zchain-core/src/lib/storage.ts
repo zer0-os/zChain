@@ -134,7 +134,8 @@ export class ZStore {
   async appendZChainMessageToFeed(
     feedStore: FeedStore<unknown>,
     message: string,
-    channels: string[]
+    channels: string[],
+    network?: string
     ): Promise<void> {
     await feedStore.load(1); // load last block to memory
 
@@ -151,7 +152,8 @@ export class ZStore {
     const zChainMessage = {
       prev: prev,
       from: this.libp2p.peerId.toB58String(),
-      channel: channels,
+      network: network ?? undefined,
+      channels: channels,
       message: await encode(message, this.password),
       // timestamp: Math.round(+new Date() / 1000),
     }
@@ -163,8 +165,9 @@ export class ZStore {
    * Handle publishing of a message
    * @param channel channel accross which message was published
    * @param message libp2p pubsub message
+   * @param network network on which the channel belongs
    */
-  async handlePublish(message: string, channels: string[]): Promise<void> {
+  async handlePublish(message: string, channels: string[], network?: string): Promise<void> {
     // const pubsubMsg = {
     //   channelIDs: [channel],
     //   from: this.libp2p.peerId.toB58String(),
@@ -180,7 +183,7 @@ export class ZStore {
     const currTs = Math.round(+new Date() / 10000);
     if (this.feedMap.get(message + currTs.toString()) === undefined) {
       const feedCore = this.dbs.feeds[this.libp2p.peerId.toB58String()];
-      await this.appendZChainMessageToFeed(feedCore, message, channels);
+      await this.appendZChainMessageToFeed(feedCore, message, channels, network);
       this.feedMap.set(message + currTs.toString(), 1);
     }
   }
@@ -363,7 +366,7 @@ export class ZStore {
 
   /**
    * @param peerID
-   * @returns peerMeta :: [ { ethaddress, sig }, {..} ]
+   * @returns peerMeta :: { defaultAddress: <addr>, meta: [ { ethaddress, sig }, {..} ] }
    */
   async getPeerEthAddressAndSignature(peerID: string): Promise<Object> {
     assertValidzId(peerID);
