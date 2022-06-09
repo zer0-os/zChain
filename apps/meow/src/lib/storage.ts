@@ -522,7 +522,7 @@ export class MStore extends ZStore {
     // add validation logic first
     await this.meowDbs.networks.put(networkName, {
       ...networkMetaData,
-      channels: [ ...channels ].push(channel)
+      channels: [ ...channels ].concat([ channel ])
     });
 
     console.log(chalk.green(`Successfully added Channel:${channel} in network ${networkName}`));
