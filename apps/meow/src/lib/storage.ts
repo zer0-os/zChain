@@ -1,6 +1,6 @@
 import FeedStore from "orbit-db-feedstore";
 import { ZCHAIN, ZStore, types, decode } from "zchain-core";
-import { DEFAULT_NETWORK, EVERYTHING_TOPIC, password } from "./constants";
+import { DEFAULT_NETWORK, EVERYTHING_TOPIC, GENERAL_CHANNEL, password } from "./constants";
 import chalk from "chalk";
 import { MeowDBs, Network } from "../types";
 import { fromString } from "uint8arrays/from-string";
@@ -122,15 +122,15 @@ export class MStore extends ZStore {
     // initialize network db with default network + channels
     this.meowDbs.networks = await this._getNetworkPublicDBAddress();
     if (this.meowDbs.networks.get(DEFAULT_NETWORK) === undefined) {
-      const channels = [ "#zchain", "#zero", "#random", EVERYTHING_TOPIC ];
+      const defaultNetworkChannels = [ "#zchain", "#zero", "#random", GENERAL_CHANNEL ];
       await this.meowDbs.networks.put(DEFAULT_NETWORK, {
         address: "addr",
         signature: "sig",
-        channels: [ "#zchain", "#zero", "#random", EVERYTHING_TOPIC ]
+        channels: defaultNetworkChannels
       });
 
       // follow each channel from network as well
-      for (const c of channels) { await this.followChannel(c, DEFAULT_NETWORK); }
+      for (const c of defaultNetworkChannels) { await this.followChannel(c, DEFAULT_NETWORK); }
     }
 
     // a) broadcast your "own" feed database address on the channel
@@ -483,7 +483,7 @@ export class MStore extends ZStore {
   async createNetwork(name: string, channels: string[]): Promise<void> {
     const peerMeta = await this.getPeerEthAddressAndSignature(this.peerID()) as types.PeerMeta;
     if (peerMeta === undefined) {
-      throw new Error(`No ethereum address and signature found for ${this.peerID()}`);
+      throw new Error(chalk.red(`No ethereum address and signature found for ${this.peerID()}`));
     }
 
     // add validation logic first
@@ -536,8 +536,6 @@ export class MStore extends ZStore {
     // follow each channel in network
     const channels = networkMetaData["channels"];
     for (const c of channels) {
-      if (c === EVERYTHING_TOPIC) { continue; }
-
       await this.followChannel(c, networkName);
     }
 
