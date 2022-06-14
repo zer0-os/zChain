@@ -60,7 +60,10 @@ export class ZCHAIN {
           new Noise()
         ],
         //dht: new KadDHT(),
-        pubsub: new GossipSub(),
+        pubsub: new GossipSub({
+          emitSelf: true,
+          allowPublishToZeroPeers: true
+        }),
         peerDiscovery: [
           // new Bootstrap({
           //   list: [
@@ -73,14 +76,6 @@ export class ZCHAIN {
           })
         ],
         config: {
-          dht: {
-            enabled: false
-          },
-          pubsub: {
-            enabled: true,
-            // uncomment to enable publishing node to listen to it's "own" message
-            // emitSelf: true
-          },
           transport: {
             [transportKey]: {
               wrtc // You can use `wrtc` when running in Node.js
@@ -220,24 +215,24 @@ export class ZCHAIN {
       this.peerDiscovery = new PeerDiscovery(this.zStore, this.node);
     }
 
-    subscribe (channel: string): void {
+    async subscribe (channel: string): Promise<void> {
       if (!this.ipfs.pubsub) {
         throw new Error('pubsub has not been configured');
       }
 
-      this.ipfs.pubsub.subscribe(channel, async (msg) => {
+      await this.ipfs.pubsub.subscribe(channel, async (msg) => {
         const [_, __, displayStr] = this.zStore.getNameAndPeerID(msg.from.toString());
 
         console.log(`Received from ${displayStr} on channel ${channel}: ${uint8ArrayToString(msg.data)}`);
       });
     }
 
-    unsubscribe (channel: string): void {
+    async unsubscribe (channel: string): Promise<void> {
       if (!this.ipfs.pubsub) {
         throw new Error('pubsub has not been configured');
       }
 
-      this.ipfs.pubsub.unsubscribe(channel);
+      await this.ipfs.pubsub.unsubscribe(channel);
       console.log(this.zId.peerId.toString() + " has unsubscribed from: " + channel);
     }
 

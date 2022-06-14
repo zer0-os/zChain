@@ -111,7 +111,7 @@ export class MStore extends ZStore {
     const channelsList = this.meowDbs.followingChannels.all;
     for (const key in channelsList) {
       // subscribe again if you're restarting the node
-      this.zChain.subscribe(key);
+      await this.zChain.subscribe(key);
 
       const channelDB = this.meowDbs.channels[key];
       const remoteAddress = this.meowDbs.followingChannels.get(key);
@@ -245,7 +245,7 @@ export class MStore extends ZStore {
   async followChannel(channel: string) {
     const data = this.meowDbs.followingChannels.get(channel);
     if (data === undefined) {
-      this.zChain.subscribe(channel);
+      await this.zChain.subscribe(channel);
 
       // save {"channel": "channel-db-address"} to db
       const address = await this.getChannelPublicDBAddress(channel);
@@ -266,7 +266,6 @@ export class MStore extends ZStore {
    * @param channel channel to unfollow
    */
   async unFollowChannel(channel: string) {
-
     const data = this.meowDbs.followingChannels.get(channel);
     if (data !== undefined) {
       await this.meowDbs.followingChannels.del(channel);

@@ -206,7 +206,7 @@ export class MEOW {
   async unFollowChannel(channel: string) {
     if (channel[0] !== `#`) { channel = '#' + channel; }
 
-    this.zchain.unsubscribe(channel);
+    await this.zchain.unsubscribe(channel);
     await this.store.unFollowChannel(channel);
   }
 
