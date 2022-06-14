@@ -1,5 +1,5 @@
 import { RELAY_ADDRS, ZCHAIN } from "zchain-core";
-import { APP_KEY, APP_SECRET, DEFAULT_NETWORK, EVERYTHING_TOPIC, MAX_MESSAGE_LEN, ZERO_TOPIC } from "./lib/constants";
+import { APP_KEY, APP_SECRET, DEFAULT_NETWORK, GENERAL_CHANNEL, MAX_MESSAGE_LEN, ZERO_TOPIC } from "./lib/constants";
 import { MStore } from "./lib/storage";
 import { Daemon } from 'ipfs-daemon'
 import chalk from "chalk";
@@ -173,16 +173,26 @@ export class MEOW {
 
     // publish message on each channel
     // messages published to "#everything" will be listened by only "super node"
-    const channels = [ EVERYTHING_TOPIC, ...lowerCaseHashTags];
-    if (publishToTwitter === true && !channels.includes(ZERO_TOPIC)) {
-      channels.push(ZERO_TOPIC);
-    }
+    const channels = [ ...lowerCaseHashTags];
 
-    // publish on zchain
+    // publish on zchain (for channels present in network)
     for (const hashtag of channels) {
       await this.zchain.publish(`${network}::${hashtag}`, msg, channels);
       await this.store.publishMessageOnChannel(hashtag, msg, channels, network);
     }
+
+    /* publish on zchain (for individual channels) COMMENTED for now
+
+    const individualChannels = [ EVERYTHING_TOPIC ];
+    if (publishToTwitter === true && !channels.includes(ZERO_TOPIC)) {
+      individualChannels.push(ZERO_TOPIC);
+    }
+
+    for (const hashtag of individualChannels) {
+      await this.zchain.publish(hashtag, msg, individualChannels);
+      await this.store.publishMessageOnChannel(hashtag, msg, individualChannels);
+    }
+    */
 
     console.log(chalk.green('Sent on zchain!'));
 
@@ -195,6 +205,33 @@ export class MEOW {
 
       await this.twitter.tweet(msg);
     }
+  }
+
+  /**
+   * Send a message on a channel, in a network
+   * @param message message string (must be less than 280 char)
+   * @param channel channel name
+   * @param network network name
+   */
+  async sendMessage (message: string, channel: string, network?: string): Promise<void> {
+    if (channel[0] !== `#`) { channel = '#' + channel; }
+    channel = channel.toLowerCase();
+
+    this.zchain = this.assertZChainInitialized();
+    if (network === undefined) {
+      console.warn(chalk.yellow(`Network name not passed. Using default network ${DEFAULT_NETWORK}`));
+      network = DEFAULT_NETWORK;
+    }
+
+    if (message.length > MAX_MESSAGE_LEN) {
+      throw new Error(`Length of a message exceeds maximum length of ${MAX_MESSAGE_LEN}`);
+    }
+
+    // add message to local feed + store in topic orbit-db
+    await this.zchain.publish(`${network}::${channel}`, message, [channel]);
+    await this.store.publishMessageOnChannel(channel, message, [channel], network);
+
+    console.log(chalk.green('Sent on zchain!'));
   }
 
   async followZId(peerIdOrName: string) {
@@ -412,7 +449,9 @@ Avalilable functions:
       parsedChannels.push(c);
     }
 
-    await this.store.createNetwork(name, [ ...parsedChannels, EVERYTHING_TOPIC ]);
+    // add #general channel by default
+    parsedChannels.push(GENERAL_CHANNEL);
+    await this.store.createNetwork(name, [...new Set(parsedChannels)]);
   }
 
   /**

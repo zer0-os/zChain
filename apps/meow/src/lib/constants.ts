@@ -1,4 +1,5 @@
 export const EVERYTHING_TOPIC = "#everything";
+export const GENERAL_CHANNEL = "#general";
 
 // we append this topic to the message, if a meow is published on twitter as well
 export const ZERO_TOPIC = "#zero";
