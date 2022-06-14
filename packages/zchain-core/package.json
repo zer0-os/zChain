@@ -20,18 +20,18 @@
     "build:watch": "tsc -w -p ."
   },
   "dependencies": {
-    "@chainsafe/libp2p-gossipsub": "^1.0.1",
+    "@chainsafe/libp2p-gossipsub": "^1.1.2",
     "@chainsafe/libp2p-noise": "^6.2.0",
     "@libp2p/bootstrap": "^1.0.6",
-    "@libp2p/kad-dht": "^1.0.15",
+    "@libp2p/kad-dht": "^1.0.16",
     "@libp2p/mdns": "^1.0.7",
-    "@libp2p/mplex": "^1.1.0",
+    "@libp2p/mplex": "^1.2.1",
     "@libp2p/tcp": "^1.0.11",
     "@libp2p/webrtc-star": "^1.0.12",
     "@libp2p/websockets": "^1.0.9",
     "@nodelib/fs.walk": "^1.2.8",
     "delay": "^5.0.0",
-    "libp2p": "^0.37.1",
+    "libp2p": "^0.37.3",
     "multiaddr": "^10.0.1",
     "orbit-db": "^0.28.6",
     "stream": "^0.0.2",
@@ -40,11 +40,11 @@
   "devDependencies": {
     "@types/express": "^4.17.13",
     "@types/orbitdb": "https://github.com/orbitdb/orbit-db-types.git",
-    "eslint": "^8.16.0",
+    "eslint": "^8.17.0",
     "express": "^4.18.1",
     "libp2p-websockets": "^0.16.2",
     "nyc": "^15.1.0",
-    "typedoc": "^0.22.16"
+    "typedoc": "^0.22.17"
   },
   "files": [
     "build/",
