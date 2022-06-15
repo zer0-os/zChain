@@ -289,6 +289,8 @@ export class MEOW {
     await this.store.setNameInAddressBook(peerId, name, force);
   }
 
+  /*******   TWITTER API's   ********/
+
   private _getTwitterConfig() {
     const zChainPath = path.join(os.homedir(), '/.zchain');
     const twitterConfigPath = path.join(zChainPath, 'twitter-config.json');
