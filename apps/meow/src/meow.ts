@@ -12,7 +12,7 @@ import { Twitter } from "./lib/twitter";
 import { TwitterApi } from "twitter-api-v2";
 import express from "express";
 import { shuffle } from "./lib/array";
-import { Network } from "./types";
+import { Network, TwitterAuthLink } from "./types";
 
 
 export class MEOW {
@@ -392,6 +392,54 @@ Please authorize the meow application to access your twitter account.`
       return;
     } else {
       console.log(chalk.yellow(`Twitter is already enabled. Exiting..\n`));
+    }
+  }
+
+  /**
+   * Returns a generated auth link, oauth_token & oauth_token_secret
+   * using which user authenticats his/her twitter account
+   */
+  async getTwitterAuthLink(): Promise<TwitterAuthLink> {
+    const authClient = new TwitterApi({
+      appKey: APP_KEY,
+      appSecret: APP_SECRET,
+    });
+    const authLink = await authClient.generateAuthLink('oob', { linkMode: 'authorize' });
+    return authLink;
+  }
+
+  /**
+   * Login/enable twitter using the PIN, and the temporary outh tokens
+   */
+  async enableTwitterUsingPIN(authLink: TwitterAuthLink, pin: number, force: Boolean = false) {
+    const twitterConfig = this._getTwitterConfig();
+    if (!twitterConfig || force === true) {
+      const client = new TwitterApi({
+        appKey: APP_KEY,
+        appSecret: APP_SECRET,
+        accessToken: authLink.oauth_token,
+        accessSecret: authLink.oauth_token_secret,
+      });
+
+      const { client: loggedClient, accessToken, accessSecret } = await client.login(String(pin));
+      const config = {
+        "appKey": APP_KEY,
+        "appSecret": APP_SECRET,
+        "accessToken": accessToken,
+        "accessSecret": accessSecret
+      }
+
+      // save persistant tokens in config
+      fs.writeFileSync(
+        path.join(os.homedir(), '/.zchain', 'twitter-config.json'),
+        JSON.stringify(config, null, 2)
+      );
+
+      this.twitter = new Twitter(this.zchain, this.store, config);
+      console.log(chalk.green('Successfully set twitter config and initialized client'));
+      return;
+    } else {
+      console.log(chalk.yellow(`Twitter config is already present. Exiting..\n`));
     }
   }
 
