@@ -73,7 +73,7 @@ export class MEOW {
     this.store = new MStore(this.zchain);
     await this.store.init();
 
-    const twitterConfig = this._getTwitterConfig();
+    const twitterConfig = this.getTwitterConfig();
     if (twitterConfig) {
       this.twitter = new Twitter(this.zchain, this.store, twitterConfig);
     }
@@ -291,7 +291,7 @@ export class MEOW {
 
   /*******   TWITTER API's   ********/
 
-  private _getTwitterConfig() {
+  getTwitterConfig() {
     const zChainPath = path.join(os.homedir(), '/.zchain');
     const twitterConfigPath = path.join(zChainPath, 'twitter-config.json');
     if (!fs.existsSync(zChainPath)) {
@@ -312,7 +312,7 @@ export class MEOW {
    * Enables twitter (saves config at ~/.zchain/twitter-config.json)
    */
   async enableTwitter(force: Boolean = false) {
-    const twitterConfig = this._getTwitterConfig();
+    const twitterConfig = this.getTwitterConfig();
 
     if (!twitterConfig || force === true) {
       console.log(chalk.yellow(`
@@ -414,7 +414,7 @@ Please authorize the meow application to access your twitter account.`
    * Login/enable twitter using the PIN, and the temporary outh tokens
    */
   async enableTwitterUsingPIN(authLink: TwitterAuthLink, pin: number, force: Boolean = false) {
-    const twitterConfig = this._getTwitterConfig();
+    const twitterConfig = this.getTwitterConfig();
     if (!twitterConfig || force === true) {
       const client = new TwitterApi({
         appKey: APP_KEY,
@@ -449,7 +449,7 @@ Please authorize the meow application to access your twitter account.`
    * Disables twitter (removes config at ~/.zchain/twitter-config.json)
    */
   disableTwitter() {
-    const twitterConfig = this._getTwitterConfig();
+    const twitterConfig = this.getTwitterConfig();
     if (twitterConfig) {
       fs.rmSync(
         path.join(os.homedir(), '/.zchain', 'twitter-config.json'),
