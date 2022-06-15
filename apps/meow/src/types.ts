@@ -20,3 +20,10 @@ export interface Network {
   signature: string,
   channels: string[]
 }
+
+export interface TwitterAuthLink {
+  oauth_token: string;
+  oauth_token_secret: string;
+  oauth_callback_confirmed: string;
+  url: string;
+}
