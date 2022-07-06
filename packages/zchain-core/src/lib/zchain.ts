@@ -33,7 +33,7 @@ export class ZCHAIN {
     peerDiscovery: PeerDiscovery | undefined;
     zStore: ZStore;
 
-    async _getIPFSOptions(listenAddrs?: string[]) {
+    async _getLibp2pOptions(listenAddrs?: string[]) {
       const peerId = this.zId.peerId;
 
       listenAddrs = listenAddrs ?? [];
@@ -71,32 +71,7 @@ export class ZCHAIN {
       // add webrtc-transport if listen addresses has "p2p-webrtc-star"
       const starAddresses = options.addresses.listen.filter(a => a.includes('p2p-webrtc-star'));
       if (starAddresses.length) { addWebRTCStarAddrs(options); }
-
-      const ipfsOptions = {
-        libp2p: options,
-        repo: path.join(IPFS_PATH, this.zId.name),
-        init: {
-          privateKey: peerId
-        },
-        config: {
-          Addresses: {
-            Swarm: [],
-          },
-          Bootstrap: [
-            ...RELAY_ADDRS
-          ],
-          "Swarm": {
-              "ConnMgr": {
-                  "LowWater": 80,
-                  "HighWater": 160
-              },
-              "EnableAutoRelay": true,
-              "DisableNatPortMap": false
-          },
-        }
-      };
-
-      return ipfsOptions;
+      return options;
     }
 
     /**
@@ -106,29 +81,26 @@ export class ZCHAIN {
      */
     async initialize (name: string, listenAddrs?: string[]): Promise<Libp2p> {
       fs.mkdirSync(ZID_PATH, { recursive: true });
-      fs.mkdirSync(IPFS_PATH, { recursive: true });
       fs.mkdirSync(DB_PATH, { recursive: true });
 
       this.zId = new ZID();
       await this.zId.createFromName(name); // get existing/create new peer id
-      const ipfsOptions = await this._getIPFSOptions(listenAddrs);
+      const libp2pOptions = await this._getLibp2pOptions(listenAddrs);
 
-      this.ipfs = await IPFS.create({
-        ...ipfsOptions,
-      });
-
-      // need to go through type hacks here..
-      const node = (this.ipfs as any).libp2p as Libp2p;
-      console.log("\n★ ", chalk.cyan('zChain Node Activated: ' + node.peerId.toB58String()) + " ★\n");
-      this.node = node;
-
-      // intialize zstore
-      this.zStore = new ZStore(this.ipfs, this.node, password);
-      await this.zStore.init(this.zId.name);
+      this.node = await Libp2p.create(libp2pOptions);
 
       // initialize discovery class
-      this.peerDiscovery = new PeerDiscovery(this.zStore, this.node);
-      return node;
+      this.peerDiscovery = new PeerDiscovery(this.node);
+      this.peerDiscovery.addBootstrapNodes(RELAY_ADDRS);
+
+      await this.node.start();
+      console.log("\n★ ", chalk.cyan('zChain Node Activated: ' + this.node.peerId.toB58String()) + " ★\n");
+
+      // // intialize zstore
+      // this.zStore = new ZStore(this.ipfs, this.node, password);
+      // await this.zStore.init(this.zId.name);
+
+      return this.node;
     }
 
     /**
@@ -138,62 +110,62 @@ export class ZCHAIN {
      * TODO: think about how to handle "password" (message encryption/decryption)
      */
     async startDaemon (name: string, listenAddrs?: string[]): Promise<Daemon> {
-      fs.mkdirSync(ZID_PATH, { recursive: true });
-      fs.mkdirSync(IPFS_PATH, { recursive: true });
-      fs.mkdirSync(DB_PATH, { recursive: true });
+      // fs.mkdirSync(ZID_PATH, { recursive: true });
+      // fs.mkdirSync(IPFS_PATH, { recursive: true });
+      // fs.mkdirSync(DB_PATH, { recursive: true });
 
 
-      // load zId
-      this.zId = new ZID();
-      await this.zId.createFromName(name); // get existing/create new peer id
+      // // load zId
+      // this.zId = new ZID();
+      // await this.zId.createFromName(name); // get existing/create new peer id
 
-      // start daemon, initialize ipfs + libp2p
-      const ipfsOptions = await this._getIPFSOptions(listenAddrs);
-      const daemon = new Daemon({
-        ...ipfsOptions
-      });
-      await daemon.start();
-      this.ipfs = daemon._ipfs;
+      // // start daemon, initialize ipfs + libp2p
+      // const ipfsOptions = await this._getLibp2pOptions(listenAddrs);
+      // const daemon = new Daemon({
+      //   ...(ipfsOptions as any)
+      // });
+      // await daemon.start();
+      // this.ipfs = daemon._ipfs;
 
-      // need to go through type hacks here :(
-      const node = (this.ipfs as any).libp2p as Libp2p;
+      // // need to go through type hacks here :(
+      // const node = (this.ipfs as any).libp2p as Libp2p;
 
-      console.log("\n★", chalk.cyan('zChain Daemon Activated: ' + node.peerId.toB58String()) + " ★\n");
-      this.node = node;
+      // console.log("\n★", chalk.cyan('zChain Daemon Activated: ' + node.peerId.toB58String()) + " ★\n");
+      // this.node = node;
 
-      // intialize zstore
-      this.zStore = new ZStore(this.ipfs, this.node, password);
+      // // intialize zstore
+      // this.zStore = new ZStore(this.ipfs, this.node, password);
 
-      // initialize discovery class
-      this.peerDiscovery = new PeerDiscovery(this.zStore, this.node);
-      return daemon;
+      // // initialize discovery class
+      // this.peerDiscovery = new PeerDiscovery(this.zStore, this.node);
+      return 1 as any;
     }
 
     /**
      * Initializes from an existing daemon http endpoint (located at ~/.zchain/ipfs/<name>/api)
      */
     async load(name: string): Promise<void> {
-      if (!isDaemonOn()) {
-        throw new Error(chalk.red(`Daemon not initialized at ~/.zchain. Please run "meow daemon .."`));
-      }
-      this.ipfs = await getIpfs();
+      // if (!isDaemonOn()) {
+      //   throw new Error(chalk.red(`Daemon not initialized at ~/.zchain. Please run "meow daemon .."`));
+      // }
+      // this.ipfs = await getIpfs();
 
-      this.zId = new ZID();
-      await this.zId.createFromName(name);
+      // this.zId = new ZID();
+      // await this.zId.createFromName(name);
 
-      const ipfsOptions = await this._getIPFSOptions();
-      const libp2p = new Libp2p(ipfsOptions.libp2p);
-      (this.ipfs as any).libp2p = libp2p;
+      // const ipfsOptions = await this._getLibp2pOptions();
+      // const libp2p = new Libp2p(ipfsOptions);
+      // (this.ipfs as any).libp2p = libp2p;
 
-      const node = (this.ipfs as any).libp2p as Libp2p;
-      this.node = node;
+      // const node = (this.ipfs as any).libp2p as Libp2p;
+      // this.node = node;
 
-      // intialize zstore (note we're initializing both in meow app)
-      this.zStore = new ZStore(this.ipfs, this.node, password);
-      await this.zStore.init(this.zId.name);
+      // // intialize zstore (note we're initializing both in meow app)
+      // this.zStore = new ZStore(this.ipfs, this.node, password);
+      // await this.zStore.init(this.zId.name);
 
-      // initialize discovery class
-      this.peerDiscovery = new PeerDiscovery(this.zStore, this.node);
+      // // initialize discovery class
+      // this.peerDiscovery = new PeerDiscovery(this.zStore, this.node);
     }
 
     subscribe (channel: string): void {
