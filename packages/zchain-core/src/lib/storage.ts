@@ -1,6 +1,6 @@
 import Libp2p from "libp2p";
 import path from "path";
-import { DBs, LogPaths, PeerMeta, PubSubMessage, ZChainMessage } from "../types";
+import { DBs, LogPaths, PeerMeta, PublicYDoc, PubSubMessage, YDocs, ZChainMessage } from "../types";
 import { decode, encode } from "./encryption";
 
 import { IPFS as IIPFS } from 'ipfs';
@@ -11,6 +11,9 @@ import chalk from "chalk";
 import { assertValidzId } from "./zid";
 import { DB_PATH } from "./constants";
 import Web3 from 'web3';
+import * as Y from 'yjs';
+import Provider from 'y-libp2p'
+import { LeveldbPersistence } from 'y-leveldb'
 
 // zchain operations are at the "system" level
 const SYSPATH = 'sys';
@@ -39,6 +42,9 @@ export class ZStore {
   dbs: DBs;
   private feedMap: Map<string, number>
 
+  yDocs: YDocs;
+  publicYDoc: PublicYDoc;
+
   /**
    * Initializes zchain-db (hypercore append only log)
    * @param libp2p libp2p node
@@ -53,6 +59,9 @@ export class ZStore {
     this.dbs.feeds = {};
     this.feedMap = new Map<string, number>();
 
+    this.dbs = {} as any;
+    this.dbs.feeds = {};
+
     // save password
     if (password.length !== 16) {
       throw new Error("Password must be a string of length 16");
@@ -62,6 +71,8 @@ export class ZStore {
   }
 
   async init(zIdName: string): Promise<void> {
+    const persistence = new LeveldbPersistence(path.join(DB_PATH, zIdName));
+
     const peerId = await this.ipfs.config.get('Identity.PeerID')
     this.orbitdb = await OrbitDB.createInstance(
       this.ipfs as any,
@@ -78,11 +89,34 @@ export class ZStore {
     this.paths.metaData = SYSPATH + '.metaData';
     //this.paths.channels = path.join(this.paths.default, 'channels');
 
+
+    this.yDocs.feeds[this.libp2p.peerId.toB58String()] =
+      await this.initYDoc(persistence, this.paths.feeds);
+
+    this.publicYDoc.doc = await this.initYDoc(persistence, "publicYDoc");
+    this.publicYDoc.addressBook = this.publicYDoc.doc.getMap("addressBook");
+    this.publicYDoc.metaData = this.publicYDoc.doc.getMap("metaData");
+
+
     this.dbs.feeds[this.libp2p.peerId.toB58String()] = await this.getFeedsOrbitDB(
       this.paths.feeds
     );
     this.dbs.addressBook = await this.getKeyValueOrbitDB(this.paths.addressBook);
     this.dbs.metaData = await this._getMetaDataPublicDB();
+  }
+
+  /**
+   * Initialize a yDoc:
+   * + Load from memory (by document name)
+   * + Initialize provider
+   * + return provider.ydoc
+   * @param persistence LeveldbPersistence
+   * @param yDocName name of doc
+   */
+  async initYDoc(persistence: LeveldbPersistence, yDocName: string): Promise<Y.Doc> {
+    const yDoc = await persistence.getYDoc(yDocName) ?? new Y.Doc();
+    const provider = new Provider(yDoc, this.libp2p, yDocName);
+    return provider.ydoc;
   }
 
   /**
@@ -160,6 +194,7 @@ export class ZStore {
 
     await feedStore.add(zChainMessage);
   }
+
 
   /**
    * Handle publishing of a message
