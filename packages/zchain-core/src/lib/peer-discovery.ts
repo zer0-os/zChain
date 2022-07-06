@@ -9,11 +9,9 @@ import { ZStore } from "./storage";
  */
 export class PeerDiscovery {
   private node: Libp2p | undefined;
-  zStore: ZStore;
 
-  constructor (zStore: ZStore, node?: Libp2p) {
+  constructor (node?: Libp2p) {
     this.node = node;
-    this.zStore = zStore;
   }
 
   /**
