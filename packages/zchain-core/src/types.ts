@@ -1,5 +1,6 @@
 import FeedStore from "orbit-db-feedstore";
 import KeyValueStore from "orbit-db-kvstore";
+import * as Y from 'yjs';
 
 export interface PubSubMessage {
   topicIDs: string[]
@@ -34,6 +35,10 @@ export interface FeedMap {
   [key: string]: FeedStore<unknown>
 }
 
+export interface YDocMap {
+  [key: string]: Y.Doc
+}
+
 export interface PeerMeta {
   defaultAddress: string
   meta: Meta[]
@@ -44,10 +49,20 @@ export interface Meta {
   signature: string
 }
 
+// private YDocs
+export interface YDocs {
+  feeds: YDocMap
+}
+
+// public YDocs
+export interface PublicYDoc {
+  doc: Y.Doc // root y.doc
+  addressBook: Y.Map<unknown>
+  metaData: Y.Map<unknown>
+}
+
 export interface DBs {
-  // default: hypercore | undefined // not sure if we need a "default" feed
   feeds: FeedMap
-  //topics: FeedMap
   addressBook: KeyValueStore<unknown>
   metaData: KeyValueStore<unknown>
 }
