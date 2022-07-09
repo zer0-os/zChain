@@ -36,7 +36,10 @@ export interface FeedMap {
 }
 
 export interface YDocMap {
-  [key: string]: Y.Doc
+  [key: string]: {
+    doc: Y.Doc,
+    feedArray: Y.Array<unknown>
+  }
 }
 
 export interface PeerMeta {
