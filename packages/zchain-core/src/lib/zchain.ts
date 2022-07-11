@@ -1,8 +1,5 @@
 import { NOISE } from '@chainsafe/libp2p-noise';
 import Libp2p from "libp2p";
-import { IPFS as IIPFS } from 'ipfs';
-import * as IPFS from 'ipfs';
-
 import Gossipsub from "libp2p-gossipsub";
 import KadDHT from 'libp2p-kad-dht';
 import Mplex from "libp2p-mplex";
@@ -16,18 +13,15 @@ import { ZStore } from './storage';
 import { addWebRTCStarAddrs } from "./transport";
 import { ZID } from "./zid";
 import chalk from 'chalk';
-import { DB_PATH, DEFAULT_NETWORK, IPFS_PATH, RELAY_ADDRS, ZCHAIN_DIR, ZID_PATH } from './constants';
+import { DB_PATH, RELAY_ADDRS, ZID_PATH } from './constants';
 
 import { Daemon } from 'ipfs-daemon'
-import path from 'path'
 import fs from "fs";
-import { getIpfs, isDaemonOn } from './utils';
 import WebSocket from 'libp2p-websockets'
 
 export const password = "ratikjindal@3445"
 
 export class ZCHAIN {
-    ipfs: IIPFS | undefined;
     node: Libp2p | undefined;
     zId: ZID | undefined;
     peerDiscovery: PeerDiscovery | undefined;
@@ -97,9 +91,8 @@ export class ZCHAIN {
       console.log("\n★ ", chalk.cyan('zChain Node Activated: ' + this.node.peerId.toB58String()) + " ★\n");
 
       // intialize zstore
-      this.zStore = new ZStore(this.ipfs, this.node, password);
+      this.zStore = new ZStore(this.node, password);
       await this.zStore.init(this.zId.name);
-
 
       this.node.connectionManager.on('peer:disconnect', async (connection) => {
         console.log('Disconnected from peer:', connection.remotePeer.toB58String());
@@ -123,7 +116,6 @@ export class ZCHAIN {
      * TODO: think about how to handle "password" (message encryption/decryption)
      */
     async startDaemon (name: string, listenAddrs?: string[]): Promise<Daemon> {
-
       return 1 as any;
     }
 
@@ -131,7 +123,6 @@ export class ZCHAIN {
      * Initializes from an existing daemon http endpoint (located at ~/.zchain/ipfs/<name>/api)
      */
     async load(name: string): Promise<void> {
-
     }
 
     listen (channel: string): void {
