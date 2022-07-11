@@ -1,4 +1,3 @@
-import FeedStore from "orbit-db-feedstore";
 import { ZCHAIN, ZStore, types, decode } from "zchain-core";
 import { DEFAULT_NETWORK, GENERAL_CHANNEL, password } from "./constants";
 import chalk from "chalk";
@@ -49,13 +48,16 @@ export class MStore extends ZStore {
       const [_, __, displayStr] = this.getNameAndPeerID(peerId.toB58String())
       console.log('Discovered:', displayStr);
     });
-  }
 
-  private async _subscribeToFeed(peerId: string) {
-
+    this.zChain.node.connectionManager.on('peer:disconnect', async (connection) => {
+      const [_, __, displayStr] = this.getNameAndPeerID(connection.remotePeer.toB58String())
+      console.log('Disconnected from peer:', displayStr);
+    });
   }
 
   async init(): Promise<void> {
+    await this._initModules();
+
     // initialize meow private ydocs (we don't need libp2p provider for this, as this is private)
     this.meowPrivateYDocs.doc = await this.persistence.getYDoc("meowPrivateYDoc") ?? new Y.Doc();
     this.meowPrivateYDocs.followingZIds = this.meowPrivateYDocs.doc.getMap("followingZIds");
@@ -66,8 +68,6 @@ export class MStore extends ZStore {
     this.meowPublicYDocs.doc = await this.initYDoc("meowPublicYDoc");
     this.meowPublicYDocs.networks = this.meowPublicYDocs.doc.getMap("networks");
     this.persistOnYDocUpdate("meowPublicYDoc", this.meowPublicYDocs.doc, this.persistence);
-
-    await this._initModules();
 
     // load ydocs for each feed (peer you're following)
     for (const key of this.meowPrivateYDocs.followingZIds.keys()) {
@@ -99,15 +99,6 @@ export class MStore extends ZStore {
 
       // follow each channel from network as well
       for (const c of defaultNetworkChannels) { await this.followChannel(c, DEFAULT_NETWORK); }
-    }
-  }
-
-  // log replication ("sync" events accross all dbs)
-  listenForReplicatedEvent(feed: FeedStore<unknown>): void {
-    if (feed) {
-      feed.events.on('replicated', (address) => {
-        //console.log('\n* ' + chalk.green(`Successfully synced db: ${address}`) + ' *\n');
-      })
     }
   }
 

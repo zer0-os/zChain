@@ -181,7 +181,7 @@ export class MEOW {
       throw new Error(`Length of a message exceeds maximum length of ${MAX_MESSAGE_LEN}`);
     }
 
-    // add message to local feed + store in topic orbit-db
+    // add message to local feed + store in topic yDoc
     await this.zchain.publish(`${network}::${channel}`, message, [channel]);
     await this.store.publishMessageOnChannel(channel, message, [channel], network);
 
