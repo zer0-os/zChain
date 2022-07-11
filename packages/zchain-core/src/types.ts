@@ -60,8 +60,14 @@ export interface YDocs {
 // public YDocs
 export interface PublicYDoc {
   doc: Y.Doc // root y.doc
-  addressBook: Y.Map<unknown>
   metaData: Y.Map<unknown>
+}
+
+
+// private YDocs
+export interface PrivateYDoc {
+  doc: Y.Doc // root y.doc
+  addressBook: Y.Map<unknown>
 }
 
 export interface DBs {
