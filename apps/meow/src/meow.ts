@@ -71,27 +71,27 @@ export class MEOW {
     await this.zchain.initialize(zIdName, listenAddrs);
 
     this.store = new MStore(this.zchain);
-    await this.store.init();
+    await this.store.init1();
 
     const twitterConfig = this.getTwitterConfig();
     if (twitterConfig) {
       this.twitter = new Twitter(this.zchain, this.store, twitterConfig);
     }
 
-    /**
-     * Logic: In every 10s check the diff b/w all known and connected address. Try to connect
-     * to those peers who are known, but not connected (& not a relay).
-     */
-    const relayAddresses = RELAY_ADDRS.map(addr => addr.split('/p2p/')[1]);
-    setInterval(async () => {
-      const connectedPeers = (await this.zchain.ipfs.swarm.peers()).map(p => p.peer);
-      const discoveredPeers = await this.zchain.ipfs.swarm.addrs();
-      for (const discoveredPeer of discoveredPeers) {
-        if (relayAddresses.includes(discoveredPeer.id) === false && connectedPeers.includes(discoveredPeer.id) === false) {
-          await this.connect(discoveredPeer.id);
-        }
-      }
-    }, 10 * 1000);
+    // /**
+    //  * Logic: In every 10s check the diff b/w all known and connected address. Try to connect
+    //  * to those peers who are known, but not connected (& not a relay).
+    //  */
+    // const relayAddresses = RELAY_ADDRS.map(addr => addr.split('/p2p/')[1]);
+    // setInterval(async () => {
+    //   const connectedPeers = (await this.zchain.ipfs.swarm.peers()).map(p => p.peer);
+    //   const discoveredPeers = await this.zchain.ipfs.swarm.addrs();
+    //   for (const discoveredPeer of discoveredPeers) {
+    //     if (relayAddresses.includes(discoveredPeer.id) === false && connectedPeers.includes(discoveredPeer.id) === false) {
+    //       await this.connect(discoveredPeer.id);
+    //     }
+    //   }
+    // }, 10 * 1000);
   }
 
   /**
@@ -178,7 +178,7 @@ export class MEOW {
     // publish on zchain (for channels present in network)
     for (const hashtag of channels) {
       await this.zchain.publish(`${network}::${hashtag}`, msg, channels);
-      await this.store.publishMessageOnChannel(hashtag, msg, channels, network);
+      await this.store.publishMessageOnChannel1(hashtag, msg, channels, network);
     }
 
     /* publish on zchain (for individual channels) COMMENTED for now
@@ -229,24 +229,24 @@ export class MEOW {
 
     // add message to local feed + store in topic orbit-db
     await this.zchain.publish(`${network}::${channel}`, message, [channel]);
-    await this.store.publishMessageOnChannel(channel, message, [channel], network);
+    await this.store.publishMessageOnChannel1(channel, message, [channel], network);
 
     console.log(chalk.green('Sent on zchain!'));
   }
 
   async followZId(peerIdOrName: string) {
-    await this.store.followZId(peerIdOrName);
+    await this.store.followZId1(peerIdOrName);
   }
 
   async unfollowZId(peerIdOrName: string) {
-    await this.store.unfollowZId(peerIdOrName);
+    await this.store.unfollowZId1(peerIdOrName);
   }
 
   async followChannel(channel: string, network?: string) {
     if (channel[0] !== `#`) { channel = '#' + channel; }
     channel = channel.toLowerCase();
 
-    await this.store.followChannel(channel, network);
+    await this.store.followChannel1(channel, network);
   }
 
   async unFollowChannel(channel: string, network?: string) {
@@ -254,26 +254,26 @@ export class MEOW {
     channel = channel.toLowerCase();
 
     this.zchain.unsubscribe(channel);
-    await this.store.unFollowChannel(channel, network);
+    await this.store.unFollowChannel1(channel, network);
   }
 
   getFollowedPeers() {
-    return this.store.getFollowedPeers();
+    return this.store.getFollowedPeers1();
   }
 
   getFollowedChannels() {
-    return this.store.getFollowedChannels();
+    return this.store.getFollowedChannels1();
   }
 
   async getPeerFeed(peerIdOrName: string, n: number) {
-    return await this.store.getPeerFeed(peerIdOrName, n);
+    return await this.store.getPeerFeed1(peerIdOrName, n);
   }
 
   async getChannelFeed(channel: string, n: number, network?: string) {
     if (channel[0] !== `#`) { channel = '#' + channel; }
     channel = channel.toLowerCase();
 
-    return await this.store.getChannelFeed(channel, n, network);
+    return await this.store.getChannelFeed1(channel, n, network);
   }
 
   async listDBs() {
@@ -286,7 +286,7 @@ export class MEOW {
    * @param name name to set
    */
   async setDisplayName(peerId: string, name: string, force: boolean = false) {
-    await this.store.setNameInAddressBook(peerId, name, force);
+    await this.store.setNameInAddressBook1(peerId, name, force);
   }
 
   /*******   TWITTER API's   ********/
@@ -501,7 +501,7 @@ Avalilable functions:
 
     // add #general channel by default
     parsedChannels.push(GENERAL_CHANNEL);
-    await this.store.createNetwork(name, [...new Set(parsedChannels)]);
+    await this.store.createNetwork1(name, [...new Set(parsedChannels)]);
   }
 
   /**
@@ -509,7 +509,7 @@ Avalilable functions:
    * @param networkName
    */
   async getNetworkMetadata(networkName: string): Promise<Network | undefined> {
-    return await this.store.getNetworkMetadata(networkName);
+    return await this.store.getNetworkMetadata1(networkName);
   }
 
   /**
@@ -521,34 +521,34 @@ Avalilable functions:
     if (channel[0] !== `#`) { channel = '#' + channel; }
     channel = channel.toLowerCase();
 
-    await this.store.addChannelInNetwork(networkName, channel);
+    await this.store.addChannelInNetwork1(networkName, channel);
   }
 
   /**
    * Join a network. Automatically subscribe to all channels present in the network.
    */
   async joinNetwork(networkName: string) {
-    await this.store.joinNetwork(networkName);
+    await this.store.joinNetwork1(networkName);
   }
 
   /**
    * Leave a network. Automatically unsubscribe from all channels present in the network.
    */
   async leaveNetwork(networkName: string) {
-    await this.store.leaveNetwork(networkName);
+    await this.store.leaveNetwork1(networkName);
   }
 
   /**
    * Returns a list of all networks along with associated channels
    */
   async getNetworkList() {
-    return await this.store.getNetworkList();
+    return await this.store.getNetworkList1();
   }
 
   /**
    * Returns a list of all networks "I am following" along with their associated channels
    */
   async getMyNetworks() {
-    return await this.store.getMyNetworks();
+    return await this.store.getMyNetworks1();
   }
 }
