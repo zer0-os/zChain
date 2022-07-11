@@ -94,18 +94,6 @@ export class ZCHAIN {
       this.zStore = new ZStore(this.node, password);
       await this.zStore.init(this.zId.name);
 
-      this.node.connectionManager.on('peer:disconnect', async (connection) => {
-        console.log('Disconnected from peer:', connection.remotePeer.toB58String());
-      });
-
-      this.node.connectionManager.on('peer:connect', async (connection) => {
-        console.log('Connection established to:', connection.remotePeer.toB58String());
-      });
-
-      this.peerDiscovery.onDiscover((peerId) => {
-        console.log('Discovered:', peerId.toB58String());
-      });
-
       return this.node;
     }
 
