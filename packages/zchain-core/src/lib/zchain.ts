@@ -127,7 +127,7 @@ export class ZCHAIN {
 
     listen (channel: string): void {
       this.node.pubsub.on(channel, async (msg: PubSubMessage) => {
-        const [_, __, displayStr] = this.zStore.getNameAndPeerID1(msg.from);
+        const [_, __, displayStr] = this.zStore.getNameAndPeerID(msg.from);
         console.log(`Received from ${displayStr} on channel ${channel}: ${uint8ArrayToString(msg.data)}`);
       });
     }
@@ -162,6 +162,6 @@ export class ZCHAIN {
       if (channel.includes('::')) {
         network = channel.split('::')[0];
       }
-      await this.zStore.handlePublish1(msg, channels, network);
+      await this.zStore.handlePublish(msg, channels, network);
     }
 }

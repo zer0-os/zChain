@@ -41,12 +41,12 @@ export class MStore extends ZStore {
   // update: i think for sandbox we can use this logic
   private async _initModules() {
     this.zChain.peerDiscovery.onConnect(async (connection) => {
-      const [_, __, displayStr] = this.getNameAndPeerID1(connection.remotePeer.toB58String())
+      const [_, __, displayStr] = this.getNameAndPeerID(connection.remotePeer.toB58String())
       console.log('Connection established to:', displayStr);
     });
 
     this.zChain.peerDiscovery.onDiscover((peerId) => {
-      const [_, __, displayStr] = this.getNameAndPeerID1(peerId.toB58String())
+      const [_, __, displayStr] = this.getNameAndPeerID(peerId.toB58String())
       console.log('Discovered:', displayStr);
     });
   }
@@ -55,7 +55,7 @@ export class MStore extends ZStore {
 
   }
 
-  async init1(): Promise<void> {
+  async init(): Promise<void> {
     // initialize meow private ydocs (we don't need libp2p provider for this, as this is private)
     this.meowPrivateYDocs.doc = await this.persistence.getYDoc("meowPrivateYDoc") ?? new Y.Doc();
     this.meowPrivateYDocs.followingZIds = this.meowPrivateYDocs.doc.getMap("followingZIds");
@@ -98,7 +98,7 @@ export class MStore extends ZStore {
       });
 
       // follow each channel from network as well
-      for (const c of defaultNetworkChannels) { await this.followChannel1(c, DEFAULT_NETWORK); }
+      for (const c of defaultNetworkChannels) { await this.followChannel(c, DEFAULT_NETWORK); }
     }
   }
 
@@ -113,8 +113,8 @@ export class MStore extends ZStore {
 
   // append to the Followers database (keyvalue) store for the
   // peerId you follow
-  async followZId1(peerIdOrName: string): Promise<void> {
-    const [peerId, _, displayStr] = this.getNameAndPeerID1(peerIdOrName);
+  async followZId(peerIdOrName: string): Promise<void> {
+    const [peerId, _, displayStr] = this.getNameAndPeerID(peerIdOrName);
 
     const data = this.meowPrivateYDocs.followingZIds.get(peerId);
     if (data === undefined) {
@@ -132,8 +132,8 @@ export class MStore extends ZStore {
     }
   }
 
-  async unfollowZId1(peerIdOrName: string): Promise<void> {
-    const [peerId, _, displayStr] = this.getNameAndPeerID1(peerIdOrName);
+  async unfollowZId(peerIdOrName: string): Promise<void> {
+    const [peerId, _, displayStr] = this.getNameAndPeerID(peerIdOrName);
 
     const data = this.meowPrivateYDocs.followingZIds.get(peerId);
     if (data !== undefined) {
@@ -148,8 +148,8 @@ export class MStore extends ZStore {
     }
   }
 
-  async getPeerFeed1(peerIdOrName: string, n: number): Promise<Object[]> {
-    const [peerId, _, displayStr] = this.getNameAndPeerID1(peerIdOrName);
+  async getPeerFeed(peerIdOrName: string, n: number): Promise<Object[]> {
+    const [peerId, _, displayStr] = this.getNameAndPeerID(peerIdOrName);
 
     if (peerId !== this.peerID() && this.meowPrivateYDocs.followingZIds.get(peerId) === undefined) {
       console.error(
@@ -166,15 +166,15 @@ export class MStore extends ZStore {
       return [];
     }
 
-    return await this.getMessagesOnFeed1(peerId, n);
+    return await this.getMessagesOnFeed(peerId, n);
   }
 
 
   // returns peers followed by "this" node
-  getFollowedPeers1(): Object[] {
+  getFollowedPeers(): Object[] {
     const peers = [];
     for (const key of this.meowPrivateYDocs.followingZIds.keys()) {
-      const [peerId, displayName, _] = this.getNameAndPeerID1(key);
+      const [peerId, displayName, _] = this.getNameAndPeerID(key);
       peers.push({
         "peerId": peerId,
         "displayName": displayName ?? null
@@ -190,7 +190,7 @@ export class MStore extends ZStore {
 
 
   // returns a list of channels "this" node is following
-  getFollowedChannels1() {
+  getFollowedChannels() {
     const channels = [];
     for (const key of this.meowPrivateYDocs.followingChannels.keys()) {
       channels.push(key);
@@ -201,7 +201,7 @@ export class MStore extends ZStore {
 
   private async _assertChannelPresentInNetwork(
     channel: string, network: string): Promise<void> {
-    const networkMetaData = await this.getNetworkMetadata1(network);
+    const networkMetaData = await this.getNetworkMetadata(network);
     const channels = networkMetaData["channels"];
     if (!channels.includes(channel)) {
       throw new Error(chalk.red(
@@ -218,7 +218,7 @@ export class MStore extends ZStore {
    * @param channel channel to follow
    * @param network name of network where channel is. If not passed default network will be used.
    */
-  async followChannel1(channel: string, network?: string) {
+  async followChannel(channel: string, network?: string) {
     if (network === undefined) {
       console.warn(chalk.yellow(`Network name not passed. Using default network ${DEFAULT_NETWORK}`));
       network = DEFAULT_NETWORK;
@@ -252,7 +252,7 @@ export class MStore extends ZStore {
    * @param channel channel to unfollow
    * @param network name of network where channel is. If not passed default network will be used.
    */
-  async unFollowChannel1(channel: string, network?: string) {
+  async unFollowChannel(channel: string, network?: string) {
     if (network === undefined) {
       console.warn(chalk.yellow(`Network name not passed. Using default network ${DEFAULT_NETWORK}`));
       network = DEFAULT_NETWORK;
@@ -284,7 +284,7 @@ export class MStore extends ZStore {
    * @param channels a "list" of channels this message is being published on. (could be multiple channels)
    * @param network network where the channel belong. If not passed, default network will be used.
    */
-  async publishMessageOnChannel1(
+  async publishMessageOnChannel(
     channel: string,
     message: string,
     channels: string[],
@@ -307,7 +307,7 @@ export class MStore extends ZStore {
       dropDB = true; // since we're not following this channel, we should drop this db, after publish
     }
 
-    await this.appendZChainMessageToFeed1(channelFeed, message, channels, network);
+    await this.appendZChainMessageToFeed(channelFeed, message, channels, network);
 
     // TODO: think about it more (dropping a db if not following -- the problem is if no
     // other node is online, and we publish & drop the db, the "appended" data is actually LOST)
@@ -322,7 +322,7 @@ export class MStore extends ZStore {
    * @param network name of network where channel is. If not passed default network will be used.
    * @returns
    */
-  async getChannelFeed1(channel: string, n:number, network?: string): Promise<types.ZChainMessage[]> {
+  async getChannelFeed(channel: string, n:number, network?: string): Promise<types.ZChainMessage[]> {
     if (network === undefined) {
       console.warn(chalk.yellow(`Network name not passed. Using default network ${DEFAULT_NETWORK}`));
       network = DEFAULT_NETWORK;
@@ -423,8 +423,8 @@ export class MStore extends ZStore {
   /**
    * Creates a new network by name.
    */
-  async createNetwork1(name: string, channels: string[]): Promise<void> {
-    const peerMeta = await this.getPeerEthAddressAndSignature1(this.peerID()) as types.PeerMeta;
+  async createNetwork(name: string, channels: string[]): Promise<void> {
+    const peerMeta = await this.getPeerEthAddressAndSignature(this.peerID()) as types.PeerMeta;
     // if (peerMeta === undefined) {
     //   throw new Error(chalk.red(`No ethereum address and signature found for ${this.peerID()}`));
     // }
@@ -437,11 +437,11 @@ export class MStore extends ZStore {
     });
 
     console.log(chalk.green(`Successfully created network ${name}`));
-    await this.joinNetwork1(name);
+    await this.joinNetwork(name);
   }
 
 
-  async getNetworkMetadata1(networkName: string): Promise<Network | undefined> {
+  async getNetworkMetadata(networkName: string): Promise<Network | undefined> {
     const networkMetaData = await this.meowPublicYDocs.networks.get(networkName) as Network;
     if (networkMetaData === undefined) {
       throw new Error(chalk.red(`Network ${networkName} not found. Please create a network first`));
@@ -453,8 +453,8 @@ export class MStore extends ZStore {
   /**
    * Add a new channel in network.
    */
-  async addChannelInNetwork1(networkName: string, channel: string): Promise<void> {
-    const networkMetaData = await this.getNetworkMetadata1(networkName);
+  async addChannelInNetwork(networkName: string, channel: string): Promise<void> {
+    const networkMetaData = await this.getNetworkMetadata(networkName);
     const channels = networkMetaData["channels"];
     for (const c of channels) {
       if (c === channel) {
@@ -475,12 +475,12 @@ export class MStore extends ZStore {
   /**
    * Join a network
    */
-  async joinNetwork1(networkName: string) {
-    const networkMetaData = await this.getNetworkMetadata1(networkName);
+  async joinNetwork(networkName: string) {
+    const networkMetaData = await this.getNetworkMetadata(networkName);
     // follow each channel in network
     const channels = networkMetaData["channels"];
     for (const c of channels) {
-      await this.followChannel1(c, networkName);
+      await this.followChannel(c, networkName);
     }
 
     console.log(chalk.green(`Successfully joined network ${networkName}`));
@@ -489,13 +489,13 @@ export class MStore extends ZStore {
   /**
    * Leave a network
    */
-  async leaveNetwork1(networkName: string) {
-    const networkMetaData = await this.getNetworkMetadata1(networkName);
+  async leaveNetwork(networkName: string) {
+    const networkMetaData = await this.getNetworkMetadata(networkName);
 
     // unfollow each channel in network
     const channels = networkMetaData["channels"];
     for (const c of channels) {
-      await this.unFollowChannel1(c, networkName);
+      await this.unFollowChannel(c, networkName);
     }
 
     console.log(chalk.green(`Successfully left network ${networkName}`));
@@ -504,7 +504,7 @@ export class MStore extends ZStore {
   /**
    * Returns a list of all networks along with associated channels
    */
-  async getNetworkList1() {
+  async getNetworkList() {
     const list = [];
     const networks = await this.meowPublicYDocs.networks.toJSON() as { [key: string]: Network };
     for (const key of Object.keys(networks)) {
@@ -520,7 +520,7 @@ export class MStore extends ZStore {
   /**
    * Returns a list of all networks "I am following" along with their associated channels
    */
-  async getMyNetworks1() {
+  async getMyNetworks() {
     // followingChannels is in the format of network::channel
     const followingChannels = Object.keys(this.meowPrivateYDocs.followingChannels.toJSON() ?? {});
 

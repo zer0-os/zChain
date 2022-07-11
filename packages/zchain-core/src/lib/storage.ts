@@ -119,7 +119,7 @@ export class ZStore {
     })
   }
 
-  async appendZChainMessageToFeed1(
+  async appendZChainMessageToFeed(
     yArray: Y.Array<unknown>,
     message: string,
     channels: string[],
@@ -144,13 +144,13 @@ export class ZStore {
    * @param message libp2p pubsub message
    * @param network network on which the channel belongs
    */
-  async handlePublish1(message: string, channels: string[], network?: string): Promise<void> {
+  async handlePublish(message: string, channels: string[], network?: string): Promise<void> {
     // only append to my feed a single time (eg. if we're publishing same
     // message accross multiple channels, we only want to append it to feed single time)
     const currTs = Math.round(+new Date() / 10000);
     if (this.feedMap.get(message + currTs.toString()) === undefined) {
       const myfeedDoc = this.yDocs.feeds[this.libp2p.peerId.toB58String()];
-      await this.appendZChainMessageToFeed1(myfeedDoc.feedArray, message, channels, network);
+      await this.appendZChainMessageToFeed(myfeedDoc.feedArray, message, channels, network);
       this.feedMap.set(message + currTs.toString(), 1);
     }
   }
@@ -159,7 +159,7 @@ export class ZStore {
   /**
    * Returns last "n" messages published by a node
    */
-  async getMessagesOnFeed1(peerIdStr: string, n: number): Promise<Object[]> {
+  async getMessagesOnFeed(peerIdStr: string, n: number): Promise<Object[]> {
     const feedArray = this.yDocs.feeds[peerIdStr].feedArray;
     if (feedArray === undefined) {
       console.error("feed store not found for peer ", peerIdStr);
@@ -190,7 +190,7 @@ export class ZStore {
   /**
    * Determines {peerId, name, display string} for given peerId/name
    */
-  getNameAndPeerID1(peerIdOrName: string): [string, string | undefined, string] {
+  getNameAndPeerID(peerIdOrName: string): [string, string | undefined, string] {
     let peerId: string, name: string | undefined, str: string;
     if (isValidzId(peerIdOrName)) {
       peerId = peerIdOrName;
@@ -216,7 +216,7 @@ export class ZStore {
    * @param peerId peerID
    * @param name name to set
    */
-  async setNameInAddressBook1(peerId: string, name: string, force: boolean = false): Promise<void> {
+  async setNameInAddressBook(peerId: string, name: string, force: boolean = false): Promise<void> {
     assertValidzId(peerId);
 
     let addressBookMap = this.privateYDoc.addressBook; // ymap
@@ -252,7 +252,7 @@ export class ZStore {
   }
 
 
-  async addEthAddressAndSignature1(
+  async addEthAddressAndSignature(
     ethAddress: string,
     ethSignature: string,
     setAsDefault: boolean = false
@@ -311,7 +311,7 @@ export class ZStore {
   }
 
 
-  async updateDefaultEthAddress1(ethAddress: string) {
+  async updateDefaultEthAddress(ethAddress: string) {
     const web3 = new Web3(Web3.givenProvider);
     const checkSumAddress = web3.utils.toChecksumAddress(ethAddress);
     const peerMeta = (await this.publicYDoc.metaData.get(this.libp2p.peerId.toB58String()) ?? {}) as PeerMeta;
@@ -341,7 +341,7 @@ export class ZStore {
    * @param peerID
    * @returns peerMeta :: { defaultAddress: <addr>, meta: [ { ethaddress, sig }, {..} ] }
    */
-  async getPeerEthAddressAndSignature1(peerID: string): Promise<Object> {
+  async getPeerEthAddressAndSignature(peerID: string): Promise<Object> {
     assertValidzId(peerID);
 
     return await this.publicYDoc.metaData.get(peerID);
