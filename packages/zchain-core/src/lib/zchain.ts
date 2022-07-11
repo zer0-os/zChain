@@ -63,7 +63,7 @@ export class ZCHAIN {
           pubsub: {
             enabled: true,
             // uncomment to enable publishing node to listen to it's "own" message
-            // emitSelf: true
+            emitSelf: true
           }
         }
       };
@@ -96,9 +96,22 @@ export class ZCHAIN {
       await this.node.start();
       console.log("\n★ ", chalk.cyan('zChain Node Activated: ' + this.node.peerId.toB58String()) + " ★\n");
 
-      // // intialize zstore
-      // this.zStore = new ZStore(this.ipfs, this.node, password);
-      // await this.zStore.init(this.zId.name);
+      // intialize zstore
+      this.zStore = new ZStore(this.ipfs, this.node, password);
+      await this.zStore.init(this.zId.name);
+
+
+      this.node.connectionManager.on('peer:disconnect', async (connection) => {
+        console.log('Disconnected from peer:', connection.remotePeer.toB58String());
+      });
+
+      this.node.connectionManager.on('peer:connect', async (connection) => {
+        console.log('Connection established to:', connection.remotePeer.toB58String());
+      });
+
+      this.peerDiscovery.onDiscover((peerId) => {
+        console.log('Discovered:', peerId.toB58String());
+      });
 
       return this.node;
     }
@@ -110,34 +123,7 @@ export class ZCHAIN {
      * TODO: think about how to handle "password" (message encryption/decryption)
      */
     async startDaemon (name: string, listenAddrs?: string[]): Promise<Daemon> {
-      // fs.mkdirSync(ZID_PATH, { recursive: true });
-      // fs.mkdirSync(IPFS_PATH, { recursive: true });
-      // fs.mkdirSync(DB_PATH, { recursive: true });
 
-
-      // // load zId
-      // this.zId = new ZID();
-      // await this.zId.createFromName(name); // get existing/create new peer id
-
-      // // start daemon, initialize ipfs + libp2p
-      // const ipfsOptions = await this._getLibp2pOptions(listenAddrs);
-      // const daemon = new Daemon({
-      //   ...(ipfsOptions as any)
-      // });
-      // await daemon.start();
-      // this.ipfs = daemon._ipfs;
-
-      // // need to go through type hacks here :(
-      // const node = (this.ipfs as any).libp2p as Libp2p;
-
-      // console.log("\n★", chalk.cyan('zChain Daemon Activated: ' + node.peerId.toB58String()) + " ★\n");
-      // this.node = node;
-
-      // // intialize zstore
-      // this.zStore = new ZStore(this.ipfs, this.node, password);
-
-      // // initialize discovery class
-      // this.peerDiscovery = new PeerDiscovery(this.zStore, this.node);
       return 1 as any;
     }
 
@@ -145,62 +131,46 @@ export class ZCHAIN {
      * Initializes from an existing daemon http endpoint (located at ~/.zchain/ipfs/<name>/api)
      */
     async load(name: string): Promise<void> {
-      // if (!isDaemonOn()) {
-      //   throw new Error(chalk.red(`Daemon not initialized at ~/.zchain. Please run "meow daemon .."`));
-      // }
-      // this.ipfs = await getIpfs();
 
-      // this.zId = new ZID();
-      // await this.zId.createFromName(name);
-
-      // const ipfsOptions = await this._getLibp2pOptions();
-      // const libp2p = new Libp2p(ipfsOptions);
-      // (this.ipfs as any).libp2p = libp2p;
-
-      // const node = (this.ipfs as any).libp2p as Libp2p;
-      // this.node = node;
-
-      // // intialize zstore (note we're initializing both in meow app)
-      // this.zStore = new ZStore(this.ipfs, this.node, password);
-      // await this.zStore.init(this.zId.name);
-
-      // // initialize discovery class
-      // this.peerDiscovery = new PeerDiscovery(this.zStore, this.node);
     }
 
-    subscribe (channel: string): void {
-      if (!this.ipfs.pubsub) {
-        throw new Error('pubsub has not been configured');
-      }
-
-      this.ipfs.pubsub.subscribe(channel, async (msg: PubSubMessage) => {
-        const [_, __, displayStr] = this.zStore.getNameAndPeerID(msg.from);
-
+    listen (channel: string): void {
+      this.node.pubsub.on(channel, async (msg: PubSubMessage) => {
+        const [_, __, displayStr] = this.zStore.getNameAndPeerID1(msg.from);
         console.log(`Received from ${displayStr} on channel ${channel}: ${uint8ArrayToString(msg.data)}`);
       });
     }
 
+    subscribe (channel: string): void {
+      if (!this.node.pubsub) {
+        throw new Error('pubsub has not been configured');
+      }
+      this.node.pubsub.subscribe(channel);
+      this.listen(channel);
+      console.log(this.zId.peerId.toB58String() + " has subscribed to: " + channel);
+    }
+
     unsubscribe (channel: string): void {
-      if (!this.ipfs.pubsub) {
+      if (!this.node.pubsub) {
         throw new Error('pubsub has not been configured');
       }
 
-      this.ipfs.pubsub.unsubscribe(channel);
+      this.node.pubsub.unsubscribe(channel);
       console.log(this.zId.peerId.toB58String() + " has unsubscribed from: " + channel);
     }
 
     async publish (channel: string, msg: string, channels: string[]): Promise<void> {
-      await this.ipfs.pubsub
+      await this.node.pubsub
         .publish(channel, fromString(msg))
         .catch(err => { throw new Error(err); });
 
       // if channel includes a network::channel, split and pass separately.
       // this is done to keep zchain independent of networks. Only add network
       // if it's been passed from top(meow app)
-      let network;
+      let network: string;
       if (channel.includes('::')) {
         network = channel.split('::')[0];
       }
-      await this.zStore.handlePublish(msg, channels, network);
+      await this.zStore.handlePublish1(msg, channels, network);
     }
 }
