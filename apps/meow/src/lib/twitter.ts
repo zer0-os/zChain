@@ -21,9 +21,6 @@ export class Twitter {
     this.client = new TwitterApi(config);
   }
 
-  async peerID() { return await this.zChain.ipfs.id(); }
-
-
   async tweet(msg: string): Promise<void> {
     console.log("\nTweeting..");
     const { data: createdTweet } = await this.client.v2.tweet(msg);
