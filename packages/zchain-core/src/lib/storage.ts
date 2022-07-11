@@ -41,6 +41,7 @@ export class ZStore {
   publicYDoc: PublicYDoc;
   privateYDoc: PrivateYDoc;
   persistence: LeveldbPersistence;
+  providers: { [key: string] : Provider }
 
   /**
    * Initializes zchain-db (hypercore append only log)
@@ -56,6 +57,7 @@ export class ZStore {
     this.yDocs.feeds = {};
     this.publicYDoc = {} as any;
     this.privateYDoc = {} as any;
+    this.providers = {} as any;
 
     // save password
     if (password.length !== 16) {
@@ -104,6 +106,9 @@ export class ZStore {
   async initYDoc(yDocName: string): Promise<Y.Doc> {
     const yDoc = await this.persistence.getYDoc(yDocName) ?? new Y.Doc();
     const provider = new Provider(yDoc, this.libp2p, yDocName);
+    provider.aggressivelyKeepPeersUpdated = true;
+    this.providers[yDocName] = provider;
+
     return provider.awareness.doc;
   }
 
