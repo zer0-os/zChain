@@ -31,32 +31,32 @@ export class MEOW {
 
 
   private async connect(peerAddress: string) {
-    const connectedPeers = (await this.zchain.ipfs.swarm.peers()).map(p => p.peer);
-    const relayAddresses = RELAY_ADDRS.map(addr => addr.split('/p2p/')[1]);
+    // const connectedPeers = (await this.zchain.ipfs.swarm.peers()).map(p => p.peer);
+    // const relayAddresses = RELAY_ADDRS.map(addr => addr.split('/p2p/')[1]);
 
 
-    // console.log("relayAddresses ", relayAddresses);
+    // // console.log("relayAddresses ", relayAddresses);
 
-    if (
-      relayAddresses.includes(peerAddress) === false &&
-      connectedPeers.includes(peerAddress) === false
-    ) {
-      // try to connect via relay protocol (using all relays), if not connected & is not a relay
-      let connected = false;
-      const shuffledRelays = shuffle(RELAY_ADDRS);
-      for (const relay of shuffledRelays) {
-        if (connected === true) { break; }
-        const address = `${relay}/p2p-circuit/p2p/${peerAddress}`;
-        try {
-          await this.zchain.ipfs.swarm.connect(address);
-          connected = true;
-        } catch (e) {
-          //console.log('e ', e);
-          // not sure if i follow this :: an abort error is thrown but the connection still goes through
-          // console.log(chalk.yellow(`[${peerAddress}]: ${e}`));
-        }
-      }
-    }
+    // if (
+    //   relayAddresses.includes(peerAddress) === false &&
+    //   connectedPeers.includes(peerAddress) === false
+    // ) {
+    //   // try to connect via relay protocol (using all relays), if not connected & is not a relay
+    //   let connected = false;
+    //   const shuffledRelays = shuffle(RELAY_ADDRS);
+    //   for (const relay of shuffledRelays) {
+    //     if (connected === true) { break; }
+    //     const address = `${relay}/p2p-circuit/p2p/${peerAddress}`;
+    //     try {
+    //       await this.zchain.ipfs.swarm.connect(address);
+    //       connected = true;
+    //     } catch (e) {
+    //       //console.log('e ', e);
+    //       // not sure if i follow this :: an abort error is thrown but the connection still goes through
+    //       // console.log(chalk.yellow(`[${peerAddress}]: ${e}`));
+    //     }
+    //   }
+    // }
   }
 
   /**
@@ -101,56 +101,10 @@ export class MEOW {
    * // i think we should have initialized zStore here (to log replication/syncing)
    */
   async startDaemon (zIdName: string, listenAddrs?: string[]): Promise<Daemon> {
-    this.zchain = new ZCHAIN();
-    const daemon = await this.zchain.startDaemon(zIdName, listenAddrs);
-    this.zchain.node.on('peer:discovery', async (peerId) => {
-      const peerAddress = peerId.toB58String();
-      console.log('Discovered:', peerAddress);
-
-      await delay(3 * 1000); // add delay of 3s after discovery
-      await this.connect(peerAddress);
-    });
-
-    this.zchain.node.connectionManager.on('peer:connect', async (connection) => {
-      console.log(chalk.green(`Connection established to: ${connection.remotePeer.toB58String()}`));
-    });
-
-    /**
-     * Logic: In every 10s check the diff b/w all known and connected address. Try to connect
-     * to those peers who are known, but not connected (& not a relay).
-     */
-    const relayAddresses = RELAY_ADDRS.map(addr => addr.split('/p2p/')[1]);
-    setInterval(async () => {
-      const connectedPeers = (await this.zchain.ipfs.swarm.peers()).map(p => p.peer);
-      const discoveredPeers = await this.zchain.ipfs.swarm.addrs();
-      for (const discoveredPeer of discoveredPeers) {
-        if (!(relayAddresses.includes(discoveredPeer.id) && connectedPeers.includes(discoveredPeer.id))) {
-          await this.connect(discoveredPeer.id);
-        }
-      }
-    }, 10 * 1000);
-
-    // this logic is to listen to all subscribed channels at the daemon level
-    const set = new Set([]);
-    setInterval(async () => {
-      const list = await this.zchain.ipfs.pubsub.ls();
-      for (const l of list) {
-        if (l.startsWith('#') && !set.has(l)) {
-          this.zchain.subscribe(l);
-          set.add(l);
-        }
-      }
-    }, 5 * 1000);
-
-    return daemon;
+    return 1 as any;
   }
 
   async load (name: string): Promise<void> {
-    this.zchain = new ZCHAIN();
-    await this.zchain.load(name);
-
-    this.store = new MStore(this.zchain);
-    await this.store.init();
   }
 
   async sendMeow (msg: string, publishOnTwitter: boolean = false, network?: string): Promise<void> {
