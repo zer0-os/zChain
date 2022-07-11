@@ -1,5 +1,3 @@
-import FeedStore from "orbit-db-feedstore";
-import KeyValueStore from "orbit-db-kvstore";
 import * as Y from 'yjs';
 
 export interface PubSubMessage {
@@ -21,18 +19,6 @@ export interface ZChainMessage {
   seqno?: Buffer | Uint8Array
   signature?: Buffer | Uint8Array
   key?: Buffer | Uint8Array
-}
-
-export interface LogPaths {
-  default: string
-  feeds: string
-  topics: string
-  addressBook: string
-  metaData: string
-}
-
-export interface FeedMap {
-  [key: string]: FeedStore<unknown>
 }
 
 export interface YDocMap {
@@ -68,10 +54,4 @@ export interface PublicYDoc {
 export interface PrivateYDoc {
   doc: Y.Doc // root y.doc
   addressBook: Y.Map<unknown>
-}
-
-export interface DBs {
-  feeds: FeedMap
-  addressBook: KeyValueStore<unknown>
-  metaData: KeyValueStore<unknown>
 }
