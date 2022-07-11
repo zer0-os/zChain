@@ -104,7 +104,7 @@ export async function loadMeow (zIdName: string) {
 
   const meow = new MEOW();
   await meow.load(zIdName);
-  const ipfs = meow.zchain.ipfs;
+  const ipfs = {} as any;
 
   // 2s delay
   await delay(2 * 1000);
