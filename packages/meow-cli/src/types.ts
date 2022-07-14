@@ -1,4 +1,3 @@
-import type { IPFS } from 'ipfs-core-types'
 import type { Multiaddr } from 'multiaddr'
 import { MEOW } from "meow-app";
 
@@ -14,7 +13,6 @@ export interface Argv {
 
 export interface Context {
   meow: MEOW
-  ipfs: IPFS
   print: Print
   isDaemon: boolean
   getStdin: () => AsyncIterable<Buffer>

@@ -14,8 +14,6 @@ import { addWebRTCStarAddrs } from "./transport";
 import { ZID } from "./zid";
 import chalk from 'chalk';
 import { DB_PATH, RELAY_ADDRS, ZID_PATH } from './constants';
-
-import { Daemon } from 'ipfs-daemon'
 import fs from "fs";
 import WebSocket from 'libp2p-websockets'
 
@@ -95,22 +93,6 @@ export class ZCHAIN {
       await this.zStore.init(this.zId.name);
 
       return this.node;
-    }
-
-    /**
-     * Initializes an IPFS zChain (online) Daemon (or load an existing one)
-     * @param name Name assinged to this node (by the user)
-     * @returns ipfs daemon instance
-     * TODO: think about how to handle "password" (message encryption/decryption)
-     */
-    async startDaemon (name: string, listenAddrs?: string[]): Promise<Daemon> {
-      return 1 as any;
-    }
-
-    /**
-     * Initializes from an existing daemon http endpoint (located at ~/.zchain/ipfs/<name>/api)
-     */
-    async load(name: string): Promise<void> {
     }
 
     listen (channel: string): void {

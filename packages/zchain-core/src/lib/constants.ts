@@ -12,6 +12,5 @@ export const password = "ratikjindal@3445";
 export const ZCHAIN_DIR = '.zchain';
 
 export const ZID_PATH = path.join(os.homedir(), ZCHAIN_DIR, 'zId')
-export const IPFS_PATH = path.join(os.homedir(), ZCHAIN_DIR, 'ipfs')
 export const DB_PATH = path.join(os.homedir(), ZCHAIN_DIR, 'db')
 export const DEFAULT_NETWORK = '0://default.network';

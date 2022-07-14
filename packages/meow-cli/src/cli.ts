@@ -103,7 +103,7 @@ async function main (argv) {
     }
 
     if (err.code === 'ERR_NOT_ENABLED') {
-      err.message = `no IPFS repo found in ${ctx.repoPath}.\nplease run: 'ipfs init'`
+      err.message = `no repo found in ${ctx.repoPath}.\n`
     }
 
     // Handle yargs errors

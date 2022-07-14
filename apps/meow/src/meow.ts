@@ -1,7 +1,6 @@
 import { RELAY_ADDRS, ZCHAIN } from "zchain-core";
 import { APP_KEY, APP_SECRET, DEFAULT_NETWORK, GENERAL_CHANNEL, MAX_MESSAGE_LEN, ZERO_TOPIC } from "./lib/constants";
 import { MStore } from "./lib/storage";
-import { Daemon } from 'ipfs-daemon'
 import chalk from "chalk";
 import delay from "delay";
 import fs from "fs";
@@ -92,19 +91,6 @@ export class MEOW {
     //     }
     //   }
     // }, 10 * 1000);
-  }
-
-  /**
-   * Initializes a new Zchain Daemon (or load an already running one)
-   * @param name Name assinged to this node (by the user)
-   * @returns daemon instance
-   * // i think we should have initialized zStore here (to log replication/syncing)
-   */
-  async startDaemon (zIdName: string, listenAddrs?: string[]): Promise<Daemon> {
-    return 1 as any;
-  }
-
-  async load (name: string): Promise<void> {
   }
 
   async sendMeow (msg: string, publishOnTwitter: boolean = false, network?: string): Promise<void> {

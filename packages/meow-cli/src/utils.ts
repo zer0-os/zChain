@@ -10,7 +10,7 @@ import delay from "delay";
 const log = debug('meow:cli:utils')
 
 export const getRepoPath = () => {
-  return process.env.IPFS_PATH || path.join(os.homedir(), '/.jsipfs')
+  return path.join(os.homedir(), '/.zchain')
 }
 
 export const isDaemonOn = () => {
