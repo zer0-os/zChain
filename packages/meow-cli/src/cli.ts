@@ -15,7 +15,6 @@ import debug from 'debug'
 import { cli } from "./index.js";
 
 import { loadMeow, print, getRepoPath } from './utils';
-import { Context } from './types';
 import { MEOW } from "meow-app";
 
 /**
@@ -72,8 +71,6 @@ async function main (argv) {
     repoPath: getRepoPath(),
     cleanup: () => {},
     isDaemon: false,
-    /** @type {import('ipfs-core-types').IPFS | undefined} */
-    ipfs: undefined
   }
 
   const command = argv.slice(2)
@@ -82,12 +79,11 @@ async function main (argv) {
     const data = await cli(command, async (argv) => {
       if (!['daemon', 'init', 'sandbox', 'commands'].includes(command[0])) {
         // @ts-ignore argv as no properties in common
-        const { meow, ipfs, cleanup } = await loadMeow()
+        const { meow, cleanup } = await loadMeow()
 
         ctx = {
           ...ctx,
           meow,
-          ipfs,
           cleanup
         }
       }

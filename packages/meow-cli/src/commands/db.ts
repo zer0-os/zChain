@@ -1,4 +1,4 @@
-import { ipfsPathHelp } from '../utils'
+import { zChainPathHelp } from '../utils'
 
 export default {
   command: 'dbs',
@@ -10,7 +10,7 @@ export default {
    */
   builder (yargs) {
     return yargs
-      .epilog(ipfsPathHelp)
+      .epilog(zChainPathHelp)
   },
 
   /**
