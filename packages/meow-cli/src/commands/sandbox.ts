@@ -86,7 +86,6 @@ async function startConsole(zIdName: string): Promise<void> {
 		// assign repl context
 		server.context.meow = meow;
 		server.on("exit", async () => {
-      // await meow.zchain.zStore.orbitdb.disconnect();
 			resolve();
 		});
 	});

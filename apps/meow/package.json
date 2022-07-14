@@ -6,6 +6,7 @@
   "types": "build/index.d.ts",
   "scripts": {
     "dev:n3o": "ts-node src/test-scripts/n3o.ts",
+    "dev:ryan": "ts-node src/test-scripts/ryan.ts",
     "dev:ratik": "ts-node src/test-scripts/ratik.ts",
     "lint": "eslint --ext .js,.ts src",
     "lint:fix": "eslint --fix --ext .js,.ts src",
