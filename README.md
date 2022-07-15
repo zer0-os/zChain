@@ -1,6 +1,11 @@
 # zChain
 
-A zChain is a chain of Messages. Each Message contains a hash as a reference to the prior Message in the chain, that can be used to reconstruct the chain back to the initial Message. A zChain node is essentially an [ipfs](https://github.com/ipfs/js-ipfs) node (at `~/.jsipfs/<peer-id>`), where messaging relies on ipfs pubsub (gossipsub) system. But with persistence, i.e your local messages are stored on your system. We are using [orbit-db](https://github.com/orbitdb/orbit-db) (a serverless, distributed, peer-to-peer database) for storing data.
+A zChain is a chain of Messages. Each Message contains a hash as a reference to the prior Message in the chain, that can be used to reconstruct the chain back to the initial Message. A zChain node is essentially a [libp2p](https://github.com/libp2p/js-libp2p) node (at `~/.zchain/`), where messaging relies on libp2p pubsub (gossipsub) system. Messages are ordered using crdt (conflict free resolution data types) using [yjs](https://github.com/yjs/yjs), which means that even if you're offline, the messages are appended to the chain in the correct order, when you go online and sync with the network. Messages on zchain are persisted, i.e your local messages are stored on your system. We are using [level-db](https://github.com/google/leveldb) as our primary database for storing data.
+
+So, main design components for zchain include:
++ [libp2p](https://github.com/libp2p/js-libp2p): networking stack. PeerId is stored at `~/.zchain/zId/<node-name>`
++ [yjs](https://github.com/yjs/yjs): CRDT
++ [level-db](https://github.com/google/leveldb): Local Storage. Data is stored at `~/.zchain/db/<node-name>`
 
 ## Requirements
 
@@ -97,7 +102,7 @@ sh clean.sh
 
 ## Quick Start
 
-To quickly get up a node up & running, you can start up the sandbox. It has the zChain (ipfs) node initialized within the `meow` global var (present in the execution environment of the REPL):
+To quickly get up a node up & running, you can start up the sandbox. It has the zChain (libp2p) node initialized within the `meow` global var (present in the execution environment of the REPL):
 ```sh
 # clone + setup
 git clone <zChain-repo-git-url>
