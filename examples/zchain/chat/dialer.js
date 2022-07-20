@@ -10,9 +10,6 @@ const password = 'jindalratik@1234';
   let node_a = new ZCHAIN();
   await node_a.initialize('node-1'); // present in /ids, so peer id will be loaded
 
-  // const orbitdb = await OrbitDB.createInstance(node_a.node, { id: node_a.node.peerId.toB58String() });
-  // const db = await orbitdb.eventlog('site.visitors')
-
   node_a.peerDiscovery.onConnect(async (connection) => {
     console.log('Connection established to:', connection.remotePeer.toB58String());
     const listenerMa = new Multiaddr(`/dns4/vast-escarpment-62759.herokuapp.com/tcp/443/wss/p2p-webrtc-star/p2p/${connection.remotePeer.toB58String()}`)
