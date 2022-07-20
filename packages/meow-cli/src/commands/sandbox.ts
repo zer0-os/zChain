@@ -1,4 +1,4 @@
-import { ipfsPathHelp } from '../utils'
+import { zChainPathHelp } from '../utils'
 import repl from "repl";
 import chalk from "chalk";
 import { runInNewContext } from "vm";
@@ -85,10 +85,7 @@ async function startConsole(zIdName: string): Promise<void> {
 
 		// assign repl context
 		server.context.meow = meow;
-		server.context.ipfs = meow.zchain.ipfs;
-
 		server.on("exit", async () => {
-      await meow.zchain.zStore.orbitdb.disconnect();
 			resolve();
 		});
 	});
@@ -114,7 +111,7 @@ export default {
    */
   builder (yargs) {
     return yargs
-      .epilog(ipfsPathHelp)
+      .epilog(zChainPathHelp)
       .option('force', {
         type: 'boolean',
         desc: 'If true, REMOVES any previos config present at ~/.zchain',

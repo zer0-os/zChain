@@ -2,17 +2,15 @@ import fs from 'fs'
 import os from 'os'
 import path from 'path'
 import debug from 'debug'
-import { create } from 'ipfs'
 import { Multiaddr } from 'multiaddr'
 import { fromString as uint8ArrayFromString } from 'uint8arrays/from-string'
-import { create as httpClient } from 'ipfs-http-client'
 import { MEOW } from "meow-app";
 import delay from "delay";
 
 const log = debug('meow:cli:utils')
 
 export const getRepoPath = () => {
-  return process.env.IPFS_PATH || path.join(os.homedir(), '/.jsipfs')
+  return path.join(os.homedir(), '/.zchain')
 }
 
 export const isDaemonOn = () => {
@@ -93,8 +91,8 @@ export const rightpad = (val, n) => {
   return result
 }
 
-export const ipfsPathHelp = 'meow-cli uses a repository in the local file system. By default, the repo is ' +
-  'located at ~/.zchain/ipfs and database at ~/.zchain/db\n'
+export const zChainPathHelp = 'meow-cli uses a repository in the local file system. By default, the repo is ' +
+  'located at ~/.zchain\n'
 
 
 export async function loadMeow (zIdName: string) {
@@ -104,60 +102,16 @@ export async function loadMeow (zIdName: string) {
 
   const meow = new MEOW();
   await meow.load(zIdName);
-  const ipfs = meow.zchain.ipfs;
 
   // 2s delay
   await delay(2 * 1000);
 
   return {
     meow,
-    ipfs,
     cleanup: async () => { }
   }
 }
 
-/**
- * @param {{silent?: boolean }} argv
- */
-export async function getIpfs (argv) {
-  if (!argv.api && !isDaemonOn()) {
-    /** @type {import('ipfs-core-types').IPFS} */
-    const ipfs = await create({
-      silent: argv.silent,
-      repoAutoMigrate: argv.migrate,
-      repo: getRepoPath(),
-      init: { allowNew: false },
-      start: false,
-      pass: argv.pass
-    })
-
-    return {
-      isDaemon: false,
-      ipfs,
-      cleanup: async () => {
-        await ipfs.stop()
-      }
-    }
-  }
-
-  let endpoint = null
-  if (!argv.api) {
-    const apiPath = path.join(getRepoPath(), 'api')
-    endpoint = fs.readFileSync(apiPath).toString()
-  } else {
-    endpoint = argv.api
-  }
-
-
-  /** @type {import('ipfs-core-types').IPFS} */
-  const ipfs = httpClient({ url: endpoint })
-
-  return {
-    isDaemon: true,
-    ipfs,
-    cleanup: async () => { }
-  }
-}
 
 /**
  * @param {boolean} [value]
