@@ -47,7 +47,8 @@
     "err-code": "^3.0.1",
     "it-all": "^1.0.6",
     "it-glob": "^1.0.2",
-    "yargs": "^16.0.3"
+    "yargs": "^16.0.3",
+    "meow-app": "^1.0.0"
   },
   "devDependencies": {
     "@types/yargs": "^16.0.0",
