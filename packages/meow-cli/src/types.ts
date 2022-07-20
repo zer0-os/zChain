@@ -1,11 +1,4 @@
-import type { Multiaddr } from 'multiaddr'
 import { MEOW } from "meow-app";
-
-// declare module '@hapi/hapi' {
-//   interface ServerInfo {
-//     ma: Multiaddr
-//   }
-// }
 
 export interface Argv {
   ctx: Context
