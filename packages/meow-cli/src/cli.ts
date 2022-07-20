@@ -77,7 +77,7 @@ async function main (argv) {
 
   try {
     const data = await cli(command, async (argv) => {
-      if (!['daemon', 'init', 'sandbox', 'commands'].includes(command[0])) {
+      if (!['init', 'sandbox', 'commands'].includes(command[0])) {
         // @ts-ignore argv as no properties in common
         const { meow, cleanup } = await loadMeow()
 
@@ -128,7 +128,7 @@ async function main (argv) {
     return
   }
 
-  //process.exit(exitCode)
+  process.exit(exitCode)
 }
 
 main(process.argv)

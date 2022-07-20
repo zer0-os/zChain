@@ -101,7 +101,7 @@ export async function loadMeow (zIdName: string) {
   }
 
   const meow = new MEOW();
-  await meow.load(zIdName);
+  await meow.init(zIdName);
 
   // 2s delay
   await delay(2 * 1000);
