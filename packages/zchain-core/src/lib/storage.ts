@@ -119,7 +119,7 @@ export class ZStore {
    */
   persistOnYDocUpdate(yDocName: string, yDoc: Y.Doc, persistence: LeveldbPersistence) {
     yDoc.on('update', function(update: Uint8Array, origin: any, doc: Y.Doc) {
-      console.log("Got update for yDOC :: ", yDocName);
+      //console.log("Got update for yDOC :: ", yDocName);
       persistence.storeUpdate(yDocName, Y.encodeStateAsUpdate(doc));
     })
   }
