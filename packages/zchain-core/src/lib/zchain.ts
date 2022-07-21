@@ -95,7 +95,7 @@ export class ZCHAIN {
       return this.node;
     }
 
-    listen (channel: string): void {
+    private _listen (channel: string): void {
       this.node.pubsub.on(channel, async (msg: PubSubMessage) => {
         const [_, __, displayStr] = this.zStore.getNameAndPeerID(msg.from);
         console.log(`Received from ${displayStr} on channel ${channel}: ${uint8ArrayToString(msg.data)}`);
@@ -107,7 +107,7 @@ export class ZCHAIN {
         throw new Error('pubsub has not been configured');
       }
       this.node.pubsub.subscribe(channel);
-      this.listen(channel);
+      this._listen(channel);
       console.log(this.zId.peerId.toB58String() + " has subscribed to: " + channel);
     }
 
