@@ -117,6 +117,10 @@ export default {
         desc: 'If true, REMOVES any previos config present at ~/.zchain',
         default: false
       })
+      .option('name', {
+        type: 'string',
+        desc: 'Name of the node. If passed, this name is directly used to initialize the node',
+      })
   },
 
   /**
@@ -130,34 +134,38 @@ export default {
     }
 
 		let name: string;
-		const basePath = path.join(os.homedir(), '.zchain', 'zId');
-		if (!fs.existsSync(basePath)) {
-			name = await getNewName();
+		if (argv.name !== undefined) {
+			name = argv.name;
 		} else {
-			const zIdNames = fs
-				.readdirSync(basePath, { withFileTypes: true })
-				.filter((dirent) => (!dirent.isDirectory() && dirent.name.endsWith('.json')))
-				.map((dirent) => dirent.name.split('.json')[0]);
-
-			if (zIdNames.length === 0) {
+			const basePath = path.join(os.homedir(), '.zchain', 'zId');
+			if (!fs.existsSync(basePath)) {
 				name = await getNewName();
 			} else {
-				const choicePrompt = new (enquirer as any).Select({
-					name: "Choose",
-					message: "Existing node configuration found at ~/.zchain/zId",
-					choices: ["Load from an existing node", "Initialize a new node"],
-				});
+				const zIdNames = fs
+					.readdirSync(basePath, { withFileTypes: true })
+					.filter((dirent) => (!dirent.isDirectory() && dirent.name.endsWith('.json')))
+					.map((dirent) => dirent.name.split('.json')[0]);
 
-				const selectedChoice = await choicePrompt.run();
-				if (String(selectedChoice).startsWith('Initialize')) {
+				if (zIdNames.length === 0) {
 					name = await getNewName();
 				} else {
-					const namePrompt = new (enquirer as any).Select({
-						name: "Nodes",
-						message: "Pick a node to load",
-						choices: zIdNames,
+					const choicePrompt = new (enquirer as any).Select({
+						name: "Choose",
+						message: "Existing node configuration found at ~/.zchain/zId",
+						choices: ["Load from an existing node", "Initialize a new node"],
 					});
-					name = await namePrompt.run();
+
+					const selectedChoice = await choicePrompt.run();
+					if (String(selectedChoice).startsWith('Initialize')) {
+						name = await getNewName();
+					} else {
+						const namePrompt = new (enquirer as any).Select({
+							name: "Nodes",
+							message: "Pick a node to load",
+							choices: zIdNames,
+						});
+						name = await namePrompt.run();
+					}
 				}
 			}
 		}
