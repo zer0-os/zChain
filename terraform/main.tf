@@ -4,11 +4,15 @@ resource "aws_security_group" "webSG" {
 
   # open all ports
   ingress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks      = ["0.0.0.0/0"]
-    ipv6_cidr_blocks = ["::/0"]
+    cidr_blocks      = [ "0.0.0.0/0", ]
+    description      = ""
+    from_port        = 22
+    ipv6_cidr_blocks = []
+    prefix_list_ids  = []
+    protocol         = "tcp"
+    security_groups  = []
+    self             = false
+    to_port          = 22
   }
 
   egress {
@@ -21,13 +25,13 @@ resource "aws_security_group" "webSG" {
 
 # us-east-2 region
 resource "aws_instance" "web" {
-  # Creates four identical aws ec2 instances
-  count = 2
+  # Creates five identical aws ec2 instances
+  count = 5
 
   # All four instances will have the same ami and instance_type
   ami = lookup(var.ec2_ami,var.region)
   instance_type = var.instance_type #
-  key_name = "terraform-us-east-2-demo"
+  key_name = "zchain-us-east-2"
   vpc_security_group_ids = ["${aws_security_group.webSG.id}"]
 
   tags = {
@@ -40,19 +44,23 @@ resource "aws_instance" "web" {
     type     = "ssh"
     user     = "ubuntu"
     host     = self.public_ip
-    private_key = file("./keys/terraform-us-east-2-demo.pem")
+    private_key = file("./keys/zchain-us-east-2.pem")
   }
 
   provisioner "remote-exec" {
     inline = [
-      # "curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.34.0/install.sh | bash",
-      # ". ~/.nvm/nvm.sh",
-      # "nvm install --lts",
-      # "npm install -g yarn",
       "git clone https://github.com/zer0-os/zChain.git",
       "cd zChain",
-      #"sh install.sh",
     ]
+  }
+
+  provisioner "local-exec" {
+    command = "echo ${self.public_ip} >> ./public_ips/us-east-2.txt"
+  }
+
+  provisioner "local-exec" {
+    when    = destroy
+    command = "rm -rf ./public_ips/*"
   }
 }
 
