@@ -1,17 +1,17 @@
-import Libp2p from "libp2p";
+import { Libp2p as ILibp2p } from "libp2p";
 import path from "path";
 import {
   PeerMeta, PrivateYDoc,
   PublicYDoc, YDocs, ZChainMessage
-} from "../types";
-import { decode, encode } from "./encryption";
+} from "../types.js";
+import { decode, encode } from "./encryption.js";
 
 import chalk from "chalk";
-import { assertValidzId } from "./zid";
-import { DB_PATH } from "./constants";
+import { assertValidzId } from "./zid.js";
+import { DB_PATH } from "./constants.js";
 import Web3 from 'web3';
 import * as Y from 'yjs';
-import Provider from 'y-libp2p'
+// import Provider from 'y-libp2p'
 import { LeveldbPersistence } from 'y-leveldb'
 
 // zchain operations are at the "system" level
@@ -33,7 +33,7 @@ function isValidzId(zId: string): Boolean {
  * + Store(append) newly discovered peers to logs
  */
 export class ZStore {
-  protected libp2p: Libp2p;
+  protected libp2p: ILibp2p;
   private password: string;
   private feedMap: Map<string, number>
 
@@ -41,13 +41,13 @@ export class ZStore {
   publicYDoc: PublicYDoc;
   privateYDoc: PrivateYDoc;
   persistence: LeveldbPersistence;
-  providers: { [key: string] : Provider }
+  //providers: { [key: string] : Provider }
 
   /**
    * Initializes zchain-db (hypercore append only log)
    * @param libp2p libp2p node
    */
-  constructor (libp2p: Libp2p, password: string) {
+  constructor (libp2p: ILibp2p, password: string) {
     this.libp2p = libp2p;
 
     // going through "type hacks" (as they'll be initialized later)
@@ -57,7 +57,7 @@ export class ZStore {
     this.yDocs.feeds = {};
     this.publicYDoc = {} as any;
     this.privateYDoc = {} as any;
-    this.providers = {} as any;
+    //this.providers = {} as any;
 
     // save password
     if (password.length !== 16) {
@@ -71,7 +71,7 @@ export class ZStore {
     this.persistence = new LeveldbPersistence(path.join(DB_PATH, zIdName));
 
     // eg. ./zchain-db/{peerId}/sys/<log>
-    const peerID = this.libp2p.peerId.toB58String();
+    const peerID = this.libp2p.peerId.toString();
     const feedPath = peerID + "." + SYSPATH + ".feed";
 
     // initialize private yDoc & feed(ydoc array)
@@ -105,11 +105,11 @@ export class ZStore {
    */
   async initYDoc(yDocName: string): Promise<Y.Doc> {
     const yDoc = await this.persistence.getYDoc(yDocName) ?? new Y.Doc();
-    const provider = new Provider(yDoc, this.libp2p, yDocName);
-    provider.aggressivelyKeepPeersUpdated = true;
-    this.providers[yDocName] = provider;
-
-    return provider.awareness.doc;
+    // const provider = new Provider(yDoc, this.libp2p, yDocName);
+    // provider.aggressivelyKeepPeersUpdated = true;
+    // this.providers[yDocName] = provider;
+    // return provider.awareness.doc;
+    return yDoc;
   }
 
   /**
@@ -133,7 +133,7 @@ export class ZStore {
 
     // verify you cannot spoof a signature, like i can't just copy it & spam it
     const zChainMessage = {
-      from: this.libp2p.peerId.toB58String(),
+      from: this.libp2p.peerId.toString(),
       network: network ?? undefined,
       channels: channels,
       message: await encode(message, this.password),
@@ -154,7 +154,7 @@ export class ZStore {
     // message accross multiple channels, we only want to append it to feed single time)
     const currTs = Math.round(+new Date() / 10000);
     if (this.feedMap.get(message + currTs.toString()) === undefined) {
-      const myfeedDoc = this.yDocs.feeds[this.libp2p.peerId.toB58String()];
+      const myfeedDoc = this.yDocs.feeds[this.libp2p.peerId.toString()];
       await this.appendZChainMessageToFeed(myfeedDoc.feedArray, message, channels, network);
       this.feedMap.set(message + currTs.toString(), 1);
     }
@@ -274,7 +274,7 @@ export class ZStore {
     // address verification
     const checkSumAddress = web3.utils.toChecksumAddress(ethAddress);
     try{
-      let claimedAddress = web3.eth.accounts.recover(this.libp2p.peerId.toB58String(), ethSignature)
+      let claimedAddress = web3.eth.accounts.recover(this.libp2p.peerId.toString(), ethSignature)
       if(claimedAddress === checkSumAddress){
         console.info(chalk.green(`Ethereum address verified`));
       } else {
@@ -284,7 +284,7 @@ export class ZStore {
       throw new Error(e);
     }
 
-    const peerMeta = (await this.publicYDoc.metaData.get(this.libp2p.peerId.toB58String()) ?? {}) as PeerMeta;
+    const peerMeta = (await this.publicYDoc.metaData.get(this.libp2p.peerId.toString()) ?? {}) as PeerMeta;
     const meta = peerMeta.meta ?? [];
     for (const m of meta) {
       if (m.ethAddress === checkSumAddress) {
@@ -307,7 +307,7 @@ export class ZStore {
       defaultAddress = peerMeta.defaultAddress;
     }
 
-    await this.publicYDoc.metaData.set(this.libp2p.peerId.toB58String(), {
+    await this.publicYDoc.metaData.set(this.libp2p.peerId.toString(), {
       defaultAddress: defaultAddress,
       meta: metaDataToSave
     });
@@ -319,7 +319,7 @@ export class ZStore {
   async updateDefaultEthAddress(ethAddress: string) {
     const web3 = new Web3(Web3.givenProvider);
     const checkSumAddress = web3.utils.toChecksumAddress(ethAddress);
-    const peerMeta = (await this.publicYDoc.metaData.get(this.libp2p.peerId.toB58String()) ?? {}) as PeerMeta;
+    const peerMeta = (await this.publicYDoc.metaData.get(this.libp2p.peerId.toString()) ?? {}) as PeerMeta;
     const meta = peerMeta.meta ?? [];
 
     let found = false;
@@ -334,7 +334,7 @@ export class ZStore {
       throw new Error(chalk.red(`Address ${ethAddress} not found in metadata db. Please use addEthAddressAndSignature to add ethereum address and signature first`));
     }
 
-    await this.publicYDoc.metaData.set(this.libp2p.peerId.toB58String(), {
+    await this.publicYDoc.metaData.set(this.libp2p.peerId.toString(), {
       defaultAddress: checkSumAddress,
       meta: meta
     });

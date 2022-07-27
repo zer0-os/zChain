@@ -2,17 +2,20 @@ import chalk from "chalk";
 import fs from "fs";
 import path from "path";
 import os from "os";
-import PeerId from "peer-id";
+//import PeerId from "peer-id";
+import { peerIdFromString } from "@libp2p/peer-id";
+import { createFromJSON, createRSAPeerId } from '@libp2p/peer-id-factory';
+//import type { PeerId } from '@libp2p/interfaces/pee'
 
-import { getPathFromDirRecursive } from "./files";
-import { ZID_PATH } from "./constants";
+import { getPathFromDirRecursive } from "./files.js";
+import { ZID_PATH } from "./constants.js";
 
 const PEER_ID_DIR = "ids";
 const jsonExt = ".json";
 
 export function assertValidzId(peerId: string) {
   try {
-    PeerId.createFromB58String(peerId);
+    peerIdFromString(peerId);
   } catch (error) {
     throw new Error(chalk.red(`Invalid zId: ${peerId}`))
     //console.error(chalk.red(`Invalid zId: ${peerId}`));
@@ -24,7 +27,7 @@ export function assertValidzId(peerId: string) {
  */
 export class ZID {
   public name: string | undefined; // maybe we can use a name associated with peer id?
-  public peerId: PeerId | undefined;
+  public peerId: any | undefined; // TODOOOOO
 
   /**
    * Creates a new peerid/load an exsiting peerID from a name.
@@ -37,20 +40,16 @@ export class ZID {
     if (fs.existsSync(peerIdPath)) {
       console.info(`Using existing peer id at ${peerIdPath}\n`);
       const content = this.readFile(peerIdPath);
-      this.peerId = await PeerId.createFromJSON(JSON.parse(content));
+      this.peerId = await createFromJSON(JSON.parse(content));
       return;
     }
 
     console.info(`PeerId not found. Generating new peer id at ${peerIdPath}`);
-    this.peerId = await PeerId.create();
+    this.peerId = await createRSAPeerId();
     this.writeFile(
       peerIdPath,
       JSON.stringify(this.peerId.toJSON(), null, 2)
     );
-  }
-
-  createFromB58String (peerIdStr: string): void {
-    this.peerId = PeerId.createFromB58String(peerIdStr);
   }
 
   private readFile (path: string): string {

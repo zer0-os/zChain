@@ -1,34 +1,42 @@
 import { NOISE } from '@chainsafe/libp2p-noise';
-import Libp2p from "libp2p";
-import Gossipsub from "libp2p-gossipsub";
-import KadDHT from 'libp2p-kad-dht';
-import Mplex from "libp2p-mplex";
-import TCP from 'libp2p-tcp';
+import { createLibp2p } from "libp2p";
+import { Libp2p as ILibp2p } from "libp2p";
+
+import { TCP } from '@libp2p/tcp'
+import { Mplex } from '@libp2p/mplex'
+import { Noise } from '@chainsafe/libp2p-noise'
+import { GossipSub } from '@chainsafe/libp2p-gossipsub'
+import { KadDHT } from '@libp2p/kad-dht'
+import { Bootstrap } from '@libp2p/bootstrap'
+import { MulticastDNS } from '@libp2p/mdns'
+import { WebRTCStar } from "@libp2p/webrtc-star";
 import { fromString } from "uint8arrays/from-string";
 import { toString as uint8ArrayToString } from "uint8arrays/to-string";
+import wrtc from "wrtc";
 
-import { PubSubMessage } from "../types";
-import { PeerDiscovery } from "./peer-discovery";
-import { ZStore } from './storage';
-import { addWebRTCStarAddrs } from "./transport";
-import { ZID } from "./zid";
+import { PubSubMessage } from "../types.js";
+import { PeerDiscovery } from "./peer-discovery.js";
+import { ZStore } from './storage.js';
+import { addWebRTCStarAddrs } from "./transport.js";
+import { ZID } from "./zid.js";
 import chalk from 'chalk';
-import { DB_PATH, RELAY_ADDRS, ZID_PATH } from './constants';
+import { DB_PATH, RELAY_ADDRS, ZID_PATH } from './constants.js';
 import fs from "fs";
 import WebSocket from 'libp2p-websockets'
 
 export const password = "ratikjindal@3445"
 
 export class ZCHAIN {
-    node: Libp2p | undefined;
+    node: ILibp2p | undefined;
     zId: ZID | undefined;
     peerDiscovery: PeerDiscovery | undefined;
     zStore: ZStore;
 
-    async _getLibp2pOptions(listenAddrs?: string[]) {
+    async _getLibp2pOptions(listenAddrs?: string[]): Promise<any> {
       const peerId = this.zId.peerId;
 
       listenAddrs = listenAddrs ?? [];
+      const transportKey = WebRTCStar.prototype[Symbol.toStringTag]
       const options = {
         peerId,
         addresses: {
@@ -40,29 +48,38 @@ export class ZCHAIN {
             ...listenAddrs
           ]
         },
-        modules: {
-          transport: [TCP, WebSocket],
-          streamMuxer: [Mplex],
-          connEncryption: [NOISE],
-          dht: KadDHT,
-          pubsub: Gossipsub,
-          peerDiscovery: [] // TODO: add Mdns, removed as tested on remote systems
+        addressManager: {
+          autoDial: true
         },
+        connectionManager: {
+          dialTimeout: 60000
+        },
+        transports: [
+          new WebRTCStar({ wrtc: wrtc })
+        ],
+        streamMuxers: [
+          new Mplex()
+        ],
+        connectionEncryption: [
+          new Noise()
+        ],
+        //dht: new KadDHT(),
+        pubsub: new GossipSub({
+          emitSelf: true,
+          allowPublishToZeroPeers: true
+        }),
         config: {
-          dht: {
-            enabled: false
-          },
-          pubsub: {
-            enabled: true,
-            // uncomment to enable publishing node to listen to it's "own" message
-            emitSelf: true
+          transport: {
+            [transportKey]: {
+              wrtc // You can use `wrtc` when running in Node.js
+            }
           }
         }
       };
 
       // add webrtc-transport if listen addresses has "p2p-webrtc-star"
       const starAddresses = options.addresses.listen.filter(a => a.includes('p2p-webrtc-star'));
-      if (starAddresses.length) { addWebRTCStarAddrs(options); }
+      //if (starAddresses.length) { addWebRTCStarAddrs(options); }
       return options;
     }
 
@@ -71,7 +88,7 @@ export class ZCHAIN {
      * @param name Name assinged to this node (by the user)
      * @returns libp2p node instance
      */
-    async initialize (name: string, listenAddrs?: string[]): Promise<Libp2p> {
+    async initialize (name: string, listenAddrs?: string[]): Promise<ILibp2p> {
       fs.mkdirSync(ZID_PATH, { recursive: true });
       fs.mkdirSync(DB_PATH, { recursive: true });
 
@@ -79,14 +96,14 @@ export class ZCHAIN {
       await this.zId.createFromName(name); // get existing/create new peer id
       const libp2pOptions = await this._getLibp2pOptions(listenAddrs);
 
-      this.node = await Libp2p.create(libp2pOptions);
+      this.node = await createLibp2p(libp2pOptions);
 
       // initialize discovery class
       this.peerDiscovery = new PeerDiscovery(this.node);
       this.peerDiscovery.addBootstrapNodes(RELAY_ADDRS);
 
       await this.node.start();
-      console.log("\n★ ", chalk.cyan('zChain Node Activated: ' + this.node.peerId.toB58String()) + " ★\n");
+      console.log("\n★ ", chalk.cyan('zChain Node Activated: ' + this.node.peerId.toString()) + " ★\n");
 
       // intialize zstore
       this.zStore = new ZStore(this.node, password);
@@ -96,10 +113,10 @@ export class ZCHAIN {
     }
 
     private _listen (channel: string): void {
-      this.node.pubsub.on(channel, async (msg: PubSubMessage) => {
-        const [_, __, displayStr] = this.zStore.getNameAndPeerID(msg.from);
-        console.log(`Received from ${displayStr} on channel ${channel}: ${uint8ArrayToString(msg.data)}`);
-      });
+      // this.node.pubsub.on(channel, async (msg: PubSubMessage) => {
+      //   const [_, __, displayStr] = this.zStore.getNameAndPeerID(msg.from);
+      //   console.log(`Received from ${displayStr} on channel ${channel}: ${uint8ArrayToString(msg.data)}`);
+      // });
     }
 
     subscribe (channel: string): void {
@@ -108,7 +125,7 @@ export class ZCHAIN {
       }
       this.node.pubsub.subscribe(channel);
       this._listen(channel);
-      console.log(this.zId.peerId.toB58String() + " has subscribed to: " + channel);
+      console.log(this.zId.peerId.toString() + " has subscribed to: " + channel);
     }
 
     unsubscribe (channel: string): void {
@@ -117,7 +134,7 @@ export class ZCHAIN {
       }
 
       this.node.pubsub.unsubscribe(channel);
-      console.log(this.zId.peerId.toB58String() + " has unsubscribed from: " + channel);
+      console.log(this.zId.peerId.toString() + " has unsubscribed from: " + channel);
     }
 
     async publish (channel: string, msg: string, channels: string[]): Promise<void> {

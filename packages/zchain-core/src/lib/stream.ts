@@ -15,7 +15,6 @@ export function stdinToStream (stream: any): void {
     // Write to the stream (the sink)
     stream.sink
   )
-    .catch(err => { throw new Error(err); });
 }
 
 export function streamToConsole (stream: any): void {
