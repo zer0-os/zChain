@@ -1,7 +1,7 @@
 import { ZCHAIN, ZStore, types, decode } from "zchain-core";
-import { DEFAULT_NETWORK, GENERAL_CHANNEL, password } from "./constants";
+import { DEFAULT_NETWORK, GENERAL_CHANNEL, password } from "./constants.js";
 import chalk from "chalk";
-import { MeowPrivateYDocs, MeowPublicYDocs, Network } from "../types";
+import { MeowPrivateYDocs, MeowPublicYDocs, Network } from "../types.js";
 import * as Y from 'yjs';
 
 // meow operations are at the "application" level
@@ -34,25 +34,29 @@ export class MStore extends ZStore {
     this.channelYDocs = {} as any;
   }
 
-  peerID() { return this.libp2p.peerId.toB58String(); }
+  peerID() { return this.libp2p.peerId.toString(); }
 
   // todo: review and remove
   // update: i think for sandbox we can use this logic
   private async _initModules() {
-    this.zChain.peerDiscovery.onConnect(async (connection) => {
-      const [_, __, displayStr] = this.getNameAndPeerID(connection.remotePeer.toB58String())
+    this.zChain.peerDiscovery.onConnect(async (event) => {
+      const connection = event.detail;
+
+      const [_, __, displayStr] = this.getNameAndPeerID(connection.remotePeer.toString())
       console.log('Connection established to:', displayStr);
     });
 
-    this.zChain.peerDiscovery.onDiscover((peerId) => {
-      const [_, __, displayStr] = this.getNameAndPeerID(peerId.toB58String())
+    this.zChain.peerDiscovery.onDiscover((event: any) => {
+      const peerInfo = event.detail;
+
+      const [_, __, displayStr] = this.getNameAndPeerID(peerInfo.id.toString())
       console.log('Discovered:', displayStr);
     });
 
-    this.zChain.node.connectionManager.on('peer:disconnect', async (connection) => {
-      const [_, __, displayStr] = this.getNameAndPeerID(connection.remotePeer.toB58String())
-      console.log('Disconnected from peer:', displayStr);
-    });
+    // this.zChain.node.connectionManager.on('peer:disconnect', async (connection) => {
+    //   const [_, __, displayStr] = this.getNameAndPeerID(connection.remotePeer.toB58String())
+    //   console.log('Disconnected from peer:', displayStr);
+    // });
   }
 
   async init(): Promise<void> {

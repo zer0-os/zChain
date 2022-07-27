@@ -1,17 +1,17 @@
 import { RELAY_ADDRS, ZCHAIN } from "zchain-core";
-import { APP_KEY, APP_SECRET, DEFAULT_NETWORK, GENERAL_CHANNEL, MAX_MESSAGE_LEN, ZERO_TOPIC } from "./lib/constants";
-import { MStore } from "./lib/storage";
+import { APP_KEY, APP_SECRET, DEFAULT_NETWORK, GENERAL_CHANNEL, MAX_MESSAGE_LEN, ZERO_TOPIC } from "./lib/constants.js";
+import { MStore } from "./lib/storage.js";
 import chalk from "chalk";
 import delay from "delay";
 import fs from "fs";
 import open from "open";
 import path from 'path';
 import os from 'os';
-import { Twitter } from "./lib/twitter";
+import { Twitter } from "./lib/twitter.js";
 import { TwitterApi } from "twitter-api-v2";
 import express from "express";
-import { shuffle } from "./lib/array";
-import { Network, TwitterAuthLink } from "./types";
+import { shuffle } from "./lib/array.js";
+import { Network, TwitterAuthLink } from "./types.js";
 
 
 export class MEOW {
