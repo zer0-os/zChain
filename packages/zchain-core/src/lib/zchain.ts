@@ -1,4 +1,3 @@
-import { NOISE } from '@chainsafe/libp2p-noise';
 import { createLibp2p } from "libp2p";
 import { Libp2p as ILibp2p } from "libp2p";
 
@@ -10,6 +9,7 @@ import { KadDHT } from '@libp2p/kad-dht'
 import { Bootstrap } from '@libp2p/bootstrap'
 import { MulticastDNS } from '@libp2p/mdns'
 import { WebRTCStar } from "@libp2p/webrtc-star";
+import { WebSockets } from '@libp2p/websockets'
 import { fromString } from "uint8arrays/from-string";
 import { toString as uint8ArrayToString } from "uint8arrays/to-string";
 import wrtc from "wrtc";
@@ -22,7 +22,6 @@ import { ZID } from "./zid.js";
 import chalk from 'chalk';
 import { DB_PATH, RELAY_ADDRS, ZID_PATH } from './constants.js';
 import fs from "fs";
-import WebSocket from 'libp2p-websockets'
 
 export const password = "ratikjindal@3445"
 
@@ -41,8 +40,9 @@ export class ZCHAIN {
         peerId,
         addresses: {
           listen: [
-            '/ip4/0.0.0.0/tcp/0/ws',
-            // custom deployed webrtc-star signalling server
+            '/ip4/0.0.0.0/tcp/0',
+            //'/ip4/0.0.0.0/tcp/0/ws',
+            // // custom deployed webrtc-star signalling server
             '/dns4/vast-escarpment-62759.herokuapp.com/tcp/443/wss/p2p-webrtc-star/',
             '/dns4/sheltered-mountain-08581.herokuapp.com/tcp/443/wss/p2p-webrtc-star/',
             ...listenAddrs
@@ -52,23 +52,43 @@ export class ZCHAIN {
           autoDial: true
         },
         connectionManager: {
+          autoDial: true,
           dialTimeout: 60000
         },
         transports: [
-          new WebRTCStar({ wrtc: wrtc })
+          new WebRTCStar({ wrtc: wrtc }), new WebSockets(), new TCP()
         ],
         streamMuxers: [
-          new Mplex()
+          new Mplex({
+            maxInboundStreams: Infinity,
+            maxOutboundStreams: Infinity
+          })
+        ],
+        peerDiscovery: [
+          new MulticastDNS({
+            interval: 1000
+          }),
+          // new Bootstrap({
+          //   list: RELAY_ADDRS
+          // })
         ],
         connectionEncryption: [
           new Noise()
         ],
-        //dht: new KadDHT(),
+        dht: new KadDHT(),
         pubsub: new GossipSub({
+          allowPublishToZeroPeers: true,
+          fallbackToFloodsub: true,
           emitSelf: true,
-          allowPublishToZeroPeers: true
+          maxOutboundStreams: Infinity,
+          maxInboundStreams: Infinity,
+          enabled: true
         }),
         config: {
+          pubsub: {
+            emitSelf: true,
+            enabled: false
+          },
           transport: {
             [transportKey]: {
               wrtc // You can use `wrtc` when running in Node.js
@@ -78,8 +98,8 @@ export class ZCHAIN {
       };
 
       // add webrtc-transport if listen addresses has "p2p-webrtc-star"
-      const starAddresses = options.addresses.listen.filter(a => a.includes('p2p-webrtc-star'));
-      //if (starAddresses.length) { addWebRTCStarAddrs(options); }
+      // const starAddresses = options.addresses.listen.filter(a => a.includes('p2p-webrtc-star'));
+      // if (starAddresses.length) { addWebRTCStarAddrs(options); }
       return options;
     }
 
@@ -109,14 +129,15 @@ export class ZCHAIN {
       this.zStore = new ZStore(this.node, password);
       await this.zStore.init(this.zId.name);
 
+      this._listen(); // listen to pubsub events
       return this.node;
     }
 
-    private _listen (channel: string): void {
-      // this.node.pubsub.on(channel, async (msg: PubSubMessage) => {
-      //   const [_, __, displayStr] = this.zStore.getNameAndPeerID(msg.from);
-      //   console.log(`Received from ${displayStr} on channel ${channel}: ${uint8ArrayToString(msg.data)}`);
-      // });
+    private _listen (): void {
+      this.node.pubsub.addEventListener('message', async (event) => {
+        const [_, __, displayStr] = this.zStore.getNameAndPeerID(event.detail.from.toString());
+        console.log(`Received from ${displayStr} on channel ${event.detail.topic}: ${uint8ArrayToString(event.detail.data)}`);
+      });
     }
 
     subscribe (channel: string): void {
@@ -124,7 +145,6 @@ export class ZCHAIN {
         throw new Error('pubsub has not been configured');
       }
       this.node.pubsub.subscribe(channel);
-      this._listen(channel);
       console.log(this.zId.peerId.toString() + " has subscribed to: " + channel);
     }
 

@@ -55,6 +55,15 @@ export class PeerDiscovery {
   }
 
   /**
+   * On Disconnect handler.
+   * @param handler callback after connection is established
+   */
+  onDisconnect (handler: (event: CustomEvent<any>) => void): void {
+    this.node = this._assertNodeInitialized();
+    this.node.connectionManager.addEventListener('peer:disconnect', handler);
+  }
+
+  /**
    * On Discover handler.
    * @param handler callback after new peer is discovered
    */

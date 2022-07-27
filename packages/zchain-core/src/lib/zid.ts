@@ -4,7 +4,7 @@ import path from "path";
 import os from "os";
 //import PeerId from "peer-id";
 import { peerIdFromString } from "@libp2p/peer-id";
-import { createFromJSON, createRSAPeerId } from '@libp2p/peer-id-factory';
+import { createFromJSON, createEd25519PeerId } from '@libp2p/peer-id-factory';
 //import type { PeerId } from '@libp2p/interfaces/pee'
 
 import { getPathFromDirRecursive } from "./files.js";
@@ -45,7 +45,7 @@ export class ZID {
     }
 
     console.info(`PeerId not found. Generating new peer id at ${peerIdPath}`);
-    this.peerId = await createRSAPeerId();
+    this.peerId = await createEd25519PeerId();
     this.writeFile(
       peerIdPath,
       JSON.stringify(this.peerId.toJSON(), null, 2)
