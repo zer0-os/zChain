@@ -1,6 +1,6 @@
 import yargs from 'yargs'
-import { zChainPathHelp, disablePrinting } from './utils'
-import { commandList } from './commands/index'
+import { zChainPathHelp, disablePrinting } from './utils.js'
+import { commandList } from './commands/index.js'
 
 const args = yargs(process.argv.slice(2))
   .option('silent', {
