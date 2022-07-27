@@ -1,6 +1,6 @@
 {
   "name": "meow-cli",
-  "version": "0.12.1",
+  "version": "0.0.1",
   "description": "CLI for meow",
   "keywords": [
     "zChain",
@@ -10,6 +10,7 @@
   "main": "build/src/index.js",
   "types": "build/src/index.d.ts",
   "preferGlobal": true,
+  "type": "module",
   "typesVersions": {
     "*": {
       "*": [

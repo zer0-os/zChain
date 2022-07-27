@@ -22,7 +22,7 @@
     "lint:fix": "yarn workspaces run lint:fix"
   },
   "peerDependencies": {
-    "lodash": "^4.17.19"
+    "lodash": "^4.17.21"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^5.1.0",

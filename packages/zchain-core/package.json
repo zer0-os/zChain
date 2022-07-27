@@ -7,10 +7,11 @@
   "keywords": [
     "tooling"
   ],
-  "main": "build/index.js",
+  "exports": "./build/index.js",
   "types": "build/index.d.ts",
+  "type": "module",
   "engines": {
-    "node": ">=14.11.0"
+    "node": ">=14.13.1 || >=16.0.0"
   },
   "scripts": {
     "lint": "eslint --ext .js,.ts src",
@@ -19,17 +20,18 @@
     "build:watch": "tsc -w -p ."
   },
   "dependencies": {
-    "@chainsafe/libp2p-noise": "^5.0.2",
     "@nodelib/fs.walk": "^1.2.8",
     "delay": "^5.0.0",
-    "libp2p": "^0.36.2",
-    "libp2p-bootstrap": "^0.14.0",
-    "libp2p-gossipsub": "^0.13.0",
-    "libp2p-kad-dht": "^0.28.6",
-    "libp2p-mdns": "^0.18.0",
-    "libp2p-mplex": "^0.10.7",
-    "libp2p-tcp": "^0.17.2",
-    "libp2p-webrtc-star": "^0.25.0",
+    "libp2p": "^0.37.3",
+    "@chainsafe/libp2p-gossipsub": "^3.3.0",
+    "@chainsafe/libp2p-noise": "^7.0.1",
+    "@libp2p/bootstrap": "^2.0.0",
+    "@libp2p/kad-dht": "^3.0.0",
+    "@libp2p/mdns": "^3.0.0",
+    "@libp2p/mplex": "^4.0.2",
+    "@libp2p/tcp": "^3.0.2",
+    "@libp2p/webrtc-star": "^3.0.0",
+    "@libp2p/websockets": "^3.0.1",
     "multiaddr": "^10.0.1",
     "peer-id": "^0.16.0",
     "stream": "^0.0.2",
@@ -39,11 +41,11 @@
   },
   "devDependencies": {
     "@types/express": "^4.17.13",
-    "eslint": "^8.9.0",
-    "express": "^4.17.2",
+    "eslint": "^8.20.0",
+    "express": "^4.18.1",
     "libp2p-websockets": "^0.16.2",
     "nyc": "^15.1.0",
-    "typedoc": "^0.22.11"
+    "typedoc": "^0.23.9"
   },
   "files": [
     "build/",
