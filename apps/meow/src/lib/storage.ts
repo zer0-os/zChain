@@ -46,16 +46,18 @@ export class MStore extends ZStore {
       console.log('Connection established to:', displayStr);
     });
 
-    this.zChain.peerDiscovery.onDiscover((event: any) => {
-      const peerInfo = event.detail;
+    this.zChain.peerDiscovery.onDisconnect(async (event) => {
+      const connection = event.detail;
 
-      const [_, __, displayStr] = this.getNameAndPeerID(peerInfo.id.toString())
-      console.log('Discovered:', displayStr);
+      const [_, __, displayStr] = this.getNameAndPeerID(connection.remotePeer.toString())
+      console.log('Disconnected from:', displayStr);
     });
 
-    // this.zChain.node.connectionManager.on('peer:disconnect', async (connection) => {
-    //   const [_, __, displayStr] = this.getNameAndPeerID(connection.remotePeer.toB58String())
-    //   console.log('Disconnected from peer:', displayStr);
+    // this.zChain.peerDiscovery.onDiscover((event: any) => {
+    //   const peerInfo = event.detail;
+
+    //   const [_, __, displayStr] = this.getNameAndPeerID(peerInfo.id.toString())
+    //   console.log('Discovered:', displayStr);
     // });
   }
 
