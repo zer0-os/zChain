@@ -6,7 +6,7 @@ import os from 'os'
 
 function getTerminal() {
   if (os.platform() === 'darwin') {
-    return [ 'xterm', '-e' ]
+    return [ 'osascript', '-e' ]
   }
 
   if (os.platform() === 'linux') {
