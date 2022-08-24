@@ -6,7 +6,7 @@ import os from 'os'
 
 function getTerminal() {
   if (os.platform() === 'darwin') {
-    return [ 'xterm', '-e' ]
+    return [ 'osascript', '-e' ]
   }
 
   if (os.platform() === 'linux') {
@@ -63,7 +63,7 @@ async function main() {
     const ipArr = ips.split('\n').filter(Boolean);
 
     // aws key pair name is constructed as :: zchain-<region>.pem
-    const keyPairFile = `zchain-${ipFile.split('.txt')[0]}.pem`;
+    const keyPairFile = `zchain-${ipFile.split('.txt')[0]}.cer`;
 
     for (const ip of ipArr) {
       await runNode(keyPairFile, ip);
