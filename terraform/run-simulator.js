@@ -63,7 +63,7 @@ async function main() {
     const ipArr = ips.split('\n').filter(Boolean);
 
     // aws key pair name is constructed as :: zchain-<region>.pem
-    const keyPairFile = `zchain-${ipFile.split('.txt')[0]}.cer`;
+    const keyPairFile = `zchain-${ipFile.split('.txt')[0]}.pem`;
 
     for (const ip of ipArr) {
       await runNode(keyPairFile, ip);
