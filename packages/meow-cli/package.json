@@ -44,7 +44,7 @@
     "meow": "meow"
   },
   "dependencies": {
-    "debug": "^4.1.1",
+    "debug": "^4.3.4",
     "err-code": "^3.0.1",
     "it-all": "^1.0.6",
     "it-glob": "^1.0.2",
@@ -54,6 +54,6 @@
   "devDependencies": {
     "@types/yargs": "^16.0.0",
     "peer-id": "^0.16.0",
-    "sinon": "^12.0.0"
+    "sinon": "^14.0.0"
   }
 }
