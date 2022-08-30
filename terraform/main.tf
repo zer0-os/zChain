@@ -112,46 +112,46 @@ resource "aws_instance" "web-us-east-2" {
 }
 
 
-# us-west-1 region (NOT WORKING)
-resource "aws_instance" "web-us-west-1" {
-  # Creates five identical aws ec2 instances
-  count = 5
+# # us-west-1 region (NOT WORKING)
+# resource "aws_instance" "web-us-west-1" {
+#   # Creates five identical aws ec2 instances
+#   count = 5
 
-  # All four instances will have the same ami and instance_type
-  ami                    = "ami-085284d24fe829cd0"
-  instance_type          = var.instance_type #
-  key_name               = "zchain-us-west-1"
-  vpc_security_group_ids = ["sg-f5428184"]
+#   # All four instances will have the same ami and instance_type
+#   ami                    = "ami-085284d24fe829cd0"
+#   instance_type          = var.instance_type #
+#   key_name               = "zchain-us-west-1"
+#   vpc_security_group_ids = ["sg-f5428184"]
 
-  tags = {
-    # The count.index allows you to launch a resource
-    # starting with the distinct index number 0 and corresponding to this instance.
-    Name = "web-us-west-1-${count.index}"
-  }
+#   tags = {
+#     # The count.index allows you to launch a resource
+#     # starting with the distinct index number 0 and corresponding to this instance.
+#     Name = "web-us-west-1-${count.index}"
+#   }
 
-  connection {
-    type     = "ssh"
-    user     = "ubuntu"
-    host     = self.public_ip
-    private_key = file("./keys/zchain-us-west-1.cer")
-  }
+#   connection {
+#     type     = "ssh"
+#     user     = "ubuntu"
+#     host     = self.public_ip
+#     private_key = file("./keys/zchain-us-west-1.cer")
+#   }
 
-  provisioner "remote-exec" {
-    inline = [
-      "git clone https://github.com/zer0-os/zChain.git",
-      "cd zChain",
-    ]
-  }
+#   provisioner "remote-exec" {
+#     inline = [
+#       "git clone https://github.com/zer0-os/zChain.git",
+#       "cd zChain",
+#     ]
+#   }
 
-  provisioner "local-exec" {
-    command = "echo ${self.public_ip} >> ./public_ips/us-west-1.txt"
-  }
+#   provisioner "local-exec" {
+#     command = "echo ${self.public_ip} >> ./public_ips/us-west-1.txt"
+#   }
 
-  provisioner "local-exec" {
-    when    = destroy
-    command = "rm -rf ./public_ips/*"
-  }
-}
+#   provisioner "local-exec" {
+#     when    = destroy
+#     command = "rm -rf ./public_ips/*"
+#   }
+# }
 
 # us-west-2
 # resource "aws_instance" "web-us-west-2" {
@@ -203,9 +203,9 @@ output "us-east-1-ip" {
 }
 
 # (NOT WORKING for us-west-1, giving invalid AMI)
-output "us-west-1-ip" {
-  value = aws_instance.web-us-west-1.*.public_ip
-}
+# output "us-west-1-ip" {
+#   value = aws_instance.web-us-west-1.*.public_ip
+# }
 
 # output "us-west-2-ip" {
 #   value = aws_instance.web-us-west-2.*.public_ip
