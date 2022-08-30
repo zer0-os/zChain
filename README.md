@@ -117,6 +117,16 @@ The screen should look something like this:
 
 You can run another node, on another terminal screen (using `meow sandbox` again, and select the option "*Initialize a new node*"). Then those two nodes can interact with each other.
 
+## Docker 
+
+To setup and start the project using docker, simply execute the bash script `docker.sh`:
+```bash
+bash docker.sh
+```
+
+It will build the docker image, install dependencies, build the typescript project and launch an interactive shell in a docker container.
+
+
 ## Packages
 
 The repo has mainly been divided into 3 packages
