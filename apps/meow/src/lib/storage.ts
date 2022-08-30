@@ -53,6 +53,7 @@ export class MStore extends ZStore {
       console.log('Disconnected from:', displayStr);
     });
 
+    // TODO: check this, this is triggered multiple times for the same peerID
     // this.zChain.peerDiscovery.onDiscover((event: any) => {
     //   const peerInfo = event.detail;
 
