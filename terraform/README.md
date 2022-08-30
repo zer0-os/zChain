@@ -38,7 +38,16 @@ Before running, you can change some existing config in `main.tf` file:
 + In `connection { .., private_key: <key> }`, you can change the extension as `.pem/.cer` depending on your downloaded key pair.
 + You can also change the `count` variable in (`resource "aws_instance"`) to change the number of ec2 to deploy in each region.
 
-After the credentials are all set up, you can run the simulator using `terraform apply -auto-approve`. With the current config, this will deploy 5 ec2's on `us-east-1` region & 5 ec2's on `us-east-2` regions. 
+After the credentials are all set up, you can run the simulator using:
+```sh
+// initializes terraform
+terraform init
+
+// deploy
+terraform apply -auto-approve
+```
+
+With the current config, this will deploy 5 ec2's on `us-east-1` region & 5 ec2's on `us-east-2` regions. 
 
 After deployment, you get the public ip addresses of all ec2's in `/public_ips` folder. You can ssh into the 
 ec2 using that ip.
