@@ -13,6 +13,7 @@ import { WebSockets } from '@libp2p/websockets'
 import { fromString } from "uint8arrays/from-string";
 import { toString as uint8ArrayToString } from "uint8arrays/to-string";
 import wrtc from "wrtc";
+import { FaultTolerance } from 'libp2p/transport-manager'
 
 import { PubSubMessage } from "../types.js";
 import { PeerDiscovery } from "./peer-discovery.js";
@@ -55,6 +56,9 @@ export class ZCHAIN {
           autoDial: true,
           dialTimeout: 60000
         },
+        transportManager: {
+          faultTolerance: FaultTolerance.NO_FATAL
+        },
         transports: [
           new WebRTCStar({ wrtc: wrtc }), new WebSockets(), new TCP()
         ],
@@ -78,10 +82,7 @@ export class ZCHAIN {
         dht: new KadDHT(),
         pubsub: new GossipSub({
           allowPublishToZeroPeers: true,
-          fallbackToFloodsub: true,
           emitSelf: true,
-          maxOutboundStreams: Infinity,
-          maxInboundStreams: Infinity,
           enabled: true
         }),
         config: {
@@ -135,7 +136,7 @@ export class ZCHAIN {
 
     private _listen (): void {
       this.node.pubsub.addEventListener('message', async (event) => {
-        const [_, __, displayStr] = this.zStore.getNameAndPeerID(event.detail.from.toString());
+        const [_, __, displayStr] = this.zStore.getNameAndPeerID((event.detail as any).from.toString());
         console.log(`Received from ${displayStr} on channel ${event.detail.topic}: ${uint8ArrayToString(event.detail.data)}`);
       });
     }
