@@ -1,6 +1,6 @@
 # Simulator
 
-zChain nodes simulator using [terraform](https://www.terraform.io/) (infrastructure as code). You can use the simlator to automate deployment of zchain nodes (using terraform) on multiple aws ec2's. AWS Regions are currently limited to `us-east-1` & `us-east-2`. Please follow the set up instructions before running the simulator.
+zChain nodes simulator using [terraform](https://www.terraform.io/) (infrastructure as code). Programmatically spawning n nodes in cloud that automatically find one another and connect. You can use the simlator to automate deployment of zchain nodes (using terraform) on multiple aws ec2's. AWS Regions are currently limited to `us-east-1` & `us-east-2`. Please follow the set up instructions before running the simulator.
 
 *Please **note** that this guide (and simulator) is more focused towards devs (tested on linux & macOS)*
 
@@ -44,3 +44,5 @@ After deployment, you get the public ip addresses of all ec2's in `/public_ips` 
 ec2 using that ip.
 
 *NOTE*: If you're using `linux`, you can run the simulator visually, i.e run each node, on each ec2, on each terminal. Currently it's a *wip* for macOS, since running bash commands on a new terminal is a bit tricky there. 
+
+![simulator](https://user-images.githubusercontent.com/33264364/187364748-8930abed-1d78-4533-b872-e7cbac6ae016.jpeg)
