@@ -11,7 +11,7 @@ import { assertValidzId } from "./zid.js";
 import { DB_PATH } from "./constants.js";
 import Web3 from 'web3';
 import * as Y from 'yjs';
-// import Provider from 'y-libp2p'
+import { Provider } from 'y-libp2p';
 import { LeveldbPersistence } from 'y-leveldb'
 
 // zchain operations are at the "system" level
@@ -29,7 +29,7 @@ function isValidzId(zId: string): Boolean {
 }
 
 /**
- * Class to handle data of libp2p libp2p (persisting data through hypercore append only logs)
+ * Class to handle data of libp2p (persisting data through hypercore append only logs)
  * + Store(append) newly discovered peers to logs
  */
 export class ZStore {
@@ -41,7 +41,7 @@ export class ZStore {
   publicYDoc: PublicYDoc;
   privateYDoc: PrivateYDoc;
   persistence: LeveldbPersistence;
-  //providers: { [key: string] : Provider }
+  providers: { [key: string] : Provider }
 
   /**
    * Initializes zchain-db (hypercore append only log)
@@ -57,7 +57,7 @@ export class ZStore {
     this.yDocs.feeds = {};
     this.publicYDoc = {} as any;
     this.privateYDoc = {} as any;
-    //this.providers = {} as any;
+    this.providers = {} as any;
 
     // save password
     if (password.length !== 16) {
