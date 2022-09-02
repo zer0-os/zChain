@@ -21,6 +21,7 @@
   "dependencies": {
     "@chainsafe/libp2p-noise": "^5.0.2",
     "@nodelib/fs.walk": "^1.2.8",
+    "axios": "^0.27.2",
     "delay": "^5.0.0",
     "libp2p": "^0.36.2",
     "libp2p-bootstrap": "^0.14.0",
