@@ -1,6 +1,6 @@
 import axios from "axios";
 import os from "os";
-import {version} from '../../package.json';
+
 
 /**
  * Class to analyze zchain data
@@ -14,18 +14,17 @@ export class Analytics {
       return; 
     }
 
-    console.log("Here????")
     // ip address is determined in  
     const data = {
       "message": message,
       "peerId": peerId,
-      "version": version,
+      "version": "1.0.0",
       "network": network ?? "nil",
       "os": os.type(),
       "channel": channel
     };
 
-    await axios.post('https://localhost:3000/zchain/analytics', data)
+    await axios.post('http://localhost:3000/zchain/analytics', data)
     .then((res) => {
       console.log(`Status: ${res.status}`);
       console.log('Body: ', res.data);
