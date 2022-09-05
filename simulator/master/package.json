@@ -10,6 +10,7 @@
     "mongodb": "^4.9.1"
   },
   "scripts": {
-    "dev": "npx ts-node server.ts"
+    "dev": "npx ts-node server.ts",
+    "start": "npx ts-node server.ts"
   }
 }
