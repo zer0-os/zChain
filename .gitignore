@@ -121,3 +121,5 @@ apps/**/zchain-db
 
 examples/**/.jsipfs
 apps/**/.jsipfs
+
+.DS_Store
