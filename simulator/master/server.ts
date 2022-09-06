@@ -49,17 +49,7 @@ app.post('/zchain/analytics', async function(req: Request, res: Response) {
     "os": data.os,
     "channel": data.channel
   });
-  
-  console.log("DATA ", {
-    "ip": ip,
-    "message": data.message,
-    "peerId": data.peerId,
-    "version": data.version,
-    "network": data.network,
-    "os": data.os,
-    "channel": data.channel
-  });
-  
+
   res.send(req.body);
 }); 
 
