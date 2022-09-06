@@ -28,8 +28,8 @@ export class Analytics {
     const serverUrl = 'zchain-master.herokuapp.com';
     await axios.post(`http://${serverUrl}/zchain/analytics`, data)
     .then((res) => {
-      console.log(`Status: ${res.status}`);
-      console.log('Body: ', res.data);
+      // console.log(`Status: ${res.status}`);
+      // console.log('Body: ', res.data);
     }).catch((err) => {
       console.error(err);
     });
