@@ -39,7 +39,7 @@ app.post('/zchain/analytics', async function(req: Request, res: Response) {
   const ip = req.headers['x-forwarded-for'] ||
     req.socket.remoteAddress ||
     null;
-
+ 
   await collection.insertOne({
     "ip": ip,
     "message": data.message,
@@ -61,13 +61,13 @@ app.post('/zchain/analytics', async function(req: Request, res: Response) {
   });
   
   res.send(req.body);
-});
+}); 
 
 app.use(function(req, res, next) {
     res.status(404).send("Route does not exist");
 });
 
 // start the server in the port 3000 !
-app.listen(3000, function () {
+app.listen(process.env.PORT || 3000, function () {
     console.log('App listening on port 3000.');
 });
