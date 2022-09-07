@@ -1,6 +1,6 @@
 import { Libp2pOptions } from "libp2p";
 import WebRTCStar from "libp2p-webrtc-star";
-import wrtc from "wrtc";
+import wrtc from "@koush/wrtc";
 
 /**
  * handle webrtc-star transport in libp2p options obj

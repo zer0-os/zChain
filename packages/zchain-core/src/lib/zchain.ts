@@ -16,6 +16,7 @@ import chalk from 'chalk';
 import { DB_PATH, RELAY_ADDRS, ZID_PATH } from './constants';
 import fs from "fs";
 import WebSocket from 'libp2p-websockets'
+import { Analytics } from './analytics';
 
 export const password = "ratikjindal@3445"
 
@@ -24,6 +25,14 @@ export class ZCHAIN {
     zId: ZID | undefined;
     peerDiscovery: PeerDiscovery | undefined;
     zStore: ZStore;
+    analytics: Analytics;
+
+    constructor() { 
+      this.analytics = new Analytics(); 
+      this.analytics.status = true; // ON by default, but use can turn it off
+
+      console.log("this.analytics:: ", this.analytics)
+    }
 
     async _getLibp2pOptions(listenAddrs?: string[]) {
       const peerId = this.zId.peerId;
@@ -127,11 +136,27 @@ export class ZCHAIN {
 
       // if channel includes a network::channel, split and pass separately.
       // this is done to keep zchain independent of networks. Only add network
-      // if it's been passed from top(meow app)
-      let network: string;
+      // if it's been passed from top(eg. meow app)
+      let network: string, baseChannel: string;
       if (channel.includes('::')) {
         network = channel.split('::')[0];
+        baseChannel = channel.split('::')[1];
       }
+      
+      await this.analytics.pipeDataToCentralServer(
+        this.zId.peerId.toB58String(), msg, 
+        baseChannel ?? channel, network
+      );
       await this.zStore.handlePublish(msg, channels, network);
+    }
+
+    analyticsOFF() {
+      this.analytics.status = false;
+      console.log('done!');
+    }
+
+    analyticsON() {
+      this.analytics.status = true;
+      console.log('done!');
     }
 }

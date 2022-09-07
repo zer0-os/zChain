@@ -1,4 +1,11 @@
-.terraform/
-.terraform.*
-terraform.tfstate*
-keys/*
+nodes/.terraform/
+nodes/.terraform.*
+nodes/terraform.tfstate*
+nodes/keys/*
+
+master/node_modules/
+
+master/npm-debug.log
+master/.DS_Store
+master/*.env
+master/build
