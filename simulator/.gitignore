@@ -2,6 +2,7 @@ nodes/.terraform/
 nodes/.terraform.*
 nodes/terraform.tfstate*
 nodes/keys/
+nodes/public_ips/
 
 master/node_modules/
 
