@@ -2,7 +2,6 @@
 # multiple zchain nodes in multiple ec2 in multiple regions for testing 
 
 
-
 resource "aws_security_group" "webSG" {
   name        = "webSG"
   description = "Allow ssh  inbound traffic"
@@ -10,7 +9,7 @@ resource "aws_security_group" "webSG" {
 
   # open all ports
   ingress {
-    cidr_blocks      = [ "0.0.0.0/0", ]
+    cidr_blocks      = [ "0.0.0.0/0" ]
     description      = ""
     from_port        = 22
     ipv6_cidr_blocks = []
@@ -34,13 +33,13 @@ resource "aws_instance" "web-us-east-1" {
   provider = aws.us-east-1
 
   # Creates five identical aws ec2 instances
-  count = 5
+  count = var.ec2_count
 
   # All four instances will have the same ami and instance_type
-  ami = "ami-052efd3df9dad4825"
-  instance_type = var.instance_type #
-  key_name = "zchain-us-east-1"
-  vpc_security_group_ids = ["sg-f512f4a3"]
+  ami                    = lookup(var.ec2_ami, "us-east-1")
+  instance_type          = var.instance_type
+  key_name               = "zchain-us-east-1"
+  vpc_security_group_ids = [ lookup(var.security_group_ids, "us-east-1") ]
 
   tags = {
     # The count.index allows you to launch a resource
@@ -76,7 +75,7 @@ resource "aws_instance" "web-us-east-1" {
 # us-east-2 region
 resource "aws_instance" "web-us-east-2" {
   # Creates five identical aws ec2 instances
-  count = 5
+  count = var.ec2_count
 
   # All four instances will have the same ami and instance_type
   ami = lookup(var.ec2_ami,var.region)
@@ -115,16 +114,18 @@ resource "aws_instance" "web-us-east-2" {
 }
 
 
-# us-west-1 region (NOT WORKING)
+# us-west-1 region
 resource "aws_instance" "web-us-west-1" {
+  provider = aws.us-west-1
+
   # Creates five identical aws ec2 instances
-  count = 5
+  count = var.ec2_count
 
   # All four instances will have the same ami and instance_type
-  ami                    = "ami-085284d24fe829cd0"
-  instance_type          = var.instance_type #
+  ami                    = lookup(var.ec2_ami, "us-west-1")
+  instance_type          = var.instance_type
   key_name               = "zchain-us-west-1"
-  vpc_security_group_ids = ["sg-f5428184"]
+  vpc_security_group_ids = [ lookup(var.security_group_ids, "us-west-1") ]
 
   tags = {
     # The count.index allows you to launch a resource
@@ -157,45 +158,47 @@ resource "aws_instance" "web-us-west-1" {
 }
 
 # us-west-2
-# resource "aws_instance" "web-us-west-2" {
-#   # Creates five identical aws ec2 instances
-#   count = 5
+resource "aws_instance" "web-us-west-2" {
+  provider = aws.us-west-2
 
-#   # All four instances will have the same ami and instance_type
-#   ami                    = "ami-0c2ab3b8efb09f272"
-#   instance_type          = var.instance_type #
-#   key_name               = "zchain-us-west-2"
-#   vpc_security_group_ids = ["sg-4bdab70d"]
+  # Creates five identical aws ec2 instances
+  count = var.ec2_count
 
-#   tags = {
-#     # The count.index allows you to launch a resource
-#     # starting with the distinct index number 0 and corresponding to this instance.
-#     Name = "web-us-west-2-${count.index}"
-#   }
+  # All four instances will have the same ami and instance_type
+  ami                    = lookup(var.ec2_ami, "us-west-2")
+  instance_type          = var.instance_type
+  key_name               = "zchain-us-west-2"
+  vpc_security_group_ids = [ lookup(var.security_group_ids, "us-west-2") ]
 
-#   connection {
-#     type     = "ssh"
-#     user     = "ubuntu"
-#     host     = self.public_ip
-#     private_key = file("./keys/zchain-us-west-2.cer")
-#   }
+  tags = {
+    # The count.index allows you to launch a resource
+    # starting with the distinct index number 0 and corresponding to this instance.
+    Name = "web-us-west-2-${count.index}"
+  }
 
-#   provisioner "remote-exec" {
-#     inline = [
-#       "git clone https://github.com/zer0-os/zChain.git",
-#       "cd zChain",
-#     ]
-#   }
+  connection {
+    type     = "ssh"
+    user     = "ubuntu"
+    host     = self.public_ip
+    private_key = file("./keys/zchain-us-west-2.cer")
+  }
 
-#   provisioner "local-exec" {
-#     command = "echo ${self.public_ip} >> ./public_ips/us-west-2.txt"
-#   }
+  provisioner "remote-exec" {
+    inline = [
+      "git clone https://github.com/zer0-os/zChain.git",
+      "cd zChain",
+    ]
+  }
 
-#   provisioner "local-exec" {
-#     when    = destroy
-#     command = "rm -rf ./public_ips/*"
-#   }
-# }
+  provisioner "local-exec" {
+    command = "echo ${self.public_ip} >> ./public_ips/us-west-2.txt"
+  }
+
+  provisioner "local-exec" {
+    when    = destroy
+    command = "rm -rf ./public_ips/*"
+  }
+}
 
 output "us-east-2-ip" {
   value = aws_instance.web-us-east-2.*.public_ip
@@ -205,11 +208,10 @@ output "us-east-1-ip" {
   value = aws_instance.web-us-east-1.*.public_ip
 }
 
-# (NOT WORKING for us-west-1, giving invalid AMI)
 output "us-west-1-ip" {
   value = aws_instance.web-us-west-1.*.public_ip
 }
 
-# output "us-west-2-ip" {
-#   value = aws_instance.web-us-west-2.*.public_ip
-# }
+output "us-west-2-ip" {
+  value = aws_instance.web-us-west-2.*.public_ip
+}
