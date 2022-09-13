@@ -1,7 +1,7 @@
 nodes/.terraform/
 nodes/.terraform.*
 nodes/terraform.tfstate*
-nodes/keys/*
+nodes/keys/
 
 master/node_modules/
 
