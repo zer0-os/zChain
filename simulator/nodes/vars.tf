@@ -12,8 +12,8 @@ variable "ec2_ami" {
     ap-south-1 = "ami-068257025f72f470d"
     ap-northeast-3 = "ami-096d800410995ae84"
     ap-northeast-2 = "ami-058165de3b7202099"
-    ap-southeast-1 = "ami-0b89f7b3f054b957e"
-    ap-southeast-2 = "ami-0b55fc9b052b03618"
+    ap-southeast-1 = "ami-07651f0c4c315a529"
+    ap-southeast-2 = "ami-09a5c873bc79530d9"
     ap-northeast-1 = "ami-07200fa04af91f087"
   }
 }
@@ -38,7 +38,7 @@ variable "t3_micro_instance_type" {
 
 variable "ec2_count" {
   type = number
-  default = "3"
+  default = "1"
 }
 
 variable "security_group_ids" {

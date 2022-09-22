@@ -460,92 +460,6 @@ resource "aws_instance" "web-ap-northeast-2" {
   }
 }
 
-# # us-ap-southeast-1
-# resource "aws_instance" "web-ap-southeast-1" {
-#   provider = aws.ap-southeast-1
-
-#   # Creates "n" identical aws ec2 instances
-#   count = var.ec2_count
-
-#   # All four instances will have the same ami and instance_type
-#   ami                    = lookup(var.ec2_ami, "ap-southeast-1")
-#   instance_type          = var.instance_type
-#   key_name               = "zchain-ap-southeast-1"
-#   vpc_security_group_ids = [ lookup(var.security_group_ids, "ap-southeast-1") ]
-
-#   tags = {
-#     # The count.index allows you to launch a resource
-#     # starting with the distinct index number 0 and corresponding to this instance.
-#     Name = "web-ap-southeast-1-${count.index}"
-#   }
-
-#   connection {
-#     type     = "ssh"
-#     user     = "ubuntu"
-#     host     = self.public_ip
-#     private_key = file("./keys/zchain-ap-southeast-1.cer")
-#   }
-
-#   provisioner "remote-exec" {
-#     inline = [
-#       "git clone https://github.com/zer0-os/zChain.git",
-#       "cd zChain",
-#     ]
-#   }
-
-#   provisioner "local-exec" {
-#     command = "echo ${self.public_ip} >> ./public_ips/ap-southeast-1.txt"
-#   }
-
-#   provisioner "local-exec" {
-#     when    = destroy
-#     command = "rm -rf ./public_ips/*"
-#   }
-# }
-
-# # us-ap-southeast-2
-# resource "aws_instance" "web-ap-southeast-2" {
-#   provider = aws.ap-southeast-2
-
-#   # Creates "n" identical aws ec2 instances
-#   count = var.ec2_count
-
-#   # All four instances will have the same ami and instance_type
-#   ami                    = lookup(var.ec2_ami, "ap-southeast-2")
-#   instance_type          = var.instance_type
-#   key_name               = "zchain-ap-southeast-2"
-#   vpc_security_group_ids = [ lookup(var.security_group_ids, "ap-southeast-2") ]
-
-#   tags = {
-#     # The count.index allows you to launch a resource
-#     # starting with the distinct index number 0 and corresponding to this instance.
-#     Name = "web-ap-southeast-2-${count.index}"
-#   }
-
-#   connection {
-#     type     = "ssh"
-#     user     = "ubuntu"
-#     host     = self.public_ip
-#     private_key = file("./keys/zchain-ap-southeast-2.cer")
-#   }
-
-#   provisioner "remote-exec" {
-#     inline = [
-#       "git clone https://github.com/zer0-os/zChain.git",
-#       "cd zChain",
-#     ]
-#   }
-
-#   provisioner "local-exec" {
-#     command = "echo ${self.public_ip} >> ./public_ips/ap-southeast-2.txt"
-#   }
-
-#   provisioner "local-exec" {
-#     when    = destroy
-#     command = "rm -rf ./public_ips/*"
-#   }
-# }
-
 # us-ap-northeast-1
 resource "aws_instance" "web-ap-northeast-1" {
   provider = aws.ap-northeast-1
@@ -581,6 +495,92 @@ resource "aws_instance" "web-ap-northeast-1" {
 
   provisioner "local-exec" {
     command = "echo ${self.public_ip} >> ./public_ips/ap-northeast-1.txt"
+  }
+
+  provisioner "local-exec" {
+    when    = destroy
+    command = "rm -rf ./public_ips/*"
+  }
+}
+
+# us-ap-southeast-1
+resource "aws_instance" "web-ap-southeast-1" {
+  provider = aws.ap-southeast-1
+
+  # Creates "n" identical aws ec2 instances
+  count = var.ec2_count
+
+  # All four instances will have the same ami and instance_type
+  ami                    = lookup(var.ec2_ami, "ap-southeast-1")
+  instance_type          = var.instance_type
+  key_name               = "zchain-ap-southeast-1"
+  vpc_security_group_ids = [ lookup(var.security_group_ids, "ap-southeast-1") ]
+
+  tags = {
+    # The count.index allows you to launch a resource
+    # starting with the distinct index number 0 and corresponding to this instance.
+    Name = "web-ap-southeast-1-${count.index}"
+  }
+
+  connection {
+    type     = "ssh"
+    user     = "ubuntu"
+    host     = self.public_ip
+    private_key = file("./keys/zchain-ap-southeast-1.cer")
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "git clone https://github.com/zer0-os/zChain.git",
+      "cd zChain",
+    ]
+  }
+
+  provisioner "local-exec" {
+    command = "echo ${self.public_ip} >> ./public_ips/ap-southeast-1.txt"
+  }
+
+  provisioner "local-exec" {
+    when    = destroy
+    command = "rm -rf ./public_ips/*"
+  }
+}
+
+# us-ap-southeast-2
+resource "aws_instance" "web-ap-southeast-2" {
+  provider = aws.ap-southeast-2
+
+  # Creates "n" identical aws ec2 instances
+  count = var.ec2_count
+
+  # All four instances will have the same ami and instance_type
+  ami                    = lookup(var.ec2_ami, "ap-southeast-2")
+  instance_type          = var.instance_type
+  key_name               = "zchain-ap-southeast-2"
+  vpc_security_group_ids = [ lookup(var.security_group_ids, "ap-southeast-2") ]
+
+  tags = {
+    # The count.index allows you to launch a resource
+    # starting with the distinct index number 0 and corresponding to this instance.
+    Name = "web-ap-southeast-2-${count.index}"
+  }
+
+  connection {
+    type     = "ssh"
+    user     = "ubuntu"
+    host     = self.public_ip
+    private_key = file("./keys/zchain-ap-southeast-2.cer")
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "git clone https://github.com/zer0-os/zChain.git",
+      "cd zChain",
+    ]
+  }
+
+  provisioner "local-exec" {
+    command = "echo ${self.public_ip} >> ./public_ips/ap-southeast-2.txt"
   }
 
   provisioner "local-exec" {
@@ -630,13 +630,13 @@ output "ap-northeast-2-ip" {
   value = aws_instance.web-ap-northeast-2.*.public_ip
 }
 
-# output "ap-southeast-1-ip" {
-#   value = aws_instance.web-ap-southeast-1.*.public_ip
-# }
+output "ap-southeast-1-ip" {
+  value = aws_instance.web-ap-southeast-1.*.public_ip
+}
 
-# output "ap-southeast-2-ip" {
-#   value = aws_instance.web-ap-southeast-2.*.public_ip
-# }
+output "ap-southeast-2-ip" {
+  value = aws_instance.web-ap-southeast-2.*.public_ip
+}
 
 output "ap-northeast-1-ip" {
   value = aws_instance.web-ap-northeast-1.*.public_ip
