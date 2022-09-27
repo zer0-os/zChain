@@ -1,5 +1,9 @@
 import axios from "axios";
 import os from "os";
+import { ZID } from "./zid";
+import path from "path";
+import { DB_PATH } from "./constants";
+import { dirSize } from "./files";
 
 
 /**
@@ -9,11 +13,18 @@ import os from "os";
 export class Analytics {
   public status: Boolean; // if true/enabled, only then send the data
 
-  async pipeDataToCentralServer(peerId: string, message: string, channel: string, network?: string) {
+  async pipeDataToCentralServer(zId: ZID, message: string, channel: string, network?: string) {
+    const peerId = zId.peerId.toB58String();
+
     if (!this.status || this.status === false) {
       return; 
     }
 
+    // compute storage by this node, in this system on network
+    const dbPath = path.join(DB_PATH, zId.name);
+    const storage = await dirSize(dbPath);
+    const storageInKB = storage / 1000;
+    
     // ip address is determined in the req object of server 
     const data = {
       "message": message,
@@ -21,7 +32,8 @@ export class Analytics {
       "version": "1.0.0",
       "network": network ?? "nil",
       "os": os.type(),
-      "channel": channel
+      "channel": channel,
+      "storage (in KB)": storageInKB
     };
 
     // heroku app on which simulator/master is deployed
