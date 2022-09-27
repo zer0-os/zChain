@@ -31,7 +31,7 @@ export class ZCHAIN {
       this.analytics = new Analytics(); 
       this.analytics.status = true; // ON by default, but use can turn it off
 
-      console.log("this.analytics:: ", this.analytics)
+      console.log("Analytics ON (default)");
     }
 
     async _getLibp2pOptions(listenAddrs?: string[]) {

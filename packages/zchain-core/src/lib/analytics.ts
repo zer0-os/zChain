@@ -14,7 +14,7 @@ export class Analytics {
       return; 
     }
 
-    // ip address is determined in  
+    // ip address is determined in the req object of server 
     const data = {
       "message": message,
       "peerId": peerId,
@@ -26,6 +26,7 @@ export class Analytics {
 
     // heroku app on which simulator/master is deployed
     const serverUrl = 'zchain-master.herokuapp.com';
+    //const serverUrl = 'localhost:3000';
     await axios.post(`http://${serverUrl}/zchain/analytics`, data)
     .then((res) => {
       // console.log(`Status: ${res.status}`);
