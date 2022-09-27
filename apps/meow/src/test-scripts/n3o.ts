@@ -8,6 +8,11 @@ import { MEOW } from "../meow";
   // // 3s delay for discovery and connection of other peers
   // await delay(3 * 1000);
 
+  // add channels in network
+  await meow.addChannelInNetwork('0://default.network', '#ucl');
+  await meow.addChannelInNetwork('0://default.network', '#fairtoplay');
+
+  
   // tweet by meow
   await meow.sendMeow(`Thrilled to join the football gaming revolution
   with @UFLgame bringing the new #fairtoplay experience to

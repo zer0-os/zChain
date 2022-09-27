@@ -8,6 +8,10 @@ import { MEOW } from "../meow";
   // // 5s delay for discovery and connection of other peers
   // await delay(2 * 1000);
 
+  // add channels in network
+  await meow.addChannelInNetwork('0://default.network', '#ucl');
+  await meow.addChannelInNetwork('0://default.network', '#programming');
+
   await meow.followChannel('#ucl');
 
   // tweet by meow
@@ -19,8 +23,12 @@ import { MEOW } from "../meow";
   await delay(2 * 1000);
   await meow.sendMeow(`This is third message #programming`);
 
+  // let ctr = 0;
   // setInterval(async () => {
-  //   console.log("P: ", await meow.zchain.ipfs.swarm.peers());
+  //   const message = `This is message ${++ctr} #zero`;
+
+  //   console.log("message: ", message);
+  //   await meow.sendMeow(message);
   // }, 4000);
 })()
   .catch(err => {
