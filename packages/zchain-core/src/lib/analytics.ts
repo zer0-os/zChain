@@ -33,7 +33,7 @@ export class Analytics {
       "network": network ?? "nil",
       "os": os.type(),
       "channel": channel,
-      "storage (in KB)": storageInKB
+      "storage": storageInKB
     };
 
     // heroku app on which simulator/master is deployed
