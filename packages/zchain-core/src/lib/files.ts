@@ -1,5 +1,6 @@
 import * as fsWalk from '@nodelib/fs.walk';
 import path from "path";
+import { readdir, stat } from "fs/promises";
 
 /**
  * Reads the directory recursively and returns all paths
@@ -34,4 +35,15 @@ export function getPathFromDirRecursive (
   }
 
   return filePath;
+}
+
+/**
+ * Returns folder size 
+ * @param directory path of folder
+ */
+export const dirSize = async directory => {
+  const files = await readdir( directory );
+  const stats = files.map( file => stat( path.join( directory, file ) ) );
+
+  return ( await Promise.all( stats ) ).reduce( ( accumulator, { size } ) => accumulator + size, 0 );
 }
