@@ -144,7 +144,7 @@ export class ZCHAIN {
       }
       
       await this.analytics.pipeDataToCentralServer(
-        this.zId.peerId.toB58String(), msg, 
+        this.zId, msg, 
         baseChannel ?? channel, network
       );
       await this.zStore.handlePublish(msg, channels, network);
