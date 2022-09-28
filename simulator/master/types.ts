@@ -6,4 +6,5 @@ export interface AnalyticsData {
   network: string
   channel: string
   os: string
+  storage: number
 }
