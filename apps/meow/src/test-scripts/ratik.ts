@@ -6,7 +6,7 @@ import { MEOW } from "../meow";
   await meow.init('ratik'); // initializes local zchain at ~/.zchain/ipfs/ratik
 
   // // 5s delay for discovery and connection of other peers
-  // await delay(2 * 1000);
+  await delay(5 * 1000);
 
   // add channels in network
   await meow.addChannelInNetwork('0://default.network', '#ucl');
