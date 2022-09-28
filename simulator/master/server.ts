@@ -36,19 +36,54 @@ app.post('/zchain/analytics', async function(req: Request, res: Response) {
   const data = req.body as AnalyticsData;
   const collection = mongoClient.db(dbName).collection(collectionName);
 
-  const ip = req.headers['x-forwarded-for'] ||
+  const sourceIP = req.headers['x-forwarded-for'] ||
     req.socket.remoteAddress ||
     null;
- 
-  await collection.insertOne({
-    "ip": ip,
-    "message": data.message,
+
+  const nodeData = await collection.findOne({
     "peerId": data.peerId,
-    "version": data.version,
-    "network": data.network,
-    "os": data.os,
-    "channel": data.channel
   });
+
+  if (nodeData === null) {
+    // create new entry for node data in db
+    console.info("Creating new entry for node: ", data.peerId);
+    await collection.insertOne({
+      "ip": sourceIP,
+      "messages": [
+        {
+          "message": data.message,
+          "channel": data.channel,
+          "network": data.network
+        }
+      ],
+      "peerId": data.peerId,
+      "version": data.version,
+      "os": data.os,
+      "storage": data.storage
+    });
+  }
+  else {
+    // else update entry for existing node data
+    console.info("Updating existing entry for node: ", data.peerId);
+    const updatedData = {
+      "ip": sourceIP,
+      "messages": [
+        ...nodeData.messages ?? [],
+        {
+          "message": data.message,
+          "channel": data.channel,
+          "network": data.network
+        }
+      ],
+      "version": data.version,
+      "os": data.os,
+      "storage": data.storage
+    }
+    await collection.findOneAndUpdate(
+      { "peerId": data.peerId }, // filter
+      { $set: { ...updatedData } } // atomic operation req. for update
+    );
+  }
 
   res.send(req.body);
 }); 

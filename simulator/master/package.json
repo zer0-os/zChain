@@ -13,6 +13,7 @@
   "scripts": {
     "dev": "node build/server.js",
     "start": "NODE_ENV=production node build/server.js",
-    "build": "tsc --build ."
-  }
+    "build": "rm -rf build && tsc --build ."
+  },
+  "author": ""
 }
