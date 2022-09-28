@@ -26,7 +26,11 @@ async function runNode(keyPairFileName, ipAddress) {
   //   //stdio: "inherit",
   //   cwd: process.cwd(),
   // });
-   
+  
+  // console.log('-> ', [
+  //   './scripts/0-ec2-ssh.sh', keyPairFileName, ipAddress
+  // ]);
+
   const childProcess = spawn('sh', [
     './scripts/0-ec2-ssh.sh', keyPairFileName, ipAddress
   ], {
@@ -80,10 +84,10 @@ async function main() {
 
     for (const ip of ipArr) {
       promises.push( runNode(keyPairFile, ip) );
+
+      //await runNode(keyPairFile, ip);
     }
   }
-
-  console.log("lenght ", promises.length);
 
   // run all promises parallely (so we don't need to exit from the zchain nodes on ec2's)
   await Promise.all(promises);
