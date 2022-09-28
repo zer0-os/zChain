@@ -8,4 +8,5 @@ nvm use node
 npm install -g yarn
 cd ../
 sh install.sh
-meow sandbox --force --name my-zchain-node
+cd apps/meow
+yarn run dev:ratik
