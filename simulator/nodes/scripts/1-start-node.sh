@@ -6,7 +6,7 @@ curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.34.0/install.sh | bash
 nvm install node
 nvm use node
 npm install -g yarn
-cd ../
+cd ../../
 sh install.sh
 cd apps/meow
 yarn run dev:ratik
