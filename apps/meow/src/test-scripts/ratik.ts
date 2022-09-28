@@ -23,9 +23,7 @@ import { MEOW } from "../meow";
   await delay(2 * 1000);
   await meow.sendMeow(`This is third message #programming`);
 
-  // exit
-  process.exit(0);
-
+  
   // let ctr = 0;
   // setInterval(async () => {
   //   const message = `This is message ${++ctr} #zero`;
