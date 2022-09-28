@@ -9,4 +9,5 @@ npm install -g yarn
 cd ../../
 sh install.sh
 cd apps/meow
+rm -rf ~/.zchain
 yarn run dev:ratik
