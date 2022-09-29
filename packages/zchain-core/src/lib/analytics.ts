@@ -23,7 +23,7 @@ export class Analytics {
     // compute storage by this node, in this system on network
     const dbPath = path.join(DB_PATH, zId.name);
     const storage = await dirSize(dbPath);
-    const storageInMB = storage * 0.1e6; // mb
+    const storageInMB = storage / 1e6; // mb
     
     // ip address is determined in the req object of server 
     const data = {
