@@ -20,17 +20,6 @@ async function runNode(keyPairFileName, ipAddress) {
   const t = getTerminal();
   if (t.length === 0) { throw new Error("Platform is neither linux or macOS"); }
 
-  // const childProcess = spawn(t[0], [
-  //   t[1], './scripts/0-ec2-ssh.sh', keyPairFileName, ipAddress
-  // ], {
-  //   //stdio: "inherit",
-  //   cwd: process.cwd(),
-  // });
-  
-  // console.log('-> ', [
-  //   './scripts/0-ec2-ssh.sh', keyPairFileName, ipAddress
-  // ]);
-
   const childProcess = spawn('sh', [
     './scripts/0-ec2-ssh.sh', keyPairFileName, ipAddress
   ], {
