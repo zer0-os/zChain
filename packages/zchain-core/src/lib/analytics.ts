@@ -23,7 +23,7 @@ export class Analytics {
     // compute storage by this node, in this system on network
     const dbPath = path.join(DB_PATH, zId.name);
     const storage = await dirSize(dbPath);
-    const storageInKB = storage / 1000;
+    const storageInMB = storage / 1e6; // mb
     
     // ip address is determined in the req object of server 
     const data = {
@@ -33,8 +33,8 @@ export class Analytics {
       "network": network ?? "nil",
       "os": os.type(),
       "channel": channel,
-      "storage": storageInKB
-    };
+      "storage": storageInMB
+    }
 
     // heroku app on which simulator/master is deployed
     const serverUrl = 'zchain-master.herokuapp.com';

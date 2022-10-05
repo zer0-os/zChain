@@ -20,12 +20,13 @@ async function runNode(keyPairFileName, ipAddress) {
   const t = getTerminal();
   if (t.length === 0) { throw new Error("Platform is neither linux or macOS"); }
 
-  const childProcess = spawn(t[0], [
-    t[1], './scripts/0-ec2-ssh.sh', keyPairFileName, ipAddress
+  const childProcess = spawn('sh', [
+    './scripts/0-ec2-ssh.sh', keyPairFileName, ipAddress
   ], {
     //stdio: "inherit",
     cwd: process.cwd(),
   });
+
 
   let result = "";
   await new Promise((resolve, reject) => {
@@ -42,6 +43,7 @@ async function runNode(keyPairFileName, ipAddress) {
     });
 
     childProcess.stdout.on("data", function (data) {
+      console.log(data.toString());
       result += data.toString();
     });
 
@@ -56,19 +58,25 @@ async function runNode(keyPairFileName, ipAddress) {
 
 
 async function main() {
+  const promises = [];
+
   const publicIPDir = path.join('.', 'public_ips');
   const publicIpFiles = fs.readdirSync(publicIPDir);
   for (const ipFile of publicIpFiles) {
     const ips = fs.readFileSync(path.join(publicIPDir, ipFile), 'utf-8');
     const ipArr = ips.split('\n').filter(Boolean);
 
-    // aws key pair name is constructed as :: zchain-<region>.pem
-    const keyPairFile = `zchain-${ipFile.split('.txt')[0]}.pem`;
+    let ext = os.platform() === 'darwin' ? 'cer' : 'pem';
 
+    // aws key pair name is constructed as :: zchain-<region>.pem/cer
+    const keyPairFile = `zchain-${ipFile.split('.txt')[0]}.${ext}`;
     for (const ip of ipArr) {
-      await runNode(keyPairFile, ip);
+      promises.push( runNode(keyPairFile, ip) );
     }
   }
+
+  // run all promises parallely (so we don't need to exit from the zchain nodes on ec2's)
+  await Promise.all(promises);
 }
 
 main();
