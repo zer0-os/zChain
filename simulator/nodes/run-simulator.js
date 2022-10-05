@@ -79,13 +79,10 @@ async function main() {
 
     let ext = os.platform() === 'darwin' ? 'cer' : 'pem';
 
-    // aws key pair name is constructed as :: zchain-<region>.pem
+    // aws key pair name is constructed as :: zchain-<region>.pem/cer
     const keyPairFile = `zchain-${ipFile.split('.txt')[0]}.${ext}`;
-
     for (const ip of ipArr) {
       promises.push( runNode(keyPairFile, ip) );
-
-      //await runNode(keyPairFile, ip);
     }
   }
 
