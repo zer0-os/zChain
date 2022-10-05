@@ -14,23 +14,14 @@ import { MEOW } from "../meow";
 
   await meow.followChannel('#ucl');
 
-  // // tweet by meow
-  // await meow.sendMeow(`This is first message #ucl`);
+  // tweet by meow
+  await meow.sendMeow(`This is first message #ucl`);
 
-  // await delay(2 * 1000);
-  // await meow.sendMeow(`This is second message #ucl`);
+  await delay(2 * 1000);
+  await meow.sendMeow(`This is second message #ucl`);
 
-  // await delay(2 * 1000);
-  // await meow.sendMeow(`This is third message #programming`);
-
-
-  let ctr = 0;
-  setInterval(async () => {
-    const message = `This is message ${++ctr} #zero`;
-
-    console.log("message: ", message);
-    await meow.sendMeow(message);
-  }, 10 * 1000);
+  await delay(2 * 1000);
+  await meow.sendMeow(`This is third message #programming`);
 })()
   .catch(err => {
     console.log('E ', err);
