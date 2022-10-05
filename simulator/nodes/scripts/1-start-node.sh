@@ -10,4 +10,4 @@ cd ../../
 sh install.sh
 cd apps/meow
 rm -rf ~/.zchain
-yarn run dev:ratik
+yarn run dev:sim
