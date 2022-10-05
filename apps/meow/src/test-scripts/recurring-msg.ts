@@ -11,8 +11,6 @@ import { MEOW } from "../meow";
   let ctr = 0;
   setInterval(async () => {
     const message = `This is message ${++ctr} #zero`;
-
-    console.log("message: ", message);
     await meow.sendMeow(message);
   }, 20 * 1000);
 })()
