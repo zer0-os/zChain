@@ -12,7 +12,7 @@ import { WebRTCStar } from "@libp2p/webrtc-star";
 import { WebSockets } from '@libp2p/websockets'
 import { fromString } from "uint8arrays/from-string";
 import { toString as uint8ArrayToString } from "uint8arrays/to-string";
-import wrtc from "wrtc";
+import wrtc from "@koush/wrtc";
 import { FaultTolerance } from 'libp2p/transport-manager'
 
 import { PubSubMessage } from "../types.js";

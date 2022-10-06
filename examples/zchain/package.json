@@ -27,7 +27,7 @@
       "p-defer": "^4.0.0",
       "uint8arrays": "^3.0.0",
       "which": "^2.0.1",
-      "wrtc": "^0.4.7"
+      "@koush/wrtc": "^0.5.3"
     },
     "devDependencies": {
       "https": "^1.0.0",
