@@ -6,6 +6,8 @@ curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.34.0/install.sh | bash
 nvm install node
 nvm use node
 npm install -g yarn
-cd ../
+cd ../../
 sh install.sh
-meow sandbox --force --name my-zchain-node
+cd apps/meow
+rm -rf ~/.zchain
+yarn run dev:sim

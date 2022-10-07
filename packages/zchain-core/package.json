@@ -31,6 +31,7 @@
     "@libp2p/webrtc-star": "^3.0.3",
     "@libp2p/websockets": "^3.0.4",
     "@nodelib/fs.walk": "^1.2.8",
+    "axios": "^0.27.2",
     "delay": "^5.0.0",
     "libp2p": "^0.39.5",
     "multiaddr": "^10.0.1",

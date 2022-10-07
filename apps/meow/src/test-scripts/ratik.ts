@@ -5,8 +5,12 @@ import { MEOW } from "../meow.js";
   const meow = new MEOW();
   await meow.init('ratik'); // initializes local zchain at ~/.zchain/ipfs/ratik
 
-  // // 5s delay for discovery and connection of other peers
-  // await delay(2 * 1000);
+  // 5s delay for discovery and connection of other peers
+  await delay(5 * 1000);
+
+  // add channels in network
+  await meow.addChannelInNetwork('0://default.network', '#ucl');
+  await meow.addChannelInNetwork('0://default.network', '#programming');
 
   await meow.followChannel('#ucl');
 
@@ -18,10 +22,6 @@ import { MEOW } from "../meow.js";
 
   await delay(2 * 1000);
   await meow.sendMeow(`This is third message #programming`);
-
-  // setInterval(async () => {
-  //   console.log("P: ", await meow.zchain.ipfs.swarm.peers());
-  // }, 4000);
 })()
   .catch(err => {
     console.log('E ', err);
