@@ -2,7 +2,6 @@ import * as Y from 'yjs'
 import type { Doc as YDoc } from 'yjs'
 import { Libp2p as ILibp2p } from "libp2p";
 import { Uint8ArrayEquals } from './util.js'
-import { Multiaddr } from '@multiformats/multiaddr'
 import { Connection } from '@libp2p/interface-connection';
 // @ts-ignore
 import * as awarenessProtocol from 'y-protocols/dist/awareness.cjs'
@@ -19,19 +18,19 @@ type ProtocolStream = {
 
 
 function changesTopic(topic: string): string {
-  return `/marcopolo/gossipPad/${topic}/changes/0.0.01`
+  return `/zero-os/gossipPad/${topic}/changes/0.0.1`
 }
 
 function stateVectorTopic(topic: string): string {
-  return `/marcopolo/gossipPad/${topic}/stateVector/0.0.1`
+  return `/zero-os/gossipPad/${topic}/stateVector/0.0.1`
 }
 
 function syncProtocol(topic: string): string {
-  return `/marcopolo/gossipPad/${topic}/sync/0.0.1`
+  return `/zero-os/gossipPad/${topic}/sync/0.0.1`
 }
 
 function awarenessProtocolTopic(topic: string): string {
-  return `/marcopolo/gossipPad/${topic}/awareness/0.0.1`
+  return `/zero-os/gossipPad/${topic}/awareness/0.0.1`
 }
 
 export class Provider {  
@@ -67,15 +66,15 @@ export class Provider {
 
     this.node.pubsub.addEventListener('message', async (event) => {
       if (event.detail.topic === changesTopic(topic)) {
-        this.onPubSubChanges.bind(this)
+        this.onPubSubChanges(event.detail)
       }
 
       if (event.detail.topic === stateVectorTopic(topic)) {
-        this.onPubSubStateVector.bind(this)
+        this.onPubSubStateVector(event.detail)
       }
 
       if (event.detail.topic === awarenessProtocolTopic(topic)) {
-        this.onPubSubAwareness.bind(this)
+        this.onPubSubAwareness(event.detail)
       }
     });
     
@@ -108,14 +107,11 @@ export class Provider {
         return
       }
 
-      // console.log("--> ", ...(this.node as any).pubsub.topics);
       const peers = [...(this.node as any).pubsub.topics.get(stateVectorTopic(this.topic)) || []]
       
       if (peers.length !== 0) {
         const peer = peers[i % peers.length]
         try {
-
-          //console.log("PPPP ", peer);
           await this.syncPeer(peer)
           this.initialSync = true;
           return true
@@ -130,8 +126,6 @@ export class Provider {
   }
 
   private onUpdate(updateData: Uint8Array, origin: this | any) {
-    console.log('Got Update Got Update ', updateData);
-
     if (origin !== this) {
       this.publishUpdate(updateData);
 
@@ -158,12 +152,12 @@ export class Provider {
   }
 
   private onPubSubStateVector(msg: any) {
-    this.stateVectors[msg.from] = msg.data;
+    this.stateVectors[msg.from.toString()] = msg.data;
 
     if (!Uint8ArrayEquals(msg.data, this.stateVectors[this.peerID])) {
       // Bookkeep that this peer is out of date
       // console.log("Peer is out of date", msg.from)
-      this.queuePeerSync(msg.from);
+      this.queuePeerSync(msg.from.toString());
     }
   }
 
@@ -228,32 +222,22 @@ export class Provider {
   }
 
   private async syncPeer(peerID: string) {
-    const thiz = this;
-    const multiaddrs = [
-      `/dns4/vast-escarpment-62759.herokuapp.com/tcp/443/wss/p2p-webrtc-star/p2p/${peerID}`,
-      `/dns4/sheltered-mountain-08581.herokuapp.com/tcp/443/wss/p2p-webrtc-star/p2p/${peerID}`
-    ]
+    // if peer is not "actively" connected, return
+    const peers = this.node.getPeers().map(p => p.toString());
+
+    if (!peers.includes(peerID)) { return; }
     let success = false;
-    if (!multiaddrs) {
+    try {
+      const stream = await this.node.dialProtocol(peerIdFromString(peerID), syncProtocol(this.topic)) as any as ProtocolStream
+      await this.runSyncProtocol(stream, peerID, true)
+      success = true;
       return
-    }
-    for (const ma of multiaddrs) {
-      const maStr = ma.toString()
-      
-      const x = `/dns4/vast-escarpment-62759.herokuapp.com/tcp/443/wss/p2p-webrtc-star/p2p/${peerID}`;
-      console.log("peerIdFromString(peerID) ", peerIdFromString(peerID));
-      try {
-        const stream = await this.node.dialProtocol(peerIdFromString(peerID), syncProtocol(this.topic)) as any as { stream: ProtocolStream }
-        await this.runSyncProtocol(stream as any, peerID, true)
-        success = true;
-        return
-      } catch (e) {
-        console.warn(`Failed to sync with ${maStr}`, e)
-        continue;
-      }
+    } catch (e) {
+      console.warn(`Failed to sync with peer ${peerID.toString()}`, e)
+      return;
     }
 
-    throw new Error("Failed to sync with peer")
+    //throw new Error("Failed to sync with peer")
   }
 }
 

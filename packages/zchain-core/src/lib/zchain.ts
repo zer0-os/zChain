@@ -137,7 +137,12 @@ export class ZCHAIN {
     private _listen (): void {
       this.node.pubsub.addEventListener('message', async (event) => {
         const [_, __, displayStr] = this.zStore.getNameAndPeerID((event.detail as any).from.toString());
-        console.log(`Received from ${displayStr} on channel ${event.detail.topic}: ${uint8ArrayToString(event.detail.data)}`);
+
+        if (event.detail.topic.includes(`/zero-os/gossipPad/`)) {
+          // y-libp2p protocol strings (changes, stateVector, awareness). Check packages/y-libp2p
+        } else {
+          console.log(`Received from ${displayStr} on channel ${event.detail.topic}: ${uint8ArrayToString(event.detail.data)}`);
+        }
       });
     }
 
