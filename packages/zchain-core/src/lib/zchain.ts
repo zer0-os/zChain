@@ -23,7 +23,7 @@ import { ZID } from "./zid.js";
 import chalk from 'chalk';
 import { DB_PATH, RELAY_ADDRS, ZID_PATH } from './constants.js';
 import fs from "fs";
-import { Analytics } from './analytics';
+import { Analytics } from './analytics.js';
 
 export const password = "ratikjindal@3445"
 

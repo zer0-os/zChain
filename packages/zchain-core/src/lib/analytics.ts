@@ -1,9 +1,9 @@
 import axios from "axios";
 import os from "os";
-import { ZID } from "./zid";
+import { ZID } from "./zid.js";
 import path from "path";
-import { DB_PATH } from "./constants";
-import { dirSize } from "./files";
+import { DB_PATH } from "./constants.js";
+import { dirSize } from "./files.js";
 
 
 /**
@@ -14,7 +14,7 @@ export class Analytics {
   public status: Boolean; // if true/enabled, only then send the data
 
   async pipeDataToCentralServer(zId: ZID, message: string, channel: string, network?: string) {
-    const peerId = zId.peerId.toB58String();
+    const peerId = zId.peerId.toString();
 
     if (!this.status || this.status === false) {
       return; 
