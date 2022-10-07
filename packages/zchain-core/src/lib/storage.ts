@@ -105,11 +105,11 @@ export class ZStore {
    */
   async initYDoc(yDocName: string): Promise<Y.Doc> {
     const yDoc = await this.persistence.getYDoc(yDocName) ?? new Y.Doc();
-    // const provider = new Provider(yDoc, this.libp2p, yDocName);
-    // provider.aggressivelyKeepPeersUpdated = true;
-    // this.providers[yDocName] = provider;
-    // return provider.awareness.doc;
-    return yDoc;
+    const provider = new Provider(yDoc, this.libp2p, yDocName);
+    provider.aggressivelyKeepPeersUpdated = true;
+    this.providers[yDocName] = provider;
+    return provider.awareness.doc;
+    //return yDoc;
   }
 
   /**
