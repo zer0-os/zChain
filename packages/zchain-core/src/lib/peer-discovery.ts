@@ -1,16 +1,16 @@
-import Libp2p from "libp2p";
-import Bootstrap from 'libp2p-bootstrap';
+import {Libp2p as ILibp2p} from "libp2p";
+import { Bootstrap } from '@libp2p/bootstrap'
 import PeerId from "peer-id";
-import { ZStore } from "./storage";
+import { ZStore } from "./storage.js";
 
 /**
  * Class to handle Peer Discovery by libp2p node
  * + Bootstrap nodes
  */
 export class PeerDiscovery {
-  private node: Libp2p | undefined;
+  private node: ILibp2p | undefined;
 
-  constructor (node?: Libp2p) {
+  constructor (node?: ILibp2p) {
     this.node = node;
   }
 
@@ -18,7 +18,7 @@ export class PeerDiscovery {
    * Asserts Zchain node is initialized
    * @returns Libp2p node
    */
-  private _assertNodeInitialized (): Libp2p {
+  private _assertNodeInitialized (): ILibp2p {
     if (this.node === undefined) {
       throw new Error("ZCHAIN node is not initialized");
     }
@@ -33,38 +33,43 @@ export class PeerDiscovery {
     this.node = this._assertNodeInitialized();
 
     // enable bootstrap in node.modules
-    this.node._modules.peerDiscovery = this.node._modules.peerDiscovery ?? [];
-    if (this.node._modules.peerDiscovery.find(p => p instanceof Bootstrap) === undefined) {
-      this.node._modules.peerDiscovery.push(Bootstrap);
-    }
+    // this.node._modules.peerDiscovery = this.node._modules.peerDiscovery ?? [];
+    // if (this.node._modules.peerDiscovery.find(p => p instanceof Bootstrap) === undefined) {
+    //   this.node._modules.peerDiscovery.push(Bootstrap);
+    // }
 
-    // add multiaddrs to list
-    const origList = (this.node._config.peerDiscovery[Bootstrap.tag] as any)?.list ?? [];
-    this.node._config.peerDiscovery[Bootstrap.tag] = {
-      list: [...origList, ...list]
-    };
+    // // add multiaddrs to list
+    // const origList = (this.node._config.peerDiscovery[Bootstrap.tag] as any)?.list ?? [];
+    // this.node._config.peerDiscovery[Bootstrap.tag] = {
+    //   list: [...origList, ...list]
+    // };
   }
 
   /**
    * On Connect handler.
    * @param handler callback after connection is established
    */
-  onConnect (handler: (connection: Libp2p.Connection) => void): void {
+  onConnect (handler: (event: CustomEvent<any>) => void): void {
     this.node = this._assertNodeInitialized();
-    this.node.connectionManager.on('peer:connect', handler);
+    this.node.connectionManager.addEventListener('peer:connect', handler);
+  }
+
+  /**
+   * On Disconnect handler.
+   * @param handler callback after connection is established
+   */
+  onDisconnect (handler: (event: CustomEvent<any>) => void): void {
+    this.node = this._assertNodeInitialized();
+    this.node.connectionManager.addEventListener('peer:disconnect', handler);
   }
 
   /**
    * On Discover handler.
    * @param handler callback after new peer is discovered
    */
-  onDiscover (handler: (peerId: PeerId) => void): void {
+  onDiscover (handler: (event: CustomEvent<any>) => void): void {
     this.node = this._assertNodeInitialized();
-
-    this.node.on('peer:discovery', async (peerId: PeerId) => {
-      // handler passed by user
-      handler(peerId);
-    });
+    this.node.addEventListener('peer:discovery', handler);
   }
 
   /**
@@ -72,7 +77,7 @@ export class PeerDiscovery {
    * @param protocol protocol string (eg. /chat/1.0)
    * @param handler handler function
    */
-  handleProtocol(protocol: string, handler: (props: Libp2p.HandlerProps) => void) {
+  handleProtocol(protocol: string, handler: (props) => void) {
     this.node.handle(protocol, handler);
   }
 }

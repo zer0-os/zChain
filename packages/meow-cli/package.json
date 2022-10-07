@@ -1,6 +1,6 @@
 {
   "name": "meow-cli",
-  "version": "0.12.1",
+  "version": "0.0.1",
   "description": "CLI for meow",
   "keywords": [
     "zChain",
@@ -10,6 +10,7 @@
   "main": "build/src/index.js",
   "types": "build/src/index.d.ts",
   "preferGlobal": true,
+  "type": "module",
   "typesVersions": {
     "*": {
       "*": [
@@ -43,16 +44,16 @@
     "meow": "meow"
   },
   "dependencies": {
-    "debug": "^4.1.1",
+    "debug": "^4.3.4",
     "err-code": "^3.0.1",
     "it-all": "^1.0.6",
     "it-glob": "^1.0.2",
-    "yargs": "^16.0.3",
-    "meow-app": "^1.0.0"
+    "meow-app": "^1.0.0",
+    "yargs": "^16.0.3"
   },
   "devDependencies": {
     "@types/yargs": "^16.0.0",
     "peer-id": "^0.16.0",
-    "sinon": "^12.0.0"
+    "sinon": "^14.0.0"
   }
 }

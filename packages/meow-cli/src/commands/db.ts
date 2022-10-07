@@ -1,4 +1,4 @@
-import { zChainPathHelp } from '../utils'
+import { zChainPathHelp } from '../utils.js'
 
 export default {
   command: 'dbs',

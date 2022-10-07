@@ -1,5 +1,5 @@
 
-import { MEOW } from "./meow";
+import { MEOW } from "./meow.js";
 
 export {
   MEOW

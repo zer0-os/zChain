@@ -1,4 +1,4 @@
-import { zChainPathHelp } from '../utils'
+import { zChainPathHelp } from '../utils.js'
 import repl from "repl";
 import chalk from "chalk";
 import { runInNewContext } from "vm";
