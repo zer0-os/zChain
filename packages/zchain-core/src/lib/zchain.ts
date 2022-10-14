@@ -128,13 +128,21 @@ export class ZCHAIN {
 
       this.node = await createLibp2p(libp2pOptions);
 
+      // temporary fix to enable webrtc-star discovery and connections 
+      // https://discuss.libp2p.io/t/cant-discover-peers-with-webrtc-star-on-js-libp2p-0-37-0/1438
+      (this.node as any).components.getTransportManager().transports.get("@libp2p/webrtc-star").discovery.addEventListener('peer', evt => {
+        (this.node as any).onDiscoveryPeer(evt);
+      });
+
       // initialize discovery class
       this.peerDiscovery = new PeerDiscovery(this.node);
       this.peerDiscovery.addBootstrapNodes(RELAY_ADDRS);
 
       await this.node.start();
-      console.log("\n★ ", chalk.cyan('zChain Node Activated: ' + this.node.peerId.toString()) + " ★\n");
+      await (this.node as any).components.getTransportManager().transports.get("@libp2p/webrtc-star").discovery.start();
 
+      console.log("\n★ ", chalk.cyan('zChain Node Activated: ' + this.node.peerId.toString()) + " ★\n");
+    
       // intialize zstore
       this.zStore = new ZStore(this.node, password);
       await this.zStore.init(this.zId.name);
