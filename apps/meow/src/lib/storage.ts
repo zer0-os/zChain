@@ -54,12 +54,12 @@ export class MStore extends ZStore {
     });
 
     // TODO: check this, this is triggered multiple times for the same peerID
-    // this.zChain.peerDiscovery.onDiscover((event: any) => {
-    //   const peerInfo = event.detail;
+    this.zChain.peerDiscovery.onDiscover((event: any) => {
+      const peerInfo = event.detail;
 
-    //   const [_, __, displayStr] = this.getNameAndPeerID(peerInfo.id.toString())
-    //   console.log('Discovered:', displayStr);
-    // });
+      const [_, __, displayStr] = this.getNameAndPeerID(peerInfo.id.toString())
+      console.log('Discovered:', displayStr);
+    });
   }
 
   async init(): Promise<void> {
