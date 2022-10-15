@@ -141,6 +141,7 @@ export class ZCHAIN {
 
       await this.node.start();
       await (this.node as any).components.getTransportManager().transports.get("@libp2p/webrtc-star").discovery.start();
+      this.node.connectionManager.addEventListener("peer:connect", (myevent) => { console.log('my event ', myevent); });
 
       console.log("\n★ ", chalk.cyan('zChain Node Activated: ' + this.node.peerId.toString()) + " ★\n");
     
