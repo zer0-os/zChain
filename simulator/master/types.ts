@@ -9,4 +9,5 @@ export interface AnalyticsData {
   storage: number
   // latest time (in utc) at which data is pushed
   timestamp: number
+  status: string
 }
