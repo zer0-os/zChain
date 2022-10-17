@@ -10,3 +10,4 @@ master/npm-debug.log
 master/.DS_Store
 master/*.env
 master/build
+master/package-lock.json
