@@ -4,6 +4,8 @@ import express, { Request, Response } from 'express';
 import bodyParser from 'body-parser';
 import { MongoClient } from "mongodb";
 import { AnalyticsData } from './types';
+require('dotenv').config()
+
 
 // express server
 const app = express();
@@ -15,9 +17,9 @@ app.use(bodyParser.json())
 const {
   mongoUrl, dbName, collectionName
 } = {
-  mongoUrl: "mongodb+srv://ratik21:Qazxcvbn%401234@cluster0.0wfupod.mongodb.net/?retryWrites=true&w=majority", 
-  dbName: "ZChain", 
-  collectionName: "network"
+  mongoUrl: process.env.MONGODB_URL, 
+  dbName: process.env.DB_NAME, 
+  collectionName: process.env.COLLECTION_NAME
 }
 
 const mongoClient = new MongoClient(mongoUrl);

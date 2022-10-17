@@ -1,13 +1,13 @@
 const { MongoClient } = require("mongodb");
 const delay = require("delay");
+require('dotenv').config()
 
 async function updateNodeStatus() {
   /**
    * Connection URI. Update <username>, <password>, and <your-cluster-url> to reflect your cluster.
    * See https://docs.mongodb.com/ecosystem/drivers/node/ for more details
    */
-  const uri = "mongodb+srv://ratik21:Qazxcvbn%401234@cluster0.0wfupod.mongodb.net/?retryWrites=true&w=majority";
-  const client = new MongoClient(uri);
+  const client = new MongoClient(process.env.MONGODB_URL);
 
   try {
     // Connect to the MongoDB cluster
@@ -15,8 +15,8 @@ async function updateNodeStatus() {
     console.log("Connected to Mongo");
 
     const collection = client
-      .db("ZChain")
-      .collection("network");
+      .db(process.env.DB_NAME)
+      .collection(process.env.COLLECTION_NAME);
     const collections = await collection.find().toArray();
 
     for (const c of collections) {
@@ -49,7 +49,7 @@ async function updateNodeStatus() {
 async function main() {
 	while(true) {
 		await updateNodeStatus();
-		console.log('\n\n\n\n\n\n\n'); // add some space b/w next run
+		console.log('Done\n\n'); // add some space b/w next run
 
 		// wait 15 seconds before running
 		await delay(15 * 1000);
