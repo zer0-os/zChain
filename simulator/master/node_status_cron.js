@@ -1,6 +1,7 @@
 const { MongoClient } = require("mongodb");
+const delay = require("delay");
 
-async function main() {
+async function updateNodeStatus() {
   /**
    * Connection URI. Update <username>, <password>, and <your-cluster-url> to reflect your cluster.
    * See https://docs.mongodb.com/ecosystem/drivers/node/ for more details
@@ -45,4 +46,14 @@ async function main() {
   }
 }
 
-main().catch(console.error);
+async function main() {
+	while(true) {
+		await updateNodeStatus();
+		console.log('\n\n\n\n\n\n\n'); // add some space b/w next run
+
+		// wait 15 seconds before running
+		await delay(15 * 1000);
+	}				
+}
+
+main();
