@@ -7,4 +7,6 @@ export interface AnalyticsData {
   channel: string
   os: string
   storage: number
+  // latest time (in utc) at which data is pushed
+  timestamp: number
 }

@@ -59,7 +59,8 @@ app.post('/zchain/analytics', async function(req: Request, res: Response) {
       "peerId": data.peerId,
       "version": data.version,
       "os": data.os,
-      "storage": data.storage
+      "storage": data.storage,
+      "timestamp": data.timestamp      
     });
   }
   else {
@@ -77,8 +78,10 @@ app.post('/zchain/analytics', async function(req: Request, res: Response) {
       ],
       "version": data.version,
       "os": data.os,
-      "storage": data.storage
+      "storage": data.storage,
+      "timestamp": data.timestamp      
     }
+    
     await collection.findOneAndUpdate(
       { "peerId": data.peerId }, // filter
       { $set: { ...updatedData } } // atomic operation req. for update

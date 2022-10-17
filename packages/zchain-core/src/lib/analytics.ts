@@ -33,7 +33,8 @@ export class Analytics {
       "network": network ?? "nil",
       "os": os.type(),
       "channel": channel,
-      "storage": storageInMB
+      "storage": storageInMB,
+      "timestamp": Math.floor((new Date()).getTime() / 1000)
     }
 
     // heroku app on which simulator/master is deployed
