@@ -34,7 +34,8 @@ export class Analytics {
       "os": os.type(),
       "channel": channel,
       "storage": storageInMB,
-      "timestamp": Math.floor((new Date()).getTime() / 1000)
+      "timestamp": Math.floor((new Date()).getTime() / 1000),
+      "status": "online"
     }
 
     // heroku app on which simulator/master is deployed
