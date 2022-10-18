@@ -1,6 +1,8 @@
 # starts zchain node at an ec2 launched by terraform
 # note: this scripts runs "inside" the ec2 (after ssh)
 
+sudo apt-get update
+sudo apt-get install tmux
 tmux kill-session -t node
 tmux new -t node
 echo "helooooooooooo"
