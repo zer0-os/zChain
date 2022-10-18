@@ -2,9 +2,8 @@
 # note: this scripts runs "inside" the ec2 (after ssh)
 
 sudo apt-get update
-sudo apt-get install tmux
-tmux kill-session -t node
-tmux new -t node
+sudo apt-get install tmux -y
+tmux
 echo "helooooooooooo"
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.34.0/install.sh | bash
 . ~/.nvm/nvm.sh
