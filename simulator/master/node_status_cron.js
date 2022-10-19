@@ -14,9 +14,11 @@ async function updateNodeStatus(client) {
     
     let status = ''; // online or offline or inactive
     const weekInSeconds = 604800; // 7 * 24 * 60 * 60
+
+    console.log('currentTs - lastTs ', currentTs - lastTs);
     if (currentTs - lastTs >= weekInSeconds) {
       status = 'inactive';
-    } else if (currentTs - lastTs >= 41) { // if node hasn't sent a msg in 40s, then mark offline
+    } else if (currentTs - lastTs >= 81) { // if node hasn't sent a msg in 80s, then mark offline
       status = 'offline';
     } else {
       //status = 'online';
