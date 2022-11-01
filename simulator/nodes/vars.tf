@@ -15,6 +15,17 @@ variable "ec2_ami" {
     ap-southeast-1 = "ami-07651f0c4c315a529"
     ap-southeast-2 = "ami-09a5c873bc79530d9"
     ap-northeast-1 = "ami-07200fa04af91f087"
+
+    ca-central-1 = "ami-0a7154091c5c6623e"
+    eu-central-1 = "ami-0caef02b518350c8b"
+    eu-west-1 = "ami-096800910c1b781ba"
+    eu-west-2 = "ami-0f540e9f488cfa27d"
+    eu-south-1 = "ami-0579ab55007adb044"
+    eu-west-3 = "ami-0493936afbe820b28"
+    eu-north-1 = "ami-0efda064d1b5e46a5"
+    me-south-1 = "ami-03de2671163dff759"
+    me-central-1 = "ami-0641db4da1d840326"
+    sa-east-1 = "ami-04b3c23ec8efcc2d6"
   }
 }
 
@@ -58,5 +69,16 @@ variable "security_group_ids" {
     ap-southeast-1 = "sg-0c4b038d085bfc8cd"
     ap-southeast-2 = "sg-0ec327c77cc2d1bff"
     ap-northeast-1 = "sg-0e9c43e27639cdd52"
+
+    ca-central-1 = "sg-0f672968d2f5fde43"
+    eu-central-1 = "sg-08f6a61d0ff1bb856"
+    eu-west-1 = "sg-0db4351d248cb70f1"
+    eu-west-2 = "sg-005699012e25135d1"
+    eu-south-1 = "sg-0dfa033b96bf2a7b4"
+    eu-west-3 = "sg-09a2a1bd90bf949ca"
+    eu-north-1 = "sg-07836dee9ff746fb3"
+    me-south-1 = "sg-075005151ec14da26"
+    me-central-1 = "sg-01cc6b14028cd1fc0"
+    sa-east-1 = "sg-0b91d7aa9f4afda99"
   }
 }
