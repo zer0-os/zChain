@@ -51,7 +51,7 @@ resource "aws_instance" "web-us-east-1" {
     type     = "ssh"
     user     = "ubuntu"
     host     = self.public_ip
-    private_key = file("./keys/zchain-us-east-1.cer")
+    private_key = file("./keys/zchain-us-east-1.pem")
   }
 
   provisioner "remote-exec" {
@@ -93,7 +93,7 @@ resource "aws_instance" "web-us-east-2" {
     type     = "ssh"
     user     = "ubuntu"
     host     = self.public_ip
-    private_key = file("./keys/zchain-us-east-2.cer")
+    private_key = file("./keys/zchain-us-east-2.pem")
   }
 
   provisioner "remote-exec" {
@@ -137,7 +137,7 @@ resource "aws_instance" "web-us-west-1" {
     type     = "ssh"
     user     = "ubuntu"
     host     = self.public_ip
-    private_key = file("./keys/zchain-us-west-1.cer")
+    private_key = file("./keys/zchain-us-west-1.pem")
   }
 
   provisioner "remote-exec" {
@@ -180,7 +180,7 @@ resource "aws_instance" "web-us-west-2" {
     type     = "ssh"
     user     = "ubuntu"
     host     = self.public_ip
-    private_key = file("./keys/zchain-us-west-2.cer")
+    private_key = file("./keys/zchain-us-west-2.pem")
   }
 
   provisioner "remote-exec" {
@@ -224,7 +224,7 @@ resource "aws_instance" "web-af-south-1" {
     type     = "ssh"
     user     = "ubuntu"
     host     = self.public_ip
-    private_key = file("./keys/zchain-af-south-1.cer")
+    private_key = file("./keys/zchain-af-south-1.pem")
   }
 
   provisioner "remote-exec" {
@@ -267,7 +267,7 @@ resource "aws_instance" "web-ap-east-1" {
     type     = "ssh"
     user     = "ubuntu"
     host     = self.public_ip
-    private_key = file("./keys/zchain-ap-east-1.cer")
+    private_key = file("./keys/zchain-ap-east-1.pem")
   }
 
   provisioner "remote-exec" {
@@ -310,7 +310,7 @@ resource "aws_instance" "web-ap-southeast-3" {
     type     = "ssh"
     user     = "ubuntu"
     host     = self.public_ip
-    private_key = file("./keys/zchain-ap-southeast-3.cer")
+    private_key = file("./keys/zchain-ap-southeast-3.pem")
   }
 
   provisioner "remote-exec" {
@@ -353,7 +353,7 @@ resource "aws_instance" "web-ap-south-1" {
     type     = "ssh"
     user     = "ubuntu"
     host     = self.public_ip
-    private_key = file("./keys/zchain-ap-south-1.cer")
+    private_key = file("./keys/zchain-ap-south-1.pem")
   }
 
   provisioner "remote-exec" {
@@ -397,7 +397,7 @@ resource "aws_instance" "web-ap-northeast-3" {
     type     = "ssh"
     user     = "ubuntu"
     host     = self.public_ip
-    private_key = file("./keys/zchain-ap-northeast-3.cer")
+    private_key = file("./keys/zchain-ap-northeast-3.pem")
   }
 
   provisioner "remote-exec" {
@@ -440,7 +440,7 @@ resource "aws_instance" "web-ap-northeast-2" {
     type     = "ssh"
     user     = "ubuntu"
     host     = self.public_ip
-    private_key = file("./keys/zchain-ap-northeast-2.cer")
+    private_key = file("./keys/zchain-ap-northeast-2.pem")
   }
 
   provisioner "remote-exec" {
@@ -483,7 +483,7 @@ resource "aws_instance" "web-ap-northeast-1" {
     type     = "ssh"
     user     = "ubuntu"
     host     = self.public_ip
-    private_key = file("./keys/zchain-ap-northeast-1.cer")
+    private_key = file("./keys/zchain-ap-northeast-1.pem")
   }
 
   provisioner "remote-exec" {
@@ -526,7 +526,7 @@ resource "aws_instance" "web-ap-southeast-1" {
     type     = "ssh"
     user     = "ubuntu"
     host     = self.public_ip
-    private_key = file("./keys/zchain-ap-southeast-1.cer")
+    private_key = file("./keys/zchain-ap-southeast-1.pem")
   }
 
   provisioner "remote-exec" {
@@ -569,7 +569,7 @@ resource "aws_instance" "web-ap-southeast-2" {
     type     = "ssh"
     user     = "ubuntu"
     host     = self.public_ip
-    private_key = file("./keys/zchain-ap-southeast-2.cer")
+    private_key = file("./keys/zchain-ap-southeast-2.pem")
   }
 
   provisioner "remote-exec" {
