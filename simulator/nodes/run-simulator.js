@@ -77,10 +77,8 @@ async function main() {
     const ips = fs.readFileSync(path.join(publicIPDir, ipFile), 'utf-8');
     const ipArr = ips.split('\n').filter(Boolean);
 
-    let ext = os.platform() === 'darwin' ? 'cer' : 'pem';
-
     // aws key pair name is constructed as :: zchain-<region>.pem
-    const keyPairFile = `zchain-${ipFile.split('.txt')[0]}.${ext}`;
+    const keyPairFile = `zchain-${ipFile.split('.txt')[0]}.pem`;
 
     for (const ip of ipArr) {
       promises.push( runNode(keyPairFile, ip) );
