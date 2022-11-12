@@ -143,11 +143,12 @@ export class ZCHAIN {
         baseChannel = channel.split('::')[1];
       }
       
+      await this.zStore.handlePublish(msg, channels, network);
+    
       await this.analytics.pipeDataToCentralServer(
         this.zId, msg, 
         baseChannel ?? channel, network
       );
-      await this.zStore.handlePublish(msg, channels, network);
     }
 
     analyticsOFF() {
