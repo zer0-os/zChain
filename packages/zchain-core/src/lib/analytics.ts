@@ -22,7 +22,16 @@ export class Analytics {
 
     // compute storage by this node, in this system on network
     const dbPath = path.join(DB_PATH, zId.name);
-    const storage = await dirSize(dbPath);
+
+    // try to get storage 5 times (as it could happen level-db has a file in cache which got deleted - so we get an error)
+    let storage: number = 0;
+    for (let i = 0; i < 5; ++i) {
+      try {
+        storage = await dirSize(dbPath);
+        break;
+      } catch (error) {}
+    }
+
     const storageInMB = storage / 1e6; // mb
     
     // ip address is determined in the req object of server 
