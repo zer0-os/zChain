@@ -30,7 +30,7 @@ import { MEOW } from "../meow";
 
     console.log("message: ", message);
     await meow.sendMeow(message);
-  }, 2 * 1000);
+  }, 20 * 1000);
 })()
   .catch(err => {
     console.log('E ', err);
