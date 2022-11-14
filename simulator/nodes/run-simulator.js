@@ -32,10 +32,12 @@ async function runNode(keyPairFileName, ipAddress) {
   // ]);
 
   const childProcess = spawn('sh', [
-    './scripts/0-ec2-ssh.sh', keyPairFileName, ipAddress
+    './scripts/0-ec2-ssh.sh', keyPairFileName, ipAddress, '&'
   ], {
-    //stdio: "inherit",
+    detached: true,
+    //stdio: [ 'ignore', 'pipe', 'pipe'],
     cwd: process.cwd(),
+    //shell: true
   });
 
 
@@ -62,8 +64,13 @@ async function runNode(keyPairFileName, ipAddress) {
       childProcess.removeAllListeners("close");
       reject(new Error("script process returned non 0 status"));
     });
-  });
 
+    childProcess.stderr.on('data', (data) => {
+      console.error(`child stderr:\n${data}`);
+    });
+
+  });
+  
   return result;
 }
 
