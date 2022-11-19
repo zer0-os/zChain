@@ -182,10 +182,10 @@ export class ZCHAIN {
       
       await this.zStore.handlePublish(msg, channels, network);
     
-      // await this.analytics.pipeDataToCentralServer(
-      //   this.zId, msg, 
-      //   baseChannel ?? channel, network
-      // );
+      await this.analytics.pipeDataToCentralServer(
+        this.zId, msg, 
+        baseChannel ?? channel, network
+      );
     }
 
     analyticsOFF() {
