@@ -49,6 +49,19 @@ export class ZCHAIN {
             ...listenAddrs
           ]
         },
+        connectionManager: {
+          // dialer config
+          maxParallelDials: 100,
+          maxAddrsToDial: 4,
+          maxDialsPerPeer: 2,
+          dialTimeout: 30000,
+          autoDial: true,
+          maxConnections: 55,
+          minConnections: 10,
+        },
+        metrics: {
+          enabled: false
+        },
         modules: {
           transport: [TCP, WebSocket],
           streamMuxer: [Mplex],
@@ -61,11 +74,35 @@ export class ZCHAIN {
           dht: {
             enabled: false
           },
+          nat: {
+            // libp2p usage of nat-api is broken as shown in this issue. https://github.com/ChainSafe/lodestar/issues/2996
+            // Also, unnsolicited usage of UPnP is not great, and should be customizable with flags
+            enabled: false,
+          },
           pubsub: {
             enabled: true,
             // uncomment to enable publishing node to listen to it's "own" message
             emitSelf: true
-          }
+          },
+          peerDiscovery: {
+            autoDial: true
+          },
+          relay: {
+            enabled: false,
+            hop: {
+              enabled: false,
+              active: false,
+            },
+            advertise: {
+              enabled: false,
+              ttl: 0,
+              bootDelay: 0,
+            },
+            autoRelay: {
+              enabled: false,
+              maxListeners: 0,
+            },
+          },
         }
       };
 
@@ -145,10 +182,10 @@ export class ZCHAIN {
       
       await this.zStore.handlePublish(msg, channels, network);
     
-      await this.analytics.pipeDataToCentralServer(
-        this.zId, msg, 
-        baseChannel ?? channel, network
-      );
+      // await this.analytics.pipeDataToCentralServer(
+      //   this.zId, msg, 
+      //   baseChannel ?? channel, network
+      // );
     }
 
     analyticsOFF() {
