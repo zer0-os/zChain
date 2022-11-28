@@ -1,0 +1,59 @@
+{
+  "name": "cli",
+  "version": "0.0.1",
+  "description": "CLI for p2p-chat-app",
+  "keywords": [
+    "cli",
+    "p2p"
+  ],
+  "license": "(Apache-2.0 OR MIT)",
+  "main": "build/src/index.js",
+  "types": "build/src/index.d.ts",
+  "preferGlobal": true,
+  "type": "module",
+  "typesVersions": {
+    "*": {
+      "*": [
+        "types/*",
+        "types/src/*"
+      ],
+      "types/*": [
+        "types/*",
+        "types/src/*"
+      ]
+    }
+  },
+  "files": [
+    "*",
+    "!**/*.tsbuildinfo"
+  ],
+  "publishConfig": {
+    "directory": "dist"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zer0-os/zChain"
+  },
+  "bin": {
+    "meow": "build/src/cli.js"
+  },
+  "scripts": {
+    "test": "npm run test:node",
+    "build": "tsc --build .",
+    "build:watch": "tsc -w -p .",
+    "meow": "meow"
+  },
+  "dependencies": {
+    "debug": "^4.3.4",
+    "enquirer": "^2.3.6",
+    "err-code": "^3.0.1",
+    "it-all": "^1.0.6",
+    "it-glob": "^1.0.2",
+    "yargs": "^16.0.3"
+  },
+  "devDependencies": {
+    "@types/yargs": "^16.0.0",
+    "peer-id": "^0.16.0",
+    "sinon": "^14.0.0"
+  }
+}

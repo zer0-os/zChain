@@ -1,0 +1,76 @@
+{
+  "name": "core",
+  "version": "1.0.0",
+  "description": "Core implementation of node and message passing",
+  "license": "Apache-2.0",
+  "keywords": [
+    "tooling"
+  ],
+  "exports": "./build/index.js",
+  "types": "build/index.d.ts",
+  "type": "module",
+  "engines": {
+    "node": ">=14.13.1 || >=16.0.0"
+  },
+  "scripts": {
+    "lint": "eslint --ext .js,.ts src",
+    "lint:fix": "eslint --fix --ext .js,.ts src",
+    "build": "tsc --build .",
+    "build:watch": "tsc -w -p ."
+  },
+  "dependencies": {
+    "@chainsafe/libp2p-gossipsub": "^4.1.1",
+    "@chainsafe/libp2p-noise": "^9.0.0",
+    "@koush/wrtc": "^0.5.3",
+    "@libp2p/bootstrap": "^4.0.0",
+    "@libp2p/kad-dht": "^4.0.0",
+    "@libp2p/mdns": "^4.0.0",
+    "@libp2p/mplex": "^6.0.2",
+    "@libp2p/pubsub": "^4.0.0",
+    "@libp2p/tcp": "^4.0.0",
+    "@libp2p/webrtc-star": "^4.0.1",
+    "@libp2p/websockets": "^4.0.0",
+    "@nodelib/fs.walk": "^1.2.8",
+    "api": "^1.0.0",
+    "axios": "^0.27.2",
+    "delay": "^5.0.0",
+    "fastify-bearer-auth": "^6.3.0",
+    "fastify-cors": "^6.1.0",
+    "libp2p": "^0.39.5",
+    "multiaddr": "^10.0.1",
+    "peer-id": "^0.16.0",
+    "stream": "^0.0.2",
+    "web3": "^1.7.5",
+    "y-leveldb": "^0.1.1",
+    "yjs": "^13.5.42"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.13",
+    "eslint": "^8.23.0",
+    "express": "^4.18.1",
+    "libp2p-websockets": "^0.16.2",
+    "nyc": "^15.1.0",
+    "typedoc": "^0.23.11"
+  },
+  "files": [
+    "build/",
+    "LICENSE",
+    "README.md"
+  ],
+  "nyc": {
+    "extension": [
+      ".ts"
+    ],
+    "exclude": [
+      "build",
+      "test",
+      "coverage",
+      ".nyc_output"
+    ],
+    "reporter": [
+      "text",
+      "lcovonly"
+    ],
+    "all": true
+  }
+}

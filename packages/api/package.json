@@ -1,0 +1,65 @@
+{
+  "name": "api",
+  "description": "REST API module for p2p-chat-app",
+  "license": "Apache-2.0",
+  "version": "1.0.0",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./build/index.js"
+    },
+    "./beacon": {
+      "import": "./build/beacon/index.js"
+    },
+    "./beacon/server": {
+      "import": "./build/beacon/server/index.js"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "*": [
+        "*",
+        "build/*",
+        "build/*/index"
+      ]
+    }
+  },
+  "types": "./build/index.d.ts",
+  "files": [
+    "build/**/*.d.ts",
+    "build/**/*.js",
+    "build/**/*.js.map",
+    "*.d.ts",
+    "*.js"
+  ],
+  "scripts": {
+    "lint": "eslint --ext .js,.ts src",
+    "lint:fix": "eslint --fix --ext .js,.ts src",
+    "build": "tsc --build .",
+    "build:watch": "tsc -w -p ."
+  },
+  "dependencies": {
+    "@chainsafe/persistent-merkle-tree": "^0.4.2",
+    "@chainsafe/ssz": "^0.9.2",
+    "@lodestar/config": "^1.2.1",
+    "@lodestar/params": "^1.2.1",
+    "@lodestar/types": "^1.2.2",
+    "@lodestar/utils": "^1.2.1",
+    "cross-fetch": "^3.1.4",
+    "eventsource": "^2.0.2",
+    "qs": "^6.10.1"
+  },
+  "devDependencies": {
+    "@types/eventsource": "^1.1.5",
+    "@types/qs": "^6.9.6",
+    "ajv": "^8.11.0",
+    "fastify": "3.15.1"
+  },
+  "peerDependencies": {
+    "fastify": "3.15.1"
+  },
+  "keywords": [
+    "api",
+    "blockchain"
+  ]
+}
