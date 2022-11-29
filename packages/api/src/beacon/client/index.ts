@@ -13,10 +13,9 @@ type ClientModules = HttpClientModules & {
  * REST HTTP client for all routes
  */
 export function getClient(opts: HttpClientOptions, modules: ClientModules): Api {
-  const {config} = modules;
   const httpClient = modules.httpClient ?? new HttpClient(opts, modules);
 
   return {
-    node: node.getClient(config, httpClient)
+    node: node.getClient(httpClient)
   };
 }

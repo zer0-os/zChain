@@ -13,7 +13,7 @@ export function cli (command, ctxMiddleware) {
   return new Promise((resolve, reject) => {
     try {
       parser
-        .scriptName("meow")
+        .scriptName("ringer")
         .middleware(ctxMiddleware)
         .onFinishCommand((data) => {
           resolve(data)

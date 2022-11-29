@@ -5,10 +5,10 @@ import debug from 'debug'
 import { Multiaddr } from 'multiaddr'
 import { fromString as uint8ArrayFromString } from 'uint8arrays/from-string'
 
-const log = debug('meow:cli:utils')
+const log = debug('ringer:cli:utils')
 
 export const getRepoPath = () => {
-  return path.join(os.homedir(), '/.zchain')
+  return path.join(os.homedir(), '/.ringer')
 }
 
 export const isDaemonOn = () => {
@@ -89,8 +89,8 @@ export const rightpad = (val, n) => {
   return result
 }
 
-export const zChainPathHelp = 'meow-cli uses a repository in the local file system. By default, the repo is ' +
-  'located at ~/.zchain\n'
+export const pathHelp = 'This cli uses a repository in the local file system. By default, the repo is ' +
+  'located at ~/.ringer\n'
 
 
 

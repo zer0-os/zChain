@@ -28,7 +28,7 @@ After cloning the git repo, simply run:
 sh install.sh
 ```
 
-This shell script will install, build and link all the packages. Try running `meow --help` to check if the installation was proper. You should see something like:
+This shell script will install, build and link all the packages. Try running `ringer --help` to check if the installation was proper. You should see something like:
 
 ![image](https://user-images.githubusercontent.com/33264364/165640076-fe28e4d3-83a1-48da-9bc7-72ef58dc6ad8.png)
 
@@ -86,7 +86,7 @@ To install and run zchain we'll need to switch the architecture from `arm` to `x
   sh install.sh
   ```
 
-Try running `meow --help` to check if the installation was proper.
+Try running `ringer --help` to check if the installation was proper.
 
 **NOTES:**
 + After running zchain, don't forget the "exit" the `x64` architecture. Simply run `exit` on the terminal, to get back to `arm` arch.
@@ -102,20 +102,20 @@ sh clean.sh
 
 ## Quick Start
 
-To quickly get up a node up & running, you can start up the sandbox. It has the zChain (libp2p) node initialized within the `meow` global var (present in the execution environment of the REPL):
+To quickly get up a node up & running, you can start up the sandbox. It has the zChain (libp2p) node initialized within the `ringer` global var (present in the execution environment of the REPL):
 ```sh
 # clone + setup
 git clone <zChain-repo-git-url>
 sh install.sh
 
 # run the sandbox
-meow sandbox
+ringer sandbox
 ```
 
 The screen should look something like this:
 ![image](https://user-images.githubusercontent.com/33264364/165646660-fdf65586-f324-48ca-bd02-6dea50996e75.png)
 
-You can run another node, on another terminal screen (using `meow sandbox` again, and select the option "*Initialize a new node*"). Then those two nodes can interact with each other.
+You can run another node, on another terminal screen (using `ringer sandbox` again, and select the option "*Initialize a new node*"). Then those two nodes can interact with each other.
 
 ## Docker 
 
@@ -132,12 +132,12 @@ It will build the docker image, install dependencies, build the typescript proje
 The repo has mainly been divided into 3 packages
 
 + `packages/zchain-core`: Contains code for core zChain package (library).
-+ `packages/apps/meow`: A meow app (p2p twitter like) built on top of zChain.
-+ `packages/meow-cli`: CLI for meow app. Currently supports only the "sandbox" command.
++ `packages/apps/ringer`: A ringer app (p2p twitter like) built on top of zChain.
++ `packages/ringer-cli`: CLI for ringer app. Currently supports only the "sandbox" command.
 
 ## Usage
 
-You can import `zChain` or `meow` as a library/class and directly use it. First, you'll need to link these packages in your application. First follow the setup:
+You can import `zChain` or `ringer` as a library/class and directly use it. First, you'll need to link these packages in your application. First follow the setup:
 
 ```sh
 # clone + setup
@@ -145,11 +145,11 @@ git clone https://github.com/zer0-os/zChain.git
 sh install.sh
 ```
 
-You can then link the `zchain-core` & `meow-app` into your project. This will create a symbolic link b/w your *node_modules* and the `zchain` & `meow` package:
+You can then link the `zchain-core` & `ringer-app` into your project. This will create a symbolic link b/w your *node_modules* and the `zchain` & `ringer` package:
 ```sh
 cd myapp/
 yarn link `zchain-core`
-yarn link `meow-app`
+yarn link `ringer-app`
 ```
 
 After linking the packages, you can simply import these classes:
@@ -158,17 +158,17 @@ After linking the packages, you can simply import these classes:
 import { ZCHAIN } from "zchain-core";
 let node_a = new ZCHAIN();
 await node_a.initialize('node-1.json');
-await node_a.publish('#meow', 'Bird bird bird, bird is the word!');
+await node_a.publish('#ringer', 'Bird bird bird, bird is the word!');
 
-// using meow
-import { MEOW } from "meow-app";
-const meow = new MEOW();
-await meow.init('n3o.json');
-await meow.sendMeow("Hello");
+// using ringer
+import { MEOW } from "ringer-app";
+const ringer = new MEOW();
+await ringer.init('n3o.json');
+await ringer.sendMeow("Hello");
 ```
 
 ## API
 
-For a more technical overview of zChain and meow functionality, checkout API docs hosted on gitbook.
+For a more technical overview of zChain and ringer functionality, checkout API docs hosted on gitbook.
 + [zChain API](https://www.zero.study/zchain/api/zchain)
-+ [meow API](https://www.zero.study/zchain/api/meow)
++ [ringer API](https://www.zero.study/zchain/api/ringer)

@@ -1,5 +1,5 @@
 import yargs from 'yargs'
-import { zChainPathHelp, disablePrinting } from './utils.js'
+import { pathHelp, disablePrinting } from './utils.js'
 import { commandList } from './commands/index.js'
 
 const args = yargs(process.argv.slice(2))
@@ -12,7 +12,7 @@ const args = yargs(process.argv.slice(2))
       return silent
     }
   })
-  .epilog(zChainPathHelp)
+  .epilog(pathHelp)
   .demandCommand(1, 'Please specify a command')
   .showHelpOnFail(false)
   // @ts-ignore types are wrong

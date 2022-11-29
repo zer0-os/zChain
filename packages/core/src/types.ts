@@ -1,5 +1,13 @@
 import * as Y from 'yjs';
 
+export interface NodeInitOpts {
+  name: string,
+  rest: {
+    port: number
+    address: string
+  }
+}
+
 export interface PubSubMessage {
   topicIDs: string[]
   from: string

@@ -46,7 +46,7 @@ if (process.env.DEBUG) {
   })
 }
 
-const log = debug('meow:cli')
+const log = debug('ringer:cli')
 
 process.title = pkg.name
 
@@ -62,10 +62,10 @@ if (!semver.satisfies(process.versions.node, pkg.node)) {
  */
 async function main (argv) {
   let exitCode = 0
-  let meow: any;
+  let ringer: any;
   let ctx = {
     print,
-    meow,
+    ringer,
     getStdin: () => process.stdin,
     repoPath: getRepoPath(),
     cleanup: () => {},
@@ -78,11 +78,11 @@ async function main (argv) {
     const data = await cli(command, async (argv) => {
       if (!['init', 'sandbox', 'commands'].includes(command[0])) {
         // @ts-ignore argv as no properties in common
-        const { meow, cleanup } = await loadMeow()
+        const { ringer, cleanup } = await load()
 
         ctx = {
           ...ctx,
-          meow,
+          ringer,
           cleanup
         }
       }
@@ -122,7 +122,7 @@ async function main (argv) {
     await ctx.cleanup()
   }
 
-  if (command[0] === 'daemon' || command[0] === 'open') {
+  if (command[0] === 'daemon' || command[0] === 'open' || command[0] === 'init') {
     // don't shut down the daemon process
     return
   }

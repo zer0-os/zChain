@@ -50,5 +50,5 @@ export function getGenericJsonServer<
         }
       },
     };
-  });
+  }) as any; // todo: likely related to fastify version upgrade
 }

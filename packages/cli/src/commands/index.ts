@@ -1,11 +1,5 @@
-import commands from './commands.js'
-import db from './db.js';
-import sandbox from './sandbox.js';
+import init from './init.js';
 
 export const commandList = [
-  // sendmeow,
-  //set,
-  sandbox,
-  //db,
-  //commands,
+  init
 ]

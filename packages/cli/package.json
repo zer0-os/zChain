@@ -30,18 +30,14 @@
   "publishConfig": {
     "directory": "dist"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/zer0-os/zChain"
-  },
   "bin": {
-    "meow": "build/src/cli.js"
+    "ringer": "build/src/cli.js"
   },
   "scripts": {
     "test": "npm run test:node",
     "build": "tsc --build .",
     "build:watch": "tsc -w -p .",
-    "meow": "meow"
+    "ringer": "ringer"
   },
   "dependencies": {
     "debug": "^4.3.4",

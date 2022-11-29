@@ -1,4 +1,4 @@
-import { zChainPathHelp } from '../utils.js'
+import { pathHelp } from '../utils.js'
 import repl from "repl";
 import chalk from "chalk";
 import { runInNewContext } from "vm";
@@ -8,7 +8,8 @@ import path from 'path';
 import delay from 'delay';
 import enquirer from "enquirer";
 // loookkkk
-import { ZCHAIN } from 'core';
+import { P2PNode } from 'core';
+import yargs from 'yargs';
 
 // handle top level await
 export function preprocess(input: string): string {
@@ -54,48 +55,23 @@ async function evaluate(
 	}
 }
 
-async function startConsole(zIdName: string): Promise<void> {
-	await new Promise<void>(async (resolve, reject) => {
-
-    // // log to a ~/zchain.log file, instead of console
-    // const logFile = fs.createWriteStream(os.homedir() + '/zchain.log', {flags : 'a'});
-    // console.log = function(...args) {
-    //   if (String(args[0]).includes('Swarm') || String(args[0]).includes('★') || String(args[0]).includes('Try typing')) {
-    //     console.info(args.join(''))
-    //   }
-
-    //   args = [`[${(new Date()).toISOString()}] `].concat(args);
-    //   const logs = args.join('');
-    //   logFile.write(util.format(logs) + '\n');
-    // };
-
-    const zchain = new ZCHAIN();
-    await zchain.initialize(zIdName);
-
-		console.log("★", chalk.cyan(" Welcome to meow console "), "★");
-		//meow.help();
-
-		console.log(chalk.green(`Try typing: meow.sendMeow("Hello World")`));
-		console.log(chalk.green(`Use meow.help() to see a list of all available functions\n`));
-
-		await delay(6 * 1000);
-		const server = repl.start({
-			prompt: chalk.cyan("meow> "),
-			eval: evaluate,
-		});
-
-		// assign repl context
-		server.context.zchain = zchain;
-		server.on("exit", async () => {
-			resolve();
-		});
-	});
+interface NodeInitOpts {
+  name: string,
+  rest: {
+    port: number
+    address: string
+  }
 }
 
-async function getNewName() {
-	const response = await (enquirer as any).prompt({
+async function startNode(opts: NodeInitOpts): Promise<void> {
+  const node = new P2PNode();
+  await node.initialize(opts);
+}
+
+async function getNewName() {		
+	const response = await enquirer.prompt({
 		type: 'input',
-		name: 'zIdName',
+		name: 'peerName',
 		message: 'Please type a name for your node'
 	});
 
@@ -103,24 +79,35 @@ async function getNewName() {
 }
 
 export default {
-  command: 'sandbox',
+  command: 'init',
 
-  describe: 'Opens up an interactive playground with meow global object',
+  describe: 'Initializes a p2p node to facilitate chatting b/w validators',
 
   /**
-   * @param {import('yargs').Argv} yargs
+   * @param yargs
    */
   builder (yargs) {
     return yargs
-      .epilog(zChainPathHelp)
+      .epilog(pathHelp)
       .option('force', {
         type: 'boolean',
-        desc: 'If true, REMOVES any previos config present at ~/.zchain',
+        desc: 'If true, REMOVES any previos config present at ~/.ringer',
         default: false
       })
       .option('name', {
         type: 'string',
         desc: 'Name of the node. If passed, this name is directly used to initialize the node',
+      })
+      // rest api options
+      .option('restPort', {
+        type: 'number',
+        desc: 'Listen TCP port for the HTTP REST server',
+				default: '9596'
+      })
+      .option('restAddr', {
+        type: 'string',
+        desc: 'Listen address for the HTTP REST server',
+				default: '127.0.0.1'
       })
   },
 
@@ -131,28 +118,28 @@ export default {
   async handler (argv) {
     // remove existing config if --force is passed
     if (argv.force) {
-      fs.rmSync(path.join(os.homedir(), '/.zchain'), {force: true, recursive: true});
+      fs.rmSync(path.join(os.homedir(), '/.ringer'), {force: true, recursive: true});
     }
 
 		let name: string;
 		if (argv.name !== undefined) {
 			name = argv.name;
 		} else {
-			const basePath = path.join(os.homedir(), '.zchain', 'zId');
+			const basePath = path.join(os.homedir(), '.ringer', 'peerId');
 			if (!fs.existsSync(basePath)) {
 				name = await getNewName();
 			} else {
-				const zIdNames = fs
+				const names = fs
 					.readdirSync(basePath, { withFileTypes: true })
 					.filter((dirent) => (!dirent.isDirectory() && dirent.name.endsWith('.json')))
 					.map((dirent) => dirent.name.split('.json')[0]);
 
-				if (zIdNames.length === 0) {
+				if (names.length === 0) {
 					name = await getNewName();
 				} else {
 					const choicePrompt = new (enquirer as any).Select({
 						name: "Choose",
-						message: "Existing node configuration found at ~/.zchain/zId",
+						message: "Existing node configuration found at ~/.ringer/peerId",
 						choices: ["Load from an existing node", "Initialize a new node"],
 					});
 
@@ -163,7 +150,7 @@ export default {
 						const namePrompt = new (enquirer as any).Select({
 							name: "Nodes",
 							message: "Pick a node to load",
-							choices: zIdNames,
+							choices: names,
 						});
 						name = await namePrompt.run();
 					}
@@ -171,6 +158,9 @@ export default {
 			}
 		}
 
-    await startConsole(name);
+    await startNode({ 
+			name: argv.name, 
+			rest: { port: argv.restPort, address: argv.restAddr } 
+		});
   }
 }

@@ -1,20 +1,5 @@
-import { stdinToStream, streamToConsole } from "./lib/stream.js";
-import { ZCHAIN } from "./lib/zchain.js";
-import { ZStore } from "./lib/storage.js";
-import { decode, encode } from "./lib/encryption.js";
-import { RELAY_ADDRS } from "./lib/constants.js";
-import { assertValidzId, ZID } from "./lib/zid.js";
-import * as types from "./types.js";
+import { P2PNode } from "./node.js";
 
 export {
-  ZCHAIN,
-  stdinToStream,
-  streamToConsole,
-  ZStore,
-  ZID,
-  assertValidzId,
-  types,
-  decode,
-  encode,
-  RELAY_ADDRS
+  P2PNode
 };

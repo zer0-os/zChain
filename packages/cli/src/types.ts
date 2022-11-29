@@ -4,7 +4,7 @@ export interface Argv {
 }
 
 export interface Context {
-  meow: any
+  ringer: any
   print: Print
   isDaemon: boolean
   getStdin: () => AsyncIterable<Buffer>

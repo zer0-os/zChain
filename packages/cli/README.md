@@ -1,1 +1,1 @@
-# meow-cli <!-- omit in toc -->
+# ringer-cli <!-- omit in toc -->

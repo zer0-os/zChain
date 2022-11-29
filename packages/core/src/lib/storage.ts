@@ -4,11 +4,10 @@ import {
   PeerMeta, PrivateYDoc,
   PublicYDoc, YDocs, ZChainMessage
 } from "../types.js";
-import { decode, encode } from "./encryption.js";
 
 import chalk from "chalk";
-import { assertValidzId } from "./zid.js";
-import { DB_PATH } from "./constants.js";
+import { assertValidPeerId } from "./peer-id.js";
+//import { DB_PATH } from "./constants.js";
 import Web3 from 'web3';
 import * as Y from 'yjs';
 //import { Provider } from 'y-libp2p';
@@ -20,7 +19,7 @@ const SYSPATH = 'sys';
 function isValidzId(zId: string): Boolean {
   let isValid = true;
   try {
-    assertValidzId(zId);
+    assertValidPeerId(zId);
   } catch (error) {
     isValid = false;
   }
@@ -68,7 +67,7 @@ export class ZStore {
   }
 
   async init(zIdName: string): Promise<void> {
-    this.persistence = new LeveldbPersistence(path.join(DB_PATH, zIdName));
+    this.persistence = new LeveldbPersistence(path.join("DB_PATH", zIdName)); ////..
 
     // eg. ./zchain-db/{peerId}/sys/<log>
     const peerID = this.libp2p.peerId.toString();
@@ -136,7 +135,7 @@ export class ZStore {
       from: this.libp2p.peerId.toString(),
       network: network ?? undefined,
       channels: channels,
-      message: await encode(message, this.password),
+      message: message,
       // timestamp: Math.round(+new Date() / 1000),
     }
 
@@ -185,7 +184,7 @@ export class ZStore {
       const msg = m as ZChainMessage;
       messagesOnFeed.push({
         ...msg,
-        message: await decode(msg.message, this.password)
+        message: msg.message
       });
     }
 
@@ -222,7 +221,7 @@ export class ZStore {
    * @param name name to set
    */
   async setNameInAddressBook(peerId: string, name: string, force: boolean = false): Promise<void> {
-    assertValidzId(peerId);
+    assertValidPeerId(peerId);
 
     let addressBookMap = this.privateYDoc.addressBook; // ymap
     if (!addressBookMap) {
@@ -347,7 +346,7 @@ export class ZStore {
    * @returns peerMeta :: { defaultAddress: <addr>, meta: [ { ethaddress, sig }, {..} ] }
    */
   async getPeerEthAddressAndSignature(peerID: string): Promise<Object> {
-    assertValidzId(peerID);
+    assertValidPeerId(peerID);
 
     return await this.publicYDoc.metaData.get(peerID);
   }

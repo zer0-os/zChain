@@ -1,8 +1,8 @@
 import querystring from "querystring";
 import fastify, {FastifyError, FastifyInstance} from "fastify";
-import fastifyCors from "fastify-cors";
-import bearerAuthPlugin from "fastify-bearer-auth";
-import {RouteConfig} from "api/beacon/server";
+import cors from '@fastify/cors'
+import bearerAuthPlugin from "@fastify/bearer-auth";
+import {RouteConfig} from "api/beacon/server"
 import {ErrorAborted, ILogger} from "@lodestar/utils";
 //import {IGauge, IHistogram} from "../../metrics/index.js";
 import {ApiError, NodeIsSyncing} from "../impl/errors.js";
@@ -46,8 +46,6 @@ export class RestApiServer {
   constructor(private readonly opts: RestApiServerOpts, modules: RestApiServerModules) {
     // Apply opts defaults
     const {logger, metrics} = modules;
-    
-    console.log("OPTS ", this.opts);
 
     const server = fastify({
       logger: false,
@@ -70,7 +68,7 @@ export class RestApiServer {
     });
 
     if (opts.cors) {
-      void server.register(fastifyCors, {origin: opts.cors});
+      void server.register(cors, {origin: opts.cors});
     }
 
     if (opts.bearerToken) {
@@ -112,7 +110,10 @@ export class RestApiServer {
   async listen(): Promise<void> {
     try {
       const host = this.opts.address;
-      const address = await this.server.listen(this.opts.port, host);
+      const address = await this.server.listen({
+        port: this.opts.port,
+        host: host
+      });
       console.info("Started REST API server", {address});
       if (!host || !isLocalhostIP(host)) {
         console.warn("REST API server is exposed, ensure untrusted traffic cannot reach this API");
