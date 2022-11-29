@@ -28,7 +28,7 @@ export async function createLibp2pNode(peerId: PeerId): Promise<ILibp2p> {
       ]
     },
     connectionManager: {
-      autoDial: false,
+      autoDial: true,
       dialTimeout: 60000
     },
     transports: [
